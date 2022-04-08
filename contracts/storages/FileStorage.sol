@@ -4,6 +4,7 @@ import './ExternalStorage.sol';
 import '../interfaces/storages/IFileStorage.sol';
 
 contract FileStorage is ExternalStorage, IFileStorage {
+    // TODO reconstruction
     mapping(string => uint256) public sizes;
     mapping(string => uint256) public createdTimes;
     mapping(string => mapping(address => bool)) public owners;
