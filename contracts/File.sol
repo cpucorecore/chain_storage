@@ -1,4 +1,5 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
@@ -28,53 +29,31 @@ contract File is Importable, ExternalStorable, IFile {
         }
 
         Storage().newFile(cid, size, owner, now);
+
+        // TODO Node().addFile(cid, size)
     }
 
-    function delFile(string calldata cid, address owner) external returns(bool) {
+    function deleteFile(string calldata cid, address owner) external returns(bool) {
         if(Storage().ownerExist(cid, owner)) {
             Storage().delOwner(cid, owner);
+
+            if(0 == Storage().owners(cid).length) {
+                string[] memory nodes = Storage().nodes(cid);
+                for(uint i=0; i<nodes.length; i++) {
+                    // TODO Task().issueDeleteTask(cid, nodes[i], "");
+                }
+            }
             return true;
         }
 
         return false;
     }
 
-    function exist(string calldata cid) public {
-        return Storage().exist(cid);
+    function fileAdded(string memory cid, string memory pid) public {
+        Storage().addNode(cid, pid);
     }
 
-    function size(string calldata cid) public returns(uint) {
-        return Storage().size(cid);
-
-    }
-
-    function addOwner(string calldata cid, address owner) public {
-        if(Storage().exist(cid)) {
-            Storage().addOwner(owner);
-        }
-    }
-
-    function delOwner(string calldata cid, address owner) public returns(bool) {
-
-    }
-
-    function isOwnerOf(string calldata cid, address owner) public returns(bool) {
-
-    }
-
-    function owners(string calldata cid) returns(string[] memory) {
-
-    }
-
-    function addNode(string calldata cid, string memory pid) public {
-
-    }
-
-    function delNode(string calldata cid, string memory pid) public {
-
-    }
-
-    function nodeExist(string calldata cid, string memory pid) public returns(bool) {
-
+    function fileDeleted(string memory cid, string memory pid) public {
+        Storage().delNode(cid, pid);
     }
 }

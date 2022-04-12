@@ -1,62 +1,97 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import './ExternalStorage.sol';
 import '../interfaces/storages/IFileStorage.sol';
 
 contract FileStorage is ExternalStorage, IFileStorage {
-    // TODO reconstruction
-    mapping(string => uint256) public sizes;
-    mapping(string => uint256) public createdTimes;
-    mapping(string => mapping(address => bool)) public owners;
-    mapping(string => mapping(string => bool)) public nodes;
+    mapping(string => FileItem) files;
+    mapping(bytes32 => string) hash2pids;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function newFile(string memory cid, uint256 size, address owner, uint256 createdTime) public returns(bool) {
-        if(0 != sizes[cid]) {
+        if(exist(cid)) {
             return false;
         }
 
-        sizes[cid] = size;
-        createdTimes[cid] = createdTime;
-        owners[cid][owner] = true;
+        EnumerableSet.AddressSet memory owners;
+        EnumerableSet.Bytes32Set memory nodes;
+
+        files[cid] = FileItem(true, size, createdTime, owners, nodes);
+
+        addOwner(cid, owner);
 
         return true;
     }
 
     function exist(string memory cid) public view returns(bool) {
-        return (0 != sizes[cid]);
+        return files[cid].exist;
     }
 
     function size(string memory cid) public view returns(uint256) {
-        return sizes[cid];
+        return files[cid].size;
     }
 
     function createdTime(string memory cid) public view returns(uint256) {
-        return createdTimes[cid];
+        return files[cid].createdTime;
     }
 
     function ownerExist(string memory cid, address owner) public view returns(bool) {
-        return owners[cid][owner];
+        return files[cid].owners.contains(owner);
     }
 
     function addOwner(string memory cid, address owner) public {
-        owners[cid][owner] = true;
+        EnumerableSet.AddressSet storage owners = files[cid].owners;
+        owners.add(owner);
     }
 
     function delOwner(string memory cid, address owner) public {
-        delete owners[cid][owner];
+        EnumerableSet.AddressSet storage owners = files[cid].owners;
+        owners.remove(owner);
+    }
+
+    function owners(string memory cid) public returns(address[] memory) {
+        EnumerableSet.AddressSet storage owners = files[cid].owners;
+        uint count = owners.length();
+        address[] memory result = new address[](count);
+
+        for(uint i=0; i<count; i++) {
+            result[i] = owners.at(i);
+        }
+
+        return result;
     }
 
     function nodeExist(string memory cid, string memory pid) public view returns(bool) {
-        return nodes[cid][pid];
+        return files[cid].nodes.contains(keccak256(bytes(pid)));
     }
 
     function addNode(string memory cid, string memory pid) public {
-        nodes[cid][pid] = true;
+        EnumerableSet.Bytes32Set storage nodes = files[cid].nodes;
+        bytes32 hash = keccak256(bytes(pid));
+        nodes.add(hash);
+
+        hash2pids[hash] = pid;
     }
 
     function delNode(string memory cid, string memory pid) public {
-        delete nodes[cid][pid];
+        EnumerableSet.Bytes32Set storage nodes = files[cid].nodes;
+        bytes32 hash = keccak256(bytes(pid));
+        nodes.remove(hash);
+    }
+
+    function nodes(string memory cid) public returns(string[] memory) {
+        EnumerableSet.Bytes32Set storage nodes = files[cid].nodes;
+        uint256 count = nodes.length();
+        string[] memory result = new string[](count);
+        bytes32 hash;
+
+        for(uint256 i=0; i<count; i++) {
+            hash = nodes.at(i);
+            result[i] = hash2pids[hash];
+        }
+
+        return result;
     }
 }
