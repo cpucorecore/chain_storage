@@ -9,8 +9,8 @@ contract IFileStorage {
 
     struct FileItem {
         bool exist;
-        uint size;
-        uint createdTime;
+        uint256 size;
+        uint256 createdTime;
         EnumerableSet.AddressSet owners;
         EnumerableSet.Bytes32Set nodes;
     }
