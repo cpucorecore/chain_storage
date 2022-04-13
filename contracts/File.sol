@@ -42,6 +42,8 @@ contract File is Importable, ExternalStorable, IFile {
                 for(uint i=0; i<nodes.length; i++) {
                     // TODO Task().issueDeleteTask(cid, nodes[i], "");
                 }
+                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
+                Storage().deleteFile(cid);
             }
             return true;
         }

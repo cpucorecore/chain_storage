@@ -25,6 +25,15 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return true;
     }
 
+    function deleteFile(string memory cid) public {
+        require(files[cid].exist, contractName.concat(": cid not exist cid-", cid));
+
+        FileItem storage file = files[cid];
+        require(0 != file.owners.length(), contractName.concat(": owners not empty cid-", cid));
+
+        delete files[cid];
+    }
+
     function exist(string memory cid) public view returns(bool) {
         return files[cid].exist;
     }
@@ -52,12 +61,12 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function owners(string memory cid) public returns(address[] memory) {
-        EnumerableSet.AddressSet storage owners = files[cid].owners;
-        uint count = owners.length();
+        EnumerableSet.AddressSet storage fileOwners = files[cid].owners;
+        uint count = fileOwners.length();
         address[] memory result = new address[](count);
 
         for(uint i=0; i<count; i++) {
-            result[i] = owners.at(i);
+            result[i] = fileOwners.at(i);
         }
 
         return result;
@@ -82,13 +91,13 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function nodes(string memory cid) public returns(string[] memory) {
-        EnumerableSet.Bytes32Set storage nodes = files[cid].nodes;
-        uint256 count = nodes.length();
+        EnumerableSet.Bytes32Set storage fileNodes = files[cid].nodes;
+        uint256 count = fileNodes.length();
         string[] memory result = new string[](count);
         bytes32 hash;
 
         for(uint256 i=0; i<count; i++) {
-            hash = nodes.at(i);
+            hash = fileNodes.at(i);
             result[i] = hash2pids[hash];
         }
 

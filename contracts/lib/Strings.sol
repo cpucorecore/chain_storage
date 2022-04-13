@@ -13,6 +13,10 @@ library Strings {
         return string(abi.encodePacked(a, b));
     }
 
+    function concat(string memory a, string memory b, string memory c) internal pure returns (string memory) {
+        return string(abi.encodePacked(a, b, c));
+    }
+
     function concat(
         string memory a,
         string memory b,

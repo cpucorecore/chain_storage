@@ -16,6 +16,7 @@ contract IFileStorage {
     }
 
     function newFile(string memory cid, uint256 size, address owner, uint256 createdTime) public returns(bool);
+    function deleteFile(string memory cid) public;
     function exist(string memory cid) public view returns(bool);
     function size(string memory cid) public view returns(uint256);
     function createdTime(string memory cid) public view returns(uint256);
