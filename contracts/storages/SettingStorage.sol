@@ -5,6 +5,7 @@ import '../interfaces/storages/ISettingStorage.sol';
 
 contract SettingStorage is ExternalStorage, ISettingStorage {
     mapping(bytes32 => mapping(bytes32 => uint256)) private _storage;
+    mapping(bytes32 => address) private _addresses;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -59,5 +60,13 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
 
     function getUint(bytes32 key) external view returns (uint256) {
         return _storage[DEFAULT][key];
+    }
+
+    function setAddress(bytes32 key, address value) external {
+        _addresses[key] = value;
+    }
+
+    function getAddress(bytes32 key) external returns(address) {
+        return _addresses[key];
     }
 }

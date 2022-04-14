@@ -33,4 +33,8 @@ interface ISettingStorage {
     function setUint(bytes32 key, uint256 value) external;
 
     function getUint(bytes32 key) external view returns (uint256);
+
+    function setAddress(bytes32 key, address value) external;
+
+    function getAddress(bytes32 key) external returns(address);
 }
