@@ -24,7 +24,7 @@ interface ITaskStorage {
     }
 
     function currentTid() external view returns(uint256);
-    function newTask(string calldata cid, string calldata pid, uint256 size) external returns(uint256);
+    function newTask(string calldata cid, string calldata pid, uint256 size, Action action) external returns(uint256);
     function cid(uint256 tid) external returns(string memory);
     function pid(uint256 tid) external returns(string memory);
     function status(uint256 tid) external returns(Status);
