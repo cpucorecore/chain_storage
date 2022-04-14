@@ -22,19 +22,21 @@ interface IUserStorage {
         EnumerableSet.Bytes32Set cidHashs;
     }
 
-    function newUser(address addr, uint256 storageSpace) external;
+    function newUser(address addr, uint256 space) external;
     function deleteUser(address addr) external;
     function exist(address addr) external returns(bool);
 
     function storageSpace(address addr) external returns(uint256);
     function storageSpace(address addr, uint256 storageSpace) external;
     function storageUsed(address addr) external returns(uint256);
-    function storageUsed(address addr, uint256 storageSpace) external;
+    function storageUsed(address addr, uint256 space) external;
+    function freeStorageUsed(address addr, uint256 space) external;
 
     function useStorage(address addr, uint256 storageUsed) external;
     function storageInfo(address addr) external returns(uint256, uint256);
 
     function cids(address addr) external returns(string[] memory);
+    function fileExist(address addr, string calldata cid) external returns(bool);
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external;
     function deleteFile(address addr, string calldata cid) external;
     function fileCount(address addr) external returns(uint256);

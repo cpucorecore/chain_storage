@@ -8,9 +8,9 @@ contract UserStorage is ExternalStorage, IUserStorage {
     mapping(address=>UserItem) private users;
     mapping(bytes32=>FileInfo) hash2FileInfo;
 
-    function newUser(address addr, uint256 storageSpace) public {
+    function newUser(address addr, uint256 space) public {
         EnumerableSet.Bytes32Set memory cidHashs;
-        users[addr] = UserItem(true, 0, storageSpace, cidHashs);
+        users[addr] = UserItem(true, 0, space, cidHashs);
     }
 
     function deleteUser(address addr) public {
@@ -37,8 +37,12 @@ contract UserStorage is ExternalStorage, IUserStorage {
         users[addr].used = storageUsed;
     }
 
-    function useStorage(address addr, uint256 storageUsed) public {
-        users[addr].used = users[addr].used.add(storageUsed);
+    function freeStorageUsed(address addr, uint256 space) public {
+        users[addr].used = users[addr].used.sub(space);
+    }
+
+    function useStorage(address addr, uint256 space) public {
+        users[addr].used = users[addr].used.add(space);
     }
 
     function storageInfo(address addr) public returns(uint256, uint256) {
@@ -55,6 +59,11 @@ contract UserStorage is ExternalStorage, IUserStorage {
         }
 
         return result;
+    }
+
+    function fileExist(address addr, string memory cid) public returns(bool) {
+        bytes32 hash = keccak256(bytes(cid));
+        return users[addr].cidHashs.contains(hash);
     }
 
     function addFile(address addr, string memory cid, uint256 size, uint256 duration, string memory ext) public {
