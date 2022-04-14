@@ -111,23 +111,23 @@ contract FileStorage is ExternalStorage, INodeStorage {
     }
 
     function status(string memory pid) public returns(Status) {
-
+        return nodes[pid].statusInfo.status;
     }
 
     function storageInfo(string memory pid) public returns(StorageInfo memory) {
-
+        return nodes[pid].storageInfo;
     }
 
     function serviceInfo(string memory pid) public returns(ServiceInfo memory) {
-
+        return nodes[pid].serviceInfo;
     }
 
     function maintainCount(string memory pid) public returns(uint256) {
-
+        return nodes[pid].serviceInfo.maintainCount;
     }
 
     function offlineCount(string memory pid) public returns(uint256) {
-
+        return nodes[pid].serviceInfo.offlineCount;
     }
 
     function chainAccount(string memory pid) public view returns(address) {
