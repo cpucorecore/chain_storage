@@ -23,42 +23,43 @@ interface INodeStorage {
         uint256 offlineCount;
         uint256 maintainCount;
         uint256 servingDuration;
-        uint256 registeredAt;
+        uint256 registerAt;
         uint256 onlineAt;
-        uint256 maintainAt;
-        uint256 offlineAt;
     }
 
     struct StorageInfo {
-        uint256 storageSpace;
-        uint256 storageUsed;
+        uint256 used;
+        uint256 space;
     }
 
-    struct NodeInfo {
-        StatusInfo statusInfo;
+    struct NodeItem {
+        string pid;
+        Status status;
         ServiceInfo serviceInfo;
         StorageInfo storageInfo;
-        uint starve;
-        address chainAccount;
+        uint256 starve;
         bool exist;
     }
 
-    function newNode(string calldata pid, address chainAccount, uint256 storageSpace) external;
-    function deleteNode(string calldata pid) external;
-    function exist(string calldata pid) external returns(bool);
-    function pids() external view returns(string[] memory);
-    function updateStorageSpace(string calldata pid, uint256 storageSpace) external;
-    function useStorageSpace(string calldata pid, uint256 spaceUsed) external;
-    function online(string calldata pid) external;
-    function offline(string calldata pid) external;
-    function maintain(string calldata pid) external;
-    function starve(string calldata pid, uint256 value) external;
-    function starve(string calldata pid) external view returns(uint256);
-    function status(string calldata pid) external returns(Status);
-    function storageInfo(string calldata pid) external returns(StorageInfo memory);
-    function serviceInfo(string calldata pid) external returns(ServiceInfo memory);
-    function maintainCount(string calldata pid) external returns(uint256);
-    function offlineCount(string calldata pid) external returns(uint256);
+    function newNode(address addr, string calldata pid, uint256 space) external;
+    function deleteNode(address addr) external;
+    function exist(address addr) external returns (bool);
 
-    function chainAccount(string calldata pid) external view returns(address);
+    function setSpace(address addr, uint256 space) external;
+    function setUsed(address addr, uint256 space) external;
+
+    function status(address addr) external view returns (Status);
+    function setStatus(address addr, Status status) external;
+    function maintainCount(address addr) external view returns (uint256);
+    function offlineCount(address addr) external view returns (uint256);
+
+    function starve(address addr) external view returns (uint256);
+    function setStarve(address addr, uint256 starve) external;
+
+    function storageInfo(address addr) external view returns (StorageInfo memory);
+    function serviceInfo(address addr) external view returns (ServiceInfo memory);
+
+    function pid(address addr) external view returns (string memory);
+    function pids() external view returns (string[] memory);
+    function cids(address addr) external view returns (string[] memory);
 }

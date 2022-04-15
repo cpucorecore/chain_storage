@@ -16,50 +16,50 @@ contract Node is Importable, ExternalStorable, INode {
         ];
     }
 
-    function Storage() private view returns(INodeStorage) {
+    function Storage() private view returns (INodeStorage) {
         return INodeStorage(getStorage());
     }
 
-    function register(string memory pid, uint256 storageSpace) public {
-        require(false == Storage().exist(pid), contractName.concat(": node not exist, pid-", pid));
+    function register(address addr, string memory pid, uint256 storageSpace) public {
+        require(false == Storage().exist(addr), contractName.concat(": node exist"));
         require(Storage().chainAccount(pid) == msg.sender, contractName.concat(": no auth"));
         Storage().newNode(pid, msg.sender, storageSpace);
     }
 
-    function deRegister(string memory pid) public {
-        check(pid);
-        Storage().deleteNode(pid);
+    function deRegister(address addr) public {
+        check(addr);
+        Storage().deleteNode(addr);
     }
 
-    function online(string memory pid) public {
-        check(pid);
-        Storage().online(pid);
+    function online(address addr) public {
+        check(addr);
+        Storage().setStatus(addr, INodeStorage.Status.Online);
     }
 
-    function offline(string memory pid) public {
-        check(pid);
-        Storage().offline(pid);
+    function offline(address addr) public {
+        check(addr);
+        Storage().setStatus(addr, INodeStorage.Status.Offline);
     }
 
-    function maintain(string memory pid) public {
-        check(pid);
-        Storage().maintain(pid);
+    function maintain(address addr) public {
+        check(addr);
+        Storage().setStatus(addr, INodeStorage.Status.Maintain);
     }
 
     function addFile(string memory cid, uint256 size, uint256 duration) public {
-        string[] memory tmpNodes = selectNodes(size, 3); // TODO 3 --> read from config
-        require(tmpNodes.length > 0, contractName.concat(": no available node"));
-        for(uint256 i=0; i<tmpNodes.length; i++) {
+        string[] memory nodes = selectNodes(size, 3); // TODO 3 --> read from config
+        require(nodes.length > 0, contractName.concat(": no available node"));
+        for(uint256 i=0; i< nodes.length; i++) {
             // Task().issueAddTask(pid, cid, size, duration);
         }
     }
 
-    function pids() public view returns(string[] memory) {// TODO page query
+    function pids() public view returns (string[] memory) {// TODO page query
         return Storage().pids();
     }
 
-    function starve(string memory pid) public view returns(uint256) {
-        return Storage().starve(pid);
+    function starve(address addr) public view returns (uint256) {
+        return Storage().starve(addr);
     }
 
     function taskFinished(uint256 tid) public {
@@ -70,7 +70,7 @@ contract Node is Importable, ExternalStorable, INode {
 
     }
 
-    function selectNodes(uint256 size, uint256 count) private returns(string[] memory) {
+    function selectNodes(uint256 size, uint256 count) private returns (string[] memory) {
 
     }
 
@@ -78,9 +78,7 @@ contract Node is Importable, ExternalStorable, INode {
 
     }
 
-    // private functions
-    function check(string memory pid) private {
-        require(Storage().exist(pid), contractName.concat(": node not exist, pid-", pid));
-        require(Storage().chainAccount(pid) == msg.sender, contractName.concat(": no auth"));
+    function check(address addr) private {
+        require(Storage().exist(addr), contractName.concat(": node not exist"));
     }
 }
