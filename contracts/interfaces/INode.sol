@@ -14,7 +14,7 @@ interface INode {
     function addFile(string calldata cid, uint256 size, uint256 duration) external;
 
     function pid(address addr) external view returns (string memory);
-    function pids(uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+    function nodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
     function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 
     function starve(address addr) external view returns (uint256);

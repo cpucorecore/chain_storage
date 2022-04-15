@@ -57,18 +57,19 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function addFile(string memory cid, uint256 size, uint256 duration) public {
-        string[] memory pids = selectNodes(size, Setting().getReplicas());
-        require(pids.length > 0, contractName.concat(": no available node"));
-        for(uint256 i=0; i<pids.length; i++) {
-            Task().issueTaskAdd(cid, pids[i], size, duration);
+        address[] memory addrs = selectNodes(size, Setting().getReplicas());
+        require(addrs.length > 0, contractName.concat(": no available node"));
+        for(uint256 i=0; i< addrs.length; i++) {
+            Task().issueTaskAdd(cid, Storage().pid(addrs[i]), size, duration);
         }
     }
 
     function pid(address addr) public view returns (string memory) {
         return Storage().pid(addr);
     }
-    function pids(uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
-        return Storage().pids(pageSize, pageNumber);
+
+    function nodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+        return Storage().nodeAddresses(pageSize, pageNumber);
     }
 
     function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
@@ -87,8 +88,21 @@ contract Node is Importable, ExternalStorable, INode {
 
     }
 
-    function selectNodes(uint256 size, uint256 count) private returns (string[] memory) {
+    function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
+        address[] memory onlineNodeAddresses;
+        Paging.Page memory page;
+        (onlineNodeAddresses, page) = Storage().onlineNodeAddresses(50, 1);
+        if(onlineNodeAddresses.length <= count) {
+            return onlineNodeAddresses;
+        } else {
+            address[] memory nodes = new address[](count);
+            for(uint256 i=0; i<count; i++) {
+                nodes[i] = onlineNodeAddresses[i];
+            }
+            return nodes;
+        }
 
+        // TODO select by socre
     }
 
     function feedNode(uint256 food) private {

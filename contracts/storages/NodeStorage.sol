@@ -12,6 +12,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     mapping(address=> NodeItem) nodes;
     EnumerableSet.AddressSet nodeAddrs;
+    EnumerableSet.AddressSet onlineNodeAddrs;
 
     mapping(address=>EnumerableSet.Bytes32Set) node2cidHashs;
     mapping(bytes32=>string) cidHash2cid;
@@ -41,6 +42,10 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].exist;
     }
 
+    function node(address addr) public returns (NodeItem memory) {
+        return nodes[addr];
+    }
+
     function setSpace(address addr, uint256 space) public {
         nodes[addr].storageInfo.space = space;
     }
@@ -55,6 +60,17 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function setStatus(address addr, Status status) public {
         nodes[addr].status = status;
+        if(Status.Online == status) {
+            onlineNodeAddrs.add(addr);
+        } else if(Status.Maintain == status) {
+            onlineNodeAddrs.remove(addr);
+            nodes[addr].serviceInfo.maintainCount = nodes[addr].serviceInfo.maintainCount.add(1);
+        } else if(Status.Offline == status) {
+            onlineNodeAddrs.remove(addr);
+            nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
+        } else if(Status.DeRegistered == status) {
+            onlineNodeAddrs.remove(addr);
+        }
     }
 
     function maintainCount(address addr) public view returns (uint256) {
@@ -85,31 +101,34 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].pid;
     }
 
-    function pids(uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
+    function nodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(nodeAddrs.length(), pageSize, pageNumber);
-
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
-
-        string[] memory result = new string[](page.pageRecords);
+        address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = nodes[nodeAddrs.at(start+i)].pid;
+            result[i] = nodeAddrs.at(start+i);
         }
+        return (result, page);
+    }
 
+    function onlineNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+        Paging.Page memory page = Paging.getPage(onlineNodeAddrs.length(), pageSize, pageNumber);
+        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
+        address[] memory result = new address[](page.pageRecords);
+        for(uint256 i=0; i<page.pageRecords; i++) {
+            result[i] = onlineNodeAddrs.at(start+i);
+        }
         return (result, page);
     }
 
     function cids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
         EnumerableSet.Bytes32Set storage cidHashs = node2cidHashs[addr];
-
         Paging.Page memory page = Paging.getPage(cidHashs.length(), pageSize, pageNumber);
-
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
-
         string[] memory result = new string[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = cidHash2cid[cidHashs.at(start+i)];
         }
-
         return (result, page);
     }
 }
