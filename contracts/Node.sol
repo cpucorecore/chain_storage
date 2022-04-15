@@ -5,11 +5,14 @@ import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/storages/INodeStorage.sol";
+import "./interfaces/ITask.sol";
+import "./interfaces/ISetting.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
+        CONTRACT_SETTING,
         CONTRACT_FILE,
         CONTRACT_USER,
         CONTRACT_TASK
@@ -18,6 +21,14 @@ contract Node is Importable, ExternalStorable, INode {
 
     function Storage() private view returns (INodeStorage) {
         return INodeStorage(getStorage());
+    }
+
+    function Setting() private view returns (ISetting) {
+        return ISetting(requireAddress(CONTRACT_SETTING));
+    }
+
+    function Task() private view returns (ITask) {
+        return ITask(requireAddress(CONTRACT_TASK));
     }
 
     function register(address addr, string memory pid, uint256 storageSpace) public {
@@ -46,10 +57,10 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function addFile(string memory cid, uint256 size, uint256 duration) public {
-        string[] memory nodes = selectNodes(size, 3); // TODO 3 --> read from config
-        require(nodes.length > 0, contractName.concat(": no available node"));
-        for(uint256 i=0; i< nodes.length; i++) {
-            // Task().issueAddTask(pid, cid, size, duration);
+        string[] memory pids = selectNodes(size, Setting().getReplicas());
+        require(pids.length > 0, contractName.concat(": no available node"));
+        for(uint256 i=0; i<pids.length; i++) {
+            Task().issueTaskAdd(cid, pids[i], size, duration);
         }
     }
 
