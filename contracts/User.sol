@@ -20,32 +20,32 @@ contract User is Importable, ExternalStorable, IUser {
         return IUserStorage(getStorage());
     }
 
-    function register(uint256 space) public {
-        require(false == Storage().exist(msg.sender), contractName.concat(": user exist"));
+    function register(address addr, uint256 space) public {
+        require(false == Storage().exist(addr), contractName.concat(": user exist"));
         require(space > 0, contractName.concat(": space must > 0"));
-        Storage().newUser(msg.sender, space);
+        Storage().newUser(addr, space);
     }
 
-    function deRegister() public {
-        require(Storage().exist(msg.sender), contractName.concat(": user not exist"));
+    function deRegister(address addr) public {
+        require(Storage().exist(addr), contractName.concat(": user not exist"));
         //TODO delete all files, issue deleteFile task to TASK
-        Storage().deleteUser(msg.sender);
+        Storage().deleteUser(addr);
     }
 
     function exist(address addr) public returns(bool) {
         return Storage().exist(addr);
     }
 
-    function addFile(string memory cid, uint256 size, uint256 duration, string memory ext) public {
-        require(false == Storage().fileExist(msg.sender, cid), contractName.concat(": file exist"));
+    function addFile(address addr, string memory cid, uint256 size, uint256 duration, string memory ext) public {
+        require(false == Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         // TODO File().addFile
-        Storage().addFile(msg.sender, cid, size, duration, ext);
+        Storage().addFile(addr, cid, size, duration, ext);
     }
 
-    function deleteFile(string memory cid) public {
-        require(Storage().fileExist(msg.sender, cid), contractName.concat(": file not exist"));
+    function deleteFile(address addr, string memory cid) public {
+        require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
         // TODO File().addFile
-        Storage().deleteFile(msg.sender, cid);
+        Storage().deleteFile(addr, cid);
     }
 
     function changeSpace(address addr, uint256 size) public {
@@ -54,11 +54,11 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().storageSpace(addr, size);
     }
 
-    function cids() public returns(string[] memory) {
-        return Storage().cids(msg.sender);
+    function cids(address addr) public returns(string[] memory) {
+        return Storage().cids(addr);
     }
 
-    function storageInfo() public returns(uint256, uint256) {
-        return Storage().storageInfo(msg.sender);
+    function storageInfo(address addr) public returns(uint256, uint256) {
+        return Storage().storageInfo(addr);
     }
 }

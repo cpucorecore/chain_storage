@@ -3,6 +3,7 @@ pragma solidity ^0.5.17;
 contract Constants {
     bytes32 internal constant CONTRACT_RESOLVER = 'Resolver';
     bytes32 internal constant CONTRACT_SETTING = 'Setting';
+    bytes32 internal constant CONTRACT_CHAIN_STORAGE = 'ChainStorage';
     bytes32 internal constant CONTRACT_STATE = 'State';
 
     bytes32 internal constant CONTRACT_FILE = 'File';
