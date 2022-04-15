@@ -19,8 +19,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function newNode(address addr, string memory pid, uint256 space) public {
         nodes[addr] = NodeItem(pid,
-            StatusInfo(Status.Registered, now),
-            ServiceInfo(0, 0, 0, now, 0, 0, 0),
+            Status.Registered,
+            ServiceInfo(0, 0, 0, now, 0),
             StorageInfo(0, space),
             0, true);
 
@@ -95,7 +95,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     }
 
     function cids(address addr) public view returns (string[] memory) {
-        EnumerableSet.Bytes32Set memory cidHashs = node2cidHashs[addr];
+        EnumerableSet.Bytes32Set storage cidHashs = node2cidHashs[addr];
         uint256 count = cidHashs.length();
         string[] memory result = new string[](count);
 

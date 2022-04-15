@@ -22,8 +22,7 @@ contract Node is Importable, ExternalStorable, INode {
 
     function register(address addr, string memory pid, uint256 storageSpace) public {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        require(Storage().chainAccount(pid) == msg.sender, contractName.concat(": no auth"));
-        Storage().newNode(pid, msg.sender, storageSpace);
+        Storage().newNode(addr, pid, storageSpace);
     }
 
     function deRegister(address addr) public {
