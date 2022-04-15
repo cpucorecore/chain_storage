@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./ExternalStorage.sol";
 import "../interfaces/storages/INodeStorage.sol";
 import "../lib/EnumerableSet.sol";
+import "../lib/Paging.sol";
 
 contract NodeStorage is ExternalStorage, INodeStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -94,15 +95,18 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return result;
     }
 
-    function cids(address addr) public view returns (string[] memory) {
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
         EnumerableSet.Bytes32Set storage cidHashs = node2cidHashs[addr];
-        uint256 count = cidHashs.length();
-        string[] memory result = new string[](count);
 
-        for(uint i=0; i<count; i++) {
-            result[i] = cidHash2cid[cidHashs.at(i)];
+        Paging.Page memory page = Paging.getPage(cidHashs.length(), pageSize, pageNumber);
+
+        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
+
+        string[] memory result = new string[](page.pageRecords);
+        for(uint256 i=0; i<page.pageRecords; i++) {
+            result[i] = cidHash2cid[cidHashs.at(start+i)];
         }
 
-        return result;
+        return (result, page);
     }
 }

@@ -2,6 +2,7 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../lib/SafeMath.sol";
+import "../../lib/Paging.sol";
 
 interface INodeStorage {
     using SafeMath for uint256;
@@ -61,5 +62,5 @@ interface INodeStorage {
 
     function pid(address addr) external view returns (string memory);
     function pids() external view returns (string[] memory);
-    function cids(address addr) external view returns (string[] memory);
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 }
