@@ -53,8 +53,15 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function pids() public view returns (string[] memory) {// TODO page query
-        return Storage().pids();
+    function pid(address addr) public view returns (string memory) {
+        return Storage().pid(addr);
+    }
+    function pids(uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
+        return Storage().pids(pageSize, pageNumber);
+    }
+
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
+        return Storage().cids(addr, pageSize, pageNumber);
     }
 
     function starve(address addr) public view returns (uint256) {

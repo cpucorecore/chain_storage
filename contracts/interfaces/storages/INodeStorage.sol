@@ -61,6 +61,6 @@ interface INodeStorage {
     function serviceInfo(address addr) external view returns (ServiceInfo memory);
 
     function pid(address addr) external view returns (string memory);
-    function pids() external view returns (string[] memory);
+    function pids(uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
     function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 }

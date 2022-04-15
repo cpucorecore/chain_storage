@@ -85,14 +85,17 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].pid;
     }
 
-    function pids() public view returns (string[] memory) {
-        uint256 count = nodeAddrs.length();
-        string[] memory result = new string[](count);
-        for(uint256 i=0; i< count; i++) {
-            result[i] = nodes[nodeAddrs.at(i)].pid;
+    function pids(uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
+        Paging.Page memory page = Paging.getPage(nodeAddrs.length(), pageSize, pageNumber);
+
+        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
+
+        string[] memory result = new string[](page.pageRecords);
+        for(uint256 i=0; i<page.pageRecords; i++) {
+            result[i] = nodes[nodeAddrs.at(start+i)].pid;
         }
 
-        return result;
+        return (result, page);
     }
 
     function cids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
