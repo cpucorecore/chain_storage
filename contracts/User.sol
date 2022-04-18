@@ -20,10 +20,10 @@ contract User is Importable, ExternalStorable, IUser {
         return IUserStorage(getStorage());
     }
 
-    function register(address addr, uint256 space) public {
+    function register(address addr, uint256 space, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": user exist"));
         require(space > 0, contractName.concat(": space must > 0"));
-        Storage().newUser(addr, space);
+        Storage().newUser(addr, space, ext);
     }
 
     function deRegister(address addr) public {
@@ -51,7 +51,7 @@ contract User is Importable, ExternalStorable, IUser {
     function changeSpace(address addr, uint256 size) public {
         address admin; // admin in config
         require(admin == msg.sender, ": no auth");
-        Storage().storageSpace(addr, size);
+        Storage().setSpace(addr, size);
     }
 
     function cids(address addr) public returns(string[] memory) {

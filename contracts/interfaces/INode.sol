@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../lib/Paging.sol";
 
 interface INode {
-    function register(address addr, string calldata pid, uint256 space) external;
+    function register(address addr, string calldata pid, uint256 space, string calldata ext) external;
     function deRegister(address addr) external;
 
     function online(address addr) external;

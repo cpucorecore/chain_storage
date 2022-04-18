@@ -8,41 +8,42 @@ contract UserStorage is ExternalStorage, IUserStorage {
     mapping(address=>UserItem) private users;
     mapping(bytes32=>FileInfo) hash2FileInfo;
 
-    function newUser(address addr, uint256 space) public {
+    function newUser(address addr, uint256 space, string calldata ext) external {
         EnumerableSet.Bytes32Set memory cidHashs;
-        users[addr] = UserItem(true, 0, space, cidHashs);
+        users[addr] = UserItem(0, space, cidHashs, ext, true);
     }
 
     function deleteUser(address addr) public {
         delete users[addr];
     }
 
-    function exist(address addr) public returns(bool) {
+    function exist(address addr) public returns (bool) {
         return users[addr].exist;
     }
 
-    function storageSpace(address addr) public returns(uint256) {
+    function space(address addr) external view returns (uint256) {
         return users[addr].space;
     }
 
-    function storageSpace(address addr, uint256 storageSpace) public {
-        users[addr].space = storageSpace;
+    function setSpace(address addr, uint256 space) external {
+        users[addr].space = space;
     }
 
-    function storageUsed(address addr) public returns(uint256) {
+    function used(address addr) external view returns (uint256) {
         return users[addr].used;
     }
 
-    function storageUsed(address addr, uint256 storageUsed) public {
-        users[addr].used = storageUsed;
+    function spaceEnough(address addr, uint256 space) public view returns (bool) {
+        return users[addr].used.add(space) <= users[addr].space;
     }
 
-    function freeStorageUsed(address addr, uint256 space) public {
-        users[addr].used = users[addr].used.sub(space);
-    }
-
-    function useStorage(address addr, uint256 space) public {
+    function useSpace(address addr, uint256 space) public {
         users[addr].used = users[addr].used.add(space);
+    }
+
+    function freeSpace(address addr, uint256 space) external {
+        require(space <= users[addr].used, contractName.concat(": wrong space"));
+        users[addr].used = users[addr].used.sub(space);
     }
 
     function storageInfo(address addr) public returns(uint256, uint256) {

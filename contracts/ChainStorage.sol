@@ -10,7 +10,7 @@ import "./interfaces/INode.sol";
 contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     constructor() public Importable(IResolver(0)) {}
 
-    function initialize(IResolver _resolver) external onlyOwner returns (bool) {
+    function initialize(IResolver _resolver) external onlyOwner {
         setInitialized();
 
         resolver = _resolver;
@@ -23,8 +23,6 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         CONTRACT_NODE,
         CONTRACT_TASK
         ];
-
-        return true;
     }
 
     function User() private view returns (IUser) {
@@ -35,28 +33,23 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         return INode(requireAddress(CONTRACT_USER));
     }
 
-    function userRegister(uint256 space) external onlyInitialized notPaused returns (bool) {
-        User().register(msg.sender, space);
-        return true;
+    function userRegister(uint256 space, string calldata ext) external onlyInitialized notPaused {
+        User().register(msg.sender, space, ext);
     }
 
-    function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused returns (bool) {
+    function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused {
         User().addFile(msg.sender, cid, size, duration, ext);
-        return true;
     }
 
-    function userDeleteFile(string calldata cid) external onlyInitialized notPaused returns (bool) {
+    function userDeleteFile(string calldata cid) external onlyInitialized notPaused {
         User().deleteFile(msg.sender, cid);
-        return true;
     }
 
-    function nodeRegister(string calldata pid, uint256 space) external onlyInitialized notPaused returns (bool) {
+    function nodeRegister(string calldata pid, uint256 space) external onlyInitialized notPaused {
         Node().register(msg.sender, pid, space);
-        return true;
     }
 
-    function nodeOnline() external onlyInitialized notPaused returns (bool) {
+    function nodeOnline() external onlyInitialized notPaused {
         Node().online(msg.sender);
-        return true;
     }
 }

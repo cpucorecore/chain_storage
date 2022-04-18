@@ -31,9 +31,10 @@ contract Node is Importable, ExternalStorable, INode {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function register(address addr, string memory pid, uint256 storageSpace) public {
+    function register(address addr, bytes calldata pid, uint256 storageSpace, bytes calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        Storage().newNode(addr, pid, storageSpace);
+        require(ext.length() <= 1024, contractName.concat(": ext too long, max lenght[1024]"));
+        Storage().newNode(addr, pid, storageSpace, ext);
     }
 
     function deRegister(address addr) public {

@@ -40,10 +40,11 @@ interface INodeStorage {
         StorageInfo storageInfo;
         uint256 starve;
         uint256 block;
+        string ext;
         bool exist;
     }
 
-    function newNode(address addr, string calldata pid, uint256 space) external;
+    function newNode(address addr, string calldata pid, uint256 space, string calldata ext) external;
     function deleteNode(address addr) external;
     function exist(address addr) external returns (bool);
     function node(address addr) external returns (NodeItem memory);

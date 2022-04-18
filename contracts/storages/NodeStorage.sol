@@ -19,12 +19,12 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newNode(address addr, string memory pid, uint256 space) public {
+    function newNode(address addr, string calldata pid, uint256 space, string calldata ext) external {
         nodes[addr] = NodeItem(pid,
             Status.Registered,
             ServiceInfo(0, 0, 0, now, 0),
             StorageInfo(0, space),
-            0, 0, true);
+            0, 0, ext, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
         node2cidHashs[addr] = cidHashs;
