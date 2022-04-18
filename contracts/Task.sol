@@ -22,15 +22,28 @@ contract Node is Importable, ExternalStorable, ITask {
 
     function issueTaskAdd(string memory cid, string memory pid, uint256 size, uint256 duration) public returns(uint256) {
         // TODO config.monitor can issue task
-        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Add);
+        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Add, block.number);
     }
 
     function issueTaskDelete(string memory cid, string memory pid, uint256 size) public returns(uint256) {
         // TODO config.monitor can issue task
-        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Delete);
+        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Delete, block.number);
+    }
+
+    function acceptTask(uint256 tid) external {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        require(ITaskStorage.Status.Created == Storage().status(tid), contractName.concat(": wrong task status"));
+
+        Storage().setStatus(tid, ITaskStorage.Status.Accepted);
+        Storage().setAcceptBlock(tid, block.number);
     }
 
     function finishTask(uint256 tid) public {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        require(ITaskStorage.Status.Accepted == Storage().status(tid), contractName.concat(": wrong task status"));
+
+        Storage().setStatus(tid, ITaskStorage.Status.Finished);
+        Storage().setEndBlock(tid, block.number);
     }
 
     function failTask(uint256 tid) public {

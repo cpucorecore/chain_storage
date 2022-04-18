@@ -39,6 +39,7 @@ interface INodeStorage {
         ServiceInfo serviceInfo;
         StorageInfo storageInfo;
         uint256 starve;
+        uint256 block;
         bool exist;
     }
 
@@ -57,6 +58,9 @@ interface INodeStorage {
 
     function starve(address addr) external view returns (uint256);
     function setStarve(address addr, uint256 starve) external;
+
+    function block(address addr) external view returns (uint256);
+    function setBlock(address addr, uint256 block) external;
 
     function storageInfo(address addr) external view returns (StorageInfo memory);
     function serviceInfo(address addr) external view returns (ServiceInfo memory);
