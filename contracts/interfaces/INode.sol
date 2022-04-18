@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "../lib/Paging.sol";
-pragma experimental ABIEncoderV2;
 
 interface INode {
     function register(address addr, string calldata pid, uint256 space) external;

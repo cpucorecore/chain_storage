@@ -8,7 +8,6 @@ interface IMonitorStorage {
         Registered,
         Online,
         Maintain,
-        Offline,
         DeRegistered
     }
     
@@ -25,8 +24,8 @@ interface IMonitorStorage {
 
     function newMonitor(address addr, string calldata ext) external;
     function deleteMonitor(address addr) external;
-    function exist(address addr) external returns (bool);
-    function Monitor(address addr) external returns (MonitorItem memory);
+    function exist(address addr) external view returns (bool);
+    function monitor(address addr) external view returns (MonitorItem memory);
 
     function status(address addr) external view returns (Status);
     function setStatus(address addr, Status status) external;

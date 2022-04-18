@@ -29,16 +29,12 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         monitorAddrs.remove(addr);
     }
 
-    function exist(address addr) external returns (bool) {
+    function exist(address addr) external view returns (bool) {
         return monitors[addr].exist;
     }
 
-    function Monitor(address addr) external returns (MonitorItem memory) {
+    function monitor(address addr) external view returns (MonitorItem memory) {
         return monitors[addr];
-    }
-
-    function status(address addr) external view returns (Status) {
-        return monitors[addr].status;
     }
 
     function setStatus(address addr, Status status) external {
@@ -47,8 +43,6 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         if(Status.Online == status) {
             onlineMonitorAddrs.add(addr);
         } else if(Status.Maintain == status) {
-            onlineMonitorAddrs.remove(addr);
-        } else if(Status.Offline == status) {
             onlineMonitorAddrs.remove(addr);
         } else if(Status.DeRegistered == status) {
             onlineMonitorAddrs.remove(addr);
