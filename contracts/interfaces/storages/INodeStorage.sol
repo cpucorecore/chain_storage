@@ -33,13 +33,18 @@ interface INodeStorage {
         uint256 space;
     }
 
+    struct BlockInfo {
+        uint256 currentBlock;
+        uint256 targetBlock;
+    }
+
     struct NodeItem {
         string pid;
         Status status;
         ServiceInfo serviceInfo;
         StorageInfo storageInfo;
         uint256 starve;
-        uint256 block;
+        BlockInfo blockInfo;
         string ext;
         bool exist;
     }
@@ -60,8 +65,12 @@ interface INodeStorage {
     function starve(address addr) external view returns (uint256);
     function setStarve(address addr, uint256 starve) external;
 
-    function block(address addr) external view returns (uint256);
-    function setBlock(address addr, uint256 block) external;
+    function blockInfo(address addr) external view returns (BlockInfo memory);
+    function setCurrentBlock(address addr, uint256 block) external;
+    function setTargetBlock(address addr, uint256 block) external;
+
+    function ext(address addr) external view returns (string memory);
+    function setExt(address addr, string calldata ext) external;
 
     function storageInfo(address addr) external view returns (StorageInfo memory);
     function serviceInfo(address addr) external view returns (ServiceInfo memory);

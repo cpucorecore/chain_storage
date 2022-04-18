@@ -34,6 +34,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function register(address addr, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": monitor exist"));
+        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
         Storage().newMonitor(addr, ext);
     }
 
@@ -44,16 +45,23 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function online(address addr) external {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
-        Storage().setStatus(addr, IMonitorStorage.Status.Registered);
+        IMonitorStorage.Status status = Storage().status(addr);
+        require(IMonitorStorage.Status.Registered == status ||
+                IMonitorStorage.Status.Maintain == status, contractName.concat(": wrong status"));
+        Storage().setStatus(addr, IMonitorStorage.Status.Online);
     }
 
     function maintain(address addr) external {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
+        IMonitorStorage.Status status = Storage().status(addr);
+        require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, IMonitorStorage.Status.Maintain);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) external {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
+        IMonitorStorage.Status status = Storage().status(addr);
+        require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status, must online"));
         Storage().addReport(addr, tid, now);
         Node().taskFailed(tid);
     }

@@ -24,7 +24,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
             Status.Registered,
             ServiceInfo(0, 0, 0, now, 0),
             StorageInfo(0, space),
-            0, 0, ext, true);
+            0, BlockInfo(0, 0), ext, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
         node2cidHashs[addr] = cidHashs;
@@ -89,12 +89,23 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].starve = starve;
     }
 
-    function block(address addr) external view returns (uint256) {
-        return nodes[addr].block;
+    function blockInfo(address addr) external view returns (BlockInfo memory) {
+        return nodes[addr].blockInfo;
     }
 
-    function setBlock(address addr, uint256 block) external {
-        nodes[addr].block = block;
+    function setCurrentBlock(address addr, uint256 block) external {
+        nodes[addr].blockInfo.currentBlock = block;
+    }
+
+    function setTargetBlock(address addr, uint256 block) external {
+        nodes[addr].blockInfo.targetBlock = block;
+    }
+
+    function ext(address addr) external view returns (string memory) {
+        return nodes[addr].ext;
+    }
+    function setExt(address addr, string calldata ext) external {
+        nodes[addr].ext = ext;
     }
 
     function storageInfo(address addr) public view returns (StorageInfo memory) {

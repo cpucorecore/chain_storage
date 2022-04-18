@@ -6,7 +6,7 @@ import './interfaces/ISetting.sol';
 import './interfaces/storages/ISettingStorage.sol';
 
 contract Setting is ExternalStorable, ISetting {
-    bytes32 private constant REPLICAS = 'Replicas';
+    bytes32 private constant REPLICA = 'Replica';
     bytes32 private constant INIT_SPACE = 'InitSpace';
 
     constructor() public {
@@ -17,19 +17,19 @@ contract Setting is ExternalStorable, ISetting {
         return ISettingStorage(getStorage());
     }
 
-    function setReplicas(uint256 replicas) external onlyOwner {
-        Storage().setUint(REPLICAS, replicas);
+    function replica() external view returns (uint256) {
+        return Storage().getUint(REPLICA);
     }
 
-    function getReplicas() external view returns (uint256) {
-        return Storage().getUint(REPLICAS);
+    function setReplica(uint256 replica) external onlyOwner {
+        Storage().setUint(REPLICA, replica);
     }
 
-    function setInitSpace(uint256 initSpace) external onlyOwner {
-        Storage().setUint(INIT_SPACE, initSpace);
-    }
-
-    function getInitSpace() external view returns (uint256) {
+    function initSpace() external view returns (uint256) {
         return Storage().getUint(INIT_SPACE);
+    }
+
+    function setInitSpace(uint256 space) external onlyOwner {
+        Storage().setUint(INIT_SPACE, space);
     }
 }

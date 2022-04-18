@@ -20,7 +20,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function newMonitor(address addr, string calldata ext) external {
-        monitors[addr] = MonitorItem(Status.Registered, ext, true);
+        monitors[addr] = MonitorItem(Status.Registered, 0, ext, true);
         monitorAddrs.add(addr);
     }
 
@@ -35,6 +35,14 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
 
     function monitor(address addr) external view returns (MonitorItem memory) {
         return monitors[addr];
+    }
+
+    function currentTid(address addr) external view returns (uint256) {
+        return monitors[addr].currentTid;
+    }
+
+    function setCurrentTid(address addr, uint256 tid) external {
+        monitors[addr].currentTid = tid;
     }
 
     function setStatus(address addr, Status status) external {

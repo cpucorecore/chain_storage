@@ -6,6 +6,8 @@ import "./base/Proxyable.sol";
 import "./interfaces/IChainStorage.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/INode.sol";
+import "./interfaces/IMonitor.sol";
+import "./interfaces/ISetting.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     constructor() public Importable(IResolver(0)) {}
@@ -21,8 +23,13 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         CONTRACT_USER,
         CONTRACT_FILE,
         CONTRACT_NODE,
-        CONTRACT_TASK
+        CONTRACT_TASK,
+        CONTRACT_MONITOR
         ];
+    }
+
+    function Setting() private view returns (ISetting) {
+        return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
     function User() private view returns (IUser) {
@@ -30,11 +37,15 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     }
 
     function Node() private view returns (INode) {
-        return INode(requireAddress(CONTRACT_USER));
+        return INode(requireAddress(CONTRACT_NODE));
     }
 
-    function userRegister(uint256 space, string calldata ext) external onlyInitialized notPaused {
-        User().register(msg.sender, space, ext);
+    function Monitor() private view returns (IMonitor) {
+        return IMonitor(requireAddress(CONTRACT_MONITOR));
+    }
+
+    function userRegister(string calldata ext) external onlyInitialized notPaused {
+        User().register(msg.sender, ext);
     }
 
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused {
@@ -45,11 +56,19 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         User().deleteFile(msg.sender, cid);
     }
 
-    function nodeRegister(string calldata pid, uint256 space) external onlyInitialized notPaused {
-        Node().register(msg.sender, pid, space);
+    function nodeRegister(string calldata pid, uint256 space, string calldata ext) external onlyInitialized notPaused {
+        Node().register(msg.sender, pid, space, ext);
     }
 
     function nodeOnline() external onlyInitialized notPaused {
         Node().online(msg.sender);
+    }
+
+    function monitorRegister(string calldata ext) external {
+        Monitor().register(msg.sender, ext);
+    }
+
+    function monitorOnline() external {
+        Monitor().online(msg.sender);
     }
 }

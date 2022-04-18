@@ -13,6 +13,7 @@ interface IMonitorStorage {
     
     struct MonitorItem {
         Status status;
+        uint256 currentTid;
         string ext;
         bool exist;
     }
@@ -26,6 +27,8 @@ interface IMonitorStorage {
     function deleteMonitor(address addr) external;
     function exist(address addr) external view returns (bool);
     function monitor(address addr) external view returns (MonitorItem memory);
+    function currentTid(address addr) external view returns (uint256);
+    function setCurrentTid(address addr, uint256 tid) external;
 
     function status(address addr) external view returns (Status);
     function setStatus(address addr, Status status) external;

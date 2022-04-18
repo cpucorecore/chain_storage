@@ -3,8 +3,9 @@ pragma solidity ^0.5.17;
 interface ITaskStorage {
     enum Status {
         Created,
+        AcceptTimeout,
         Accepted,
-        Failed,
+        Timeout,
         Finished
     }
 
@@ -19,14 +20,15 @@ interface ITaskStorage {
         uint256 size;
         Action action;
         Status status;
-        uint256 retryCount;
-        uint256 block;
-        uint256 acceptBlock;
-        uint256 endBlock;
+        uint256 createdBlock;
+        uint256 AcceptTimeoutBlock;
+        uint256 acceptedBlock;
+        uint256 timeoutBlock;
+        uint256 FinishedBlock;
         bool exist;
     }
 
-    function currentTid() external view returns(uint256);
+    function currentTid() public view returns(uint256);
     function newTask(string calldata cid, string calldata pid, uint256 size, Action action, uint256 block) external returns(uint256);
     function exist(uint256 tid) external view returns (bool);
     function cid(uint256 tid) external returns(string memory);

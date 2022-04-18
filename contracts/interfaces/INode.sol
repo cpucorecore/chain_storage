@@ -5,6 +5,8 @@ import "../lib/Paging.sol";
 
 interface INode {
     function register(address addr, string calldata pid, uint256 space, string calldata ext) external;
+    function ext(address addr) external returns (string memory);
+    function updateExt(address addr, string calldata ext) external;
     function deRegister(address addr) external;
 
     function online(address addr) external;

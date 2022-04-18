@@ -5,11 +5,13 @@ import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/IUser.sol";
+import "./interfaces/ISetting.sol";
 
 contract User is Importable, ExternalStorable, IUser {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
+        CONTRACT_SETTING,
         CONTRACT_FILE,
         CONTRACT_NODE,
         CONTRACT_TASK
@@ -20,10 +22,15 @@ contract User is Importable, ExternalStorable, IUser {
         return IUserStorage(getStorage());
     }
 
-    function register(address addr, uint256 space, string calldata ext) external {
+    function Setting() private view returns (ISetting) {
+        return ISetting(requireAddress(CONTRACT_SETTING));
+    }
+
+    function register(address addr, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": user exist"));
-        require(space > 0, contractName.concat(": space must > 0"));
-        Storage().newUser(addr, space, ext);
+        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
+
+        Storage().newUser(addr, Setting().initSpace(), ext);
     }
 
     function deRegister(address addr) public {

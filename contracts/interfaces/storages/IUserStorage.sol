@@ -8,11 +8,11 @@ interface IUserStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     struct FileInfo {
-        bool exist;
         uint256 size;
         uint256 duration;
         string cid;
         string ext;
+        bool exist;
     }
 
     struct UserItem {

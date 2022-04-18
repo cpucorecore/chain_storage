@@ -31,10 +31,24 @@ contract Node is Importable, ExternalStorable, INode {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function register(address addr, bytes calldata pid, uint256 storageSpace, bytes calldata ext) external {
+    function register(address addr, string calldata pid, uint256 space, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        require(ext.length() <= 1024, contractName.concat(": ext too long, max lenght[1024]"));
-        Storage().newNode(addr, pid, storageSpace, ext);
+        require(bytes(pid).length <= 512, contractName.concat(": pid too long, must<=512"));
+        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
+        require(space > 0, contractName.concat(": space must > 0"));
+
+        Storage().newNode(addr, pid, space, ext);
+    }
+
+    function ext(address addr) external returns (string memory) {
+        check(addr);
+        return Storage().ext(addr);
+    }
+
+    function updateExt(address addr, string calldata ext) external {
+        check(addr);
+        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, max lenght[1024]"));
+        Storage().setExt(addr, ext);
     }
 
     function deRegister(address addr) public {
@@ -42,23 +56,41 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().deleteNode(addr);
     }
 
-    function online(address addr) public {
+    function online(address addr) external {
         check(addr);
+
+        INodeStorage.Status status = Storage().status(addr);
+        require(INodeStorage.Status.Registered == status ||
+                INodeStorage.Status.Maintain == status ||
+                INodeStorage.Status.Offline == status,
+            contractName.concat(": wrong status"));
+
+        INodeStorage.BlockInfo memory blockInfo = Storage().blockInfo(addr);
+        require(blockInfo.currentBlock == blockInfo.targetBlock, contractName.concat("must finish all task"));
+
         Storage().setStatus(addr, INodeStorage.Status.Online);
     }
 
     function offline(address addr) public {
         check(addr);
+
+        INodeStorage.Status status = Storage().status(addr);
+        require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
+
         Storage().setStatus(addr, INodeStorage.Status.Offline);
     }
 
     function maintain(address addr) public {
         check(addr);
+
+        INodeStorage.Status status = Storage().status(addr);
+        require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
+
         Storage().setStatus(addr, INodeStorage.Status.Maintain);
     }
 
     function addFile(string memory cid, uint256 size, uint256 duration) public {
-        address[] memory addrs = selectNodes(size, Setting().getReplicas());
+        address[] memory addrs = selectNodes(size, Setting().replica());
         require(addrs.length > 0, contractName.concat(": no available node"));
         for(uint256 i=0; i< addrs.length; i++) {
             Task().issueTaskAdd(cid, Storage().pid(addrs[i]), size, duration);

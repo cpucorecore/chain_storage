@@ -69,7 +69,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     function addFile(address addr, string memory cid, uint256 size, uint256 duration, string memory ext) public {
         bytes32 hash = keccak256(bytes(cid));
-        hash2FileInfo[hash] = FileInfo(true, size, duration, cid, ext);
+        hash2FileInfo[hash] = FileInfo(size, duration, cid, ext, true);
         users[addr].cidHashs.add(hash);
     }
 
