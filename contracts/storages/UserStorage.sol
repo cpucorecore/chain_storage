@@ -5,13 +5,28 @@ import "./ExternalStorage.sol";
 import "../interfaces/storages/IUserStorage.sol";
 
 contract UserStorage is ExternalStorage, IUserStorage {
-    mapping(uint256=>string) fid2cid;
-    mapping(address=>mapping(string=>FileInfo)) fileInfos;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
+
+    struct FileItem {
+        uint256 duration;
+        string ext;
+        bool exist;
+    }
+
+    struct UserItem {
+        uint256 used;
+        uint256 space;
+        EnumerableSet.Bytes32Set cidHashs;
+        string ext;
+        bool exist;
+    }
+
     mapping(address=>UserItem) private users;
+    mapping(address=>mapping(bytes32=>FileItem)) files;
 
     function newUser(address addr, uint256 space, string calldata ext) external {
-        EnumerableSet.UintSet memory fids;
-        users[addr] = UserItem(0, space, fids, ext, true);
+        EnumerableSet.Bytes32Set memory cidHashs;
+        users[addr] = UserItem(0, space, cidHashs, ext, true);
     }
 
     function deleteUser(address addr) public {
@@ -51,33 +66,35 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return (users[addr].used, users[addr].space);
     }
 
-    function addFile(address addr, string calldata cid, uint256 fid, uint256 duration, string calldata ext) external {
-        fid2cid[fid] = cid;
-        fileInfos[addr][cid] = FileInfo(fid, duration, ext, true);
-        users[addr].fids.add(fid);
+    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external {
+        bytes32 cidHash = keccak256(bytes(cid));
+        files[addr][cidHash] = FileItem(duration, ext, true);
+        users[addr].cidHashs.add(cidHash);
     }
 
-    function deleteFile(address addr, string memory cid) public {
-        users[addr].fids.remove(fileInfos[addr][cid].fid);
-        delete fileInfos[addr][cid];
+    function deleteFile(address addr, string calldata cid) external {
+        bytes32 cidHash = keccak256(bytes(cid));
+        users[addr].cidHashs.remove(cidHash);
+        delete files[addr][cidHash];
     }
 
     function fileExist(address addr, string calldata cid) external view returns(bool) {
-        return fileInfos[addr][cid].exist;
+        bytes32 cidHash = keccak256(bytes(cid));
+        return users[addr].cidHashs.contains(cidHash);
     }
 
     function fileNumber(address addr) external view returns (uint256) {
-        return users[addr].fids.length();
+        return users[addr].cidHashs.length();
     }
 
     function cids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
-        EnumerableSet.UintSet storage userFids = users[addr].fids;
-        Paging.Page memory page = Paging.getPage(userFids.length(), pageSize, pageNumber);
-        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
-        string[] memory result = new string[](page.pageRecords);
-        for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = fid2cid[userFids.at(start+i)];
-        }
-        return (result, page);
+//        EnumerableSet.UintSet storage userFids = users[addr].fids;
+//        Paging.Page memory page = Paging.getPage(userFids.length(), pageSize, pageNumber);
+//        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
+//        string[] memory result = new string[](page.pageRecords);
+//        for(uint256 i=0; i<page.pageRecords; i++) {
+//            result[i] = fid2cid[userFids.at(start+i)];
+//        }
+//        return (result, page);
     }
 }

@@ -1,7 +1,7 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "../lib/Paging.sol";
-pragma experimental ABIEncoderV2;
 
 interface IUser {
     function register(address addr, string calldata ext) external;

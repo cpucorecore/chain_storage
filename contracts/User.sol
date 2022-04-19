@@ -32,8 +32,7 @@ contract User is Importable, ExternalStorable, IUser {
     }
 
     function register(address addr, string calldata ext) external {
-        require(false == Storage().exist(addr), contractName.concat(": user exist"));
-
+        require(!Storage().exist(addr), contractName.concat(": user exist"));
         Storage().newUser(addr, Setting().initSpace(), ext);
     }
 
@@ -51,8 +50,8 @@ contract User is Importable, ExternalStorable, IUser {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         require(Storage().spaceEnough(addr, size), contractName.concat(": space not enough"));
 
-        uint256 fid = File().addFile(cid, size, addr, duration);
-        Storage().addFile(addr, cid, fid, duration, ext);
+        File().addFile(cid, size, addr, duration);
+        Storage().addFile(addr, cid, duration, ext);
         Storage().useSpace(addr, size);
     }
 

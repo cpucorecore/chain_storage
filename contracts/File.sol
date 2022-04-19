@@ -25,18 +25,14 @@ contract File is Importable, ExternalStorable, IFile {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
-    function addFile(string calldata cid, uint size, address owner, uint256 duration) external returns (uint256) {
-        uint256 fid = Storage().fid(cid);
-
+    function addFile(string calldata cid, uint size, address owner, uint256 duration) external {
         if(Storage().exist(cid)) {
-            if(!Storage().ownerExist(fid, owner)) {
-                Storage().addOwner(fid, owner);
+            if(!Storage().ownerExist(cid, owner)) {
+                Storage().addOwner(cid, owner);
             }
-            return Storage().fid(cid);
         } else {
-            uint256 fid = Storage().newFile(cid, size, owner, now);
+            Storage().newFile(cid, size);
             Node().addFile(cid, size, duration);
-            return fid;
         }
     }
 
@@ -57,10 +53,6 @@ contract File is Importable, ExternalStorable, IFile {
 
     function exist(string calldata cid) external view returns (bool) {
         return Storage().exist(cid);
-    }
-
-    function fid(string calldata cid) external view returns (uint256) {
-        return Storage().fid(cid);
     }
 
     function size(string calldata cid) external view returns (uint256) {
