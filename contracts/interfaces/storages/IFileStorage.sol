@@ -2,32 +2,38 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../../lib/EnumerableSet.sol";
+import "../../lib/Paging.sol";
 
 contract IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.Bytes32Set;
 
     struct FileItem {
-        bool exist;
+        string cid;
         uint256 size;
-        uint256 createdTime;
         EnumerableSet.AddressSet owners;
-        EnumerableSet.Bytes32Set nodes;
+        EnumerableSet.AddressSet nodes;
+        bool exist;
     }
 
-    function newFile(string memory cid, uint256 size, address owner, uint256 createdTime) public returns(bool);
-    function deleteFile(string memory cid) public;
-    function exist(string memory cid) public view returns(bool);
-    function size(string memory cid) public view returns(uint256);
-    function createdTime(string memory cid) public view returns(uint256);
+    function newFile(string calldata cid, uint256 size, address owner, uint256 duration) external returns (uint256);
+    function deleteFile(uint256 fid) external;
+    function exist(uint256 fid) public view returns (bool);
+    function exist(string memory cid) public view returns (bool);
+    function size(uint256 fid) public view returns (uint256);
+    function size(string calldata cid) external view returns (uint256);
+    function cid(uint256 fid) external view returns (string memory);
+    function fid(string calldata cid) external view returns (uint256);
+    function duration(uint256 fid) external view returns (uint256);
 
-    function ownerExist(string memory cid, address owner) public view returns(bool);
-    function addOwner(string memory cid, address owner) public;
-    function delOwner(string memory cid, address owner) public;
-    function owners(string memory cid) public returns(address[] memory);
+    function ownerExist(uint256 fid, address owner) external view returns (bool);
+    function addOwner(uint256 fid, address owner) public;
+    function delOwner(uint256 fid, address owner) public;
+    function owners(uint256 fid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function owners(uint256 fid) external view returns (address[] memory);
 
-    function nodeExist(string memory cid, string memory pid) public view returns(bool);
-    function addNode(string memory cid, string memory pid) public;
-    function delNode(string memory cid, string memory pid) public;
-    function nodes(string memory cid) public returns(string[] memory);
+    function nodeExist(uint256 fid, address node) external view returns (bool);
+    function addNode(uint256 fid, address node) public;
+    function delNode(uint256 fid, address node) public;
+    function nodes(uint256 fid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function nodes(uint256 fid) external view returns (address[] memory);
 }

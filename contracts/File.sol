@@ -5,6 +5,7 @@ import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/storages/IFileStorage.sol";
+import "./interfaces/INode.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -20,42 +21,61 @@ contract File is Importable, ExternalStorable, IFile {
         return IFileStorage(getStorage());
     }
 
-    function addFile(string calldata cid, uint size, address owner) external {
+    function Node() private view returns (INode) {
+        return INode(requireAddress(CONTRACT_NODE));
+    }
+
+    function addFile(string calldata cid, uint size, address owner, uint256 duration) external returns (uint256) {
+        uint256 fid = Storage().fid(cid);
+
         if(Storage().exist(cid)) {
-            if(Storage().ownerExist(cid, owner)) {
-                return;
+            if(!Storage().ownerExist(fid, owner)) {
+                Storage().addOwner(fid, owner);
             }
-            Storage().addOwner(cid, owner);
+            return Storage().fid(cid);
+        } else {
+            uint256 fid = Storage().newFile(cid, size, owner, now);
+            Node().addFile(cid, size, duration);
+            return fid;
         }
-
-        Storage().newFile(cid, size, owner, now);
-
-        // TODO Node().addFile(cid, size)
     }
 
-    function deleteFile(string calldata cid, address owner) external returns(bool) {
-        if(Storage().ownerExist(cid, owner)) {
-            Storage().delOwner(cid, owner);
-
-            if(0 == Storage().owners(cid).length) {
-                string[] memory nodes = Storage().nodes(cid);
-                for(uint i=0; i<nodes.length; i++) {
-                    // TODO Task().issueDeleteTask(cid, nodes[i], "");
-                }
-                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
-                Storage().deleteFile(cid);
-            }
-            return true;
-        }
-
-        return false;
+    function deleteFile(string calldata cid, address owner) external {
+//        if(Storage().ownerExist(cid, owner)) {
+//            Storage().delOwner(cid, owner);
+//            address[] memory owners = Storage().owners(cid);
+//            if(0 == owners.length) {
+//                address[] storage nodes = Storage().nodes(cid);
+//                for(uint i=0; i<nodes.length; i++) {
+//                    // TODO Task().issueDeleteTask(cid, nodes[i], "");
+//                }
+//                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
+//                Storage().deleteFile(cid);
+//            }
+//        }
     }
 
-    function fileAdded(string memory cid, string memory pid) public {
-        Storage().addNode(cid, pid);
+    function exist(string calldata cid) external view returns (bool) {
+        return Storage().exist(cid);
     }
 
-    function fileDeleted(string memory cid, string memory pid) public {
-        Storage().delNode(cid, pid);
+    function fid(string calldata cid) external view returns (uint256) {
+        return Storage().fid(cid);
+    }
+
+    function size(string calldata cid) external view returns (uint256) {
+        return Storage().size(cid);
+    }
+
+    function fileAdded(string memory cid, address node) public {
+//        Storage().addNode(cid, node);
+    }
+
+    function fileDeleted(string memory cid, address node) public {
+//        Storage().delNode(cid, node);
+    }
+
+    function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns(address[] memory, Paging.Page memory) {
+//        return Storage().owners(cid, pageSize, pageNumber);
     }
 }

@@ -1,16 +1,15 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 import "./INodeStorage.sol";
 import "../../lib/EnumerableSet.sol";
-pragma experimental ABIEncoderV2;
 
 interface IUserStorage {
-    using EnumerableSet for EnumerableSet.Bytes32Set;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     struct FileInfo {
-        uint256 size;
+        uint256 fid;
         uint256 duration;
-        string cid;
         string ext;
         bool exist;
     }
@@ -18,7 +17,7 @@ interface IUserStorage {
     struct UserItem {
         uint256 used;
         uint256 space;
-        EnumerableSet.Bytes32Set cidHashs;
+        EnumerableSet.UintSet fids;
         string ext;
         bool exist;
     }
@@ -33,12 +32,11 @@ interface IUserStorage {
     function spaceEnough(address addr, uint256 space) external view returns (bool);
     function useSpace(address addr, uint256 space) external;
     function freeSpace(address addr, uint256 space) external;
+    function storageInfo(address addr) external view returns (uint256, uint256);
 
-    function storageInfo(address addr) external returns (uint256, uint256);
-
-    function cids(address addr) external returns (string[] memory);
-    function fileExist(address addr, string calldata cid) external returns (bool);
-    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external;
+    function addFile(address addr, string calldata cid, uint256 fid, uint256 duration, string calldata ext) external;
     function deleteFile(address addr, string calldata cid) external;
-    function fileCount(address addr) external returns (uint256);
+    function fileExist(address addr, string calldata cid) external view returns (bool);
+    function fileNumber(address addr) external view returns (uint256);
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 }

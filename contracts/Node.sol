@@ -33,10 +33,6 @@ contract Node is Importable, ExternalStorable, INode {
 
     function register(address addr, string calldata pid, uint256 space, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        require(bytes(pid).length <= 512, contractName.concat(": pid too long, must<=512"));
-        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
-        require(space > 0, contractName.concat(": space must > 0"));
-
         Storage().newNode(addr, pid, space, ext);
     }
 
@@ -92,8 +88,9 @@ contract Node is Importable, ExternalStorable, INode {
     function addFile(string memory cid, uint256 size, uint256 duration) public {
         address[] memory addrs = selectNodes(size, Setting().replica());
         require(addrs.length > 0, contractName.concat(": no available node"));
-        for(uint256 i=0; i< addrs.length; i++) {
-            Task().issueTaskAdd(cid, Storage().pid(addrs[i]), size, duration);
+
+        for(uint256 i=0; i<addrs.length; i++) {
+            Task().issueTaskAdd(cid, addrs[i], size, duration);
         }
     }
 

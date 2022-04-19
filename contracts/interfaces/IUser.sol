@@ -1,4 +1,6 @@
 pragma solidity ^0.5.17;
+
+import "../lib/Paging.sol";
 pragma experimental ABIEncoderV2;
 
 interface IUser {
@@ -8,6 +10,6 @@ interface IUser {
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external;
     function deleteFile(address addr, string calldata cid) external;
     function changeSpace(address addr, uint256 size) external;// only admin
-    function cids(address addr) external returns(string[] memory);
-    function storageInfo(address addr) external returns(uint256, uint256); // (used, space)
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+    function storageInfo(address addr) external returns(uint256, uint256);
 }

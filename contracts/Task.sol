@@ -6,7 +6,9 @@ import "./base/ExternalStorable.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
-contract Node is Importable, ExternalStorable, ITask {
+contract Task is Importable, ExternalStorable, ITask {
+    event TaskIssued(uint256 indexed tid, string cid, address node, ITaskStorage.Action action, uint256 size, uint256 duration);
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
@@ -20,14 +22,14 @@ contract Node is Importable, ExternalStorable, ITask {
         return ITaskStorage(getStorage());
     }
 
-    function issueTaskAdd(string memory cid, string memory pid, uint256 size, uint256 duration) public returns(uint256) {
-        // TODO config.monitor can issue task
-        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Add, block.number);
+    function issueTaskAdd(string calldata cid, address node, uint256 size, uint256 duration) external {
+        uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Add, block.number);
+        emit TaskIssued(tid, cid, node, ITaskStorage.Action.Add, size, duration);
     }
 
-    function issueTaskDelete(string memory cid, string memory pid, uint256 size) public returns(uint256) {
-        // TODO config.monitor can issue task
-        return Storage().newTask(cid, pid, size, ITaskStorage.Action.Delete, block.number);
+    function issueTaskDelete(string calldata cid, address node, uint256 size) external {
+        uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Delete, block.number);
+        emit TaskIssued(tid, cid, node, ITaskStorage.Action.Delete, size, 0);
     }
 
     function acceptTask(uint256 tid) external {

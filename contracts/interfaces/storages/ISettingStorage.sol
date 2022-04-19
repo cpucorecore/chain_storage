@@ -36,5 +36,5 @@ interface ISettingStorage {
 
     function setAddress(bytes32 key, address value) external;
 
-    function getAddress(bytes32 key) external returns(address);
+    function getAddress(bytes32 key) external view returns (address);
 }

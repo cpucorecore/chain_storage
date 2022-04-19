@@ -12,25 +12,24 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid;
     }
 
-    function newTask(string memory cid, string memory pid, uint256 size, Action action, uint256 block) public returns(uint256) {
+    function newTask(string memory cid, address node, uint256 size, Action action, uint256 block) public returns(uint256) {
         tid = tid.add(1);
-        tasks[tid] = TaskItem(cid, pid, size, action, Status.Created, block, 0, 0, 0, 0, true);
+        tasks[tid] = TaskItem(cid, node, size, action, Status.Created, block, 0, 0, 0, 0, true);
         return tid;
     }
 
     function exist(uint256 tid) external view returns (bool) {
         return tasks[tid].exist;
     }
-
-    function cid(uint256 tid) external view returns(string memory) {
+    function cid(uint256 tid) external view returns (string memory) {
         return tasks[tid].cid;
     }
 
-    function pid(uint256 tid) external view returns(string memory) {
-        return tasks[tid].pid;
+    function node(uint256 tid) external view returns (address) {
+        return tasks[tid].node;
     }
 
-    function status(uint256 tid) external view returns(Status) {
+    function status(uint256 tid) external view returns (Status) {
         return tasks[tid].status;
     }
 

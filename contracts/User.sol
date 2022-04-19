@@ -6,6 +6,7 @@ import "./base/ExternalStorable.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/ISetting.sol";
+import "./interfaces/IFile.sol";
 
 contract User is Importable, ExternalStorable, IUser {
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -26,9 +27,12 @@ contract User is Importable, ExternalStorable, IUser {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
+    function File() private view returns (IFile) {
+        return IFile(requireAddress(CONTRACT_FILE));
+    }
+
     function register(address addr, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": user exist"));
-        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
 
         Storage().newUser(addr, Setting().initSpace(), ext);
     }
@@ -43,26 +47,31 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().exist(addr);
     }
 
-    function addFile(address addr, string memory cid, uint256 size, uint256 duration, string memory ext) public {
-        require(false == Storage().fileExist(addr, cid), contractName.concat(": file exist"));
-        // TODO File().addFile
-        Storage().addFile(addr, cid, size, duration, ext);
+    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+        require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
+        require(Storage().spaceEnough(addr, size), contractName.concat(": space not enough"));
+
+        uint256 fid = File().addFile(cid, size, addr, duration);
+        Storage().addFile(addr, cid, fid, duration, ext);
+        Storage().useSpace(addr, size);
     }
 
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
-        // TODO File().addFile
+
+        File().deleteFile(cid, addr);
+        uint256 size = File().size(cid);
+        Storage().freeSpace(addr, size);
         Storage().deleteFile(addr, cid);
     }
 
     function changeSpace(address addr, uint256 size) public {
-        address admin; // admin in config
-        require(admin == msg.sender, ": no auth");
+        require(Setting().admin() == msg.sender, ": no auth");
         Storage().setSpace(addr, size);
     }
 
-    function cids(address addr) public returns(string[] memory) {
-        return Storage().cids(addr);
+    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
+        return Storage().cids(addr, pageSize, pageNumber);
     }
 
     function storageInfo(address addr) public returns(uint256, uint256) {

@@ -66,7 +66,7 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         _addresses[key] = value;
     }
 
-    function getAddress(bytes32 key) external returns(address) {
+    function getAddress(bytes32 key) external view returns (address) {
         return _addresses[key];
     }
 }

@@ -16,7 +16,7 @@ interface ITaskStorage {
 
     struct TaskItem {
         string cid;
-        string pid;
+        address node;
         uint256 size;
         Action action;
         Status status;
@@ -29,11 +29,11 @@ interface ITaskStorage {
     }
 
     function currentTid() external view returns(uint256);
-    function newTask(string calldata cid, string calldata pid, uint256 size, Action action, uint256 block) external returns(uint256);
+    function newTask(string calldata cid, address node, uint256 size, Action action, uint256 block) external returns (uint256);
     function exist(uint256 tid) external view returns (bool);
-    function cid(uint256 tid) external view returns(string memory);
-    function pid(uint256 tid) external view returns(string memory);
-    function status(uint256 tid) external view returns(Status);
+    function cid(uint256 tid) external view returns (string memory);
+    function node(uint256 tid) external view returns (address);
+    function status(uint256 tid) external view returns (Status);
     function setStatus(uint256 tid, Status status) external;
     function acceptTimeoutBlock(uint256 tid) external view returns (uint256);
     function setAcceptTimeoutBlock(uint256 tid, uint256 block) external;
