@@ -22,15 +22,15 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tasks[tid].exist;
     }
 
-    function cid(uint256 tid) public returns(string memory) {
+    function cid(uint256 tid) external view returns(string memory) {
         return tasks[tid].cid;
     }
 
-    function pid(uint256 tid) public returns(string memory) {
+    function pid(uint256 tid) external view returns(string memory) {
         return tasks[tid].pid;
     }
 
-    function status(uint256 tid) public returns(Status) {
+    function status(uint256 tid) external view returns(Status) {
         return tasks[tid].status;
     }
 
@@ -38,11 +38,43 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         tasks[tid].status = status;
     }
 
-    function setAcceptBlock(uint256 tid, uint256 block) external {
+    function acceptTimeoutBlock(uint256 tid) external view returns (uint256) {
+        return tasks[tid].acceptTimeoutBlock;
+    }
+
+    function setAcceptTimeoutBlock(uint256 tid, uint256 block) external {
+        tasks[tid].acceptTimeoutBlock = block;
+    }
+
+    function acceptedBlock(uint256 tid) external view returns (uint256) {
+        return tasks[tid].acceptedBlock;
+    }
+
+    function setAcceptedBlock(uint256 tid, uint256 block) external {
         tasks[tid].acceptedBlock = block;
     }
 
-    function setEndBlock(uint256 tid, uint256 block) external {
-        tasks[tid].endBlock = block;
+    function timeoutBlock(uint256 tid) external view returns (uint256) {
+        return tasks[tid].timeoutBlock;
+    }
+
+    function setTimeoutBlock(uint256 tid, uint256 block) external {
+        tasks[tid].timeoutBlock = block;
+    }
+
+    function finishedBlock(uint256 tid) external view returns (uint256) {
+        return tasks[tid].FinishedBlock;
+    }
+
+    function setFinishedBlock(uint256 tid, uint256 block) external {
+        tasks[tid].FinishedBlock = block;
+    }
+
+    function blockInfo(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256) {
+        return (tasks[tid].createdBlock,
+                tasks[tid].acceptTimeoutBlock,
+                tasks[tid].acceptedBlock,
+                tasks[tid].timeoutBlock,
+                tasks[tid].FinishedBlock);
     }
 }

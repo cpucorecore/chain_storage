@@ -35,7 +35,7 @@ contract Node is Importable, ExternalStorable, ITask {
         require(ITaskStorage.Status.Created == Storage().status(tid), contractName.concat(": wrong task status"));
 
         Storage().setStatus(tid, ITaskStorage.Status.Accepted);
-        Storage().setAcceptBlock(tid, block.number);
+        Storage().setAcceptedBlock(tid, block.number);
     }
 
     function finishTask(uint256 tid) public {
@@ -43,7 +43,7 @@ contract Node is Importable, ExternalStorable, ITask {
         require(ITaskStorage.Status.Accepted == Storage().status(tid), contractName.concat(": wrong task status"));
 
         Storage().setStatus(tid, ITaskStorage.Status.Finished);
-        Storage().setEndBlock(tid, block.number);
+        Storage().setFinishedBlock(tid, block.number);
     }
 
     function failTask(uint256 tid) public {
