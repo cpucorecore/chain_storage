@@ -10,7 +10,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    mapping(address=> NodeItem) nodes;
+    mapping(address=>NodeItem) nodes;
     EnumerableSet.AddressSet nodeAddrs;
     EnumerableSet.AddressSet onlineNodeAddrs;
 
@@ -22,9 +22,9 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     function newNode(address addr, string calldata pid, uint256 space, string calldata ext) external {
         nodes[addr] = NodeItem(pid,
             Status.Registered,
-            ServiceInfo(0, 0, 0, now, 0),
+            ServiceInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, now, 0),
             StorageInfo(0, space),
-            0, BlockInfo(0, 0), ext, true);
+            0, BlockInfo(0, 0), ext, 0, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
         node2cidHashs[addr] = cidHashs;
@@ -73,6 +73,82 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         }
     }
 
+    function totalTaskAddAcceptTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.totalTaskAddAcceptTimeoutCount;
+    }
+
+    function totalTaskAddTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.totalTaskAddTimeoutCount;
+    }
+
+    function totalTaskDeleteAcceptTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.totalTaskDeleteAcceptTimeoutCount;
+    }
+
+    function totalTaskDeleteTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.totalTaskDeleteTimeoutCount;
+    }
+
+    function taskAddAcceptTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskAddAcceptTimeoutCount;
+    }
+
+    function taskAddTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskAddTimeoutCount;
+    }
+
+    function taskDeleteAcceptTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount;
+    }
+
+    function taskDeleteTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskDeleteTimeoutCount;
+    }
+
+    function upTaskAddAcceptTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.totalTaskAddAcceptTimeoutCount.add(1);
+        nodes[addr].serviceInfo.taskAddAcceptTimeoutCount.add(1);
+    }
+
+    function upTaskAddTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.totalTaskAddTimeoutCount.add(1);
+        nodes[addr].serviceInfo.taskAddTimeoutCount.add(1);
+    }
+
+    function upTaskDeleteAcceptTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.totalTaskDeleteAcceptTimeoutCount.add(1);
+        nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount.add(1);
+    }
+
+    function upTaskDeleteTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.totalTaskDeleteTimeoutCount.add(1);
+        nodes[addr].serviceInfo.taskDeleteTimeoutCount.add(1);
+    }
+
+    function resetTaskAddAcceptTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.taskAddAcceptTimeoutCount = 0;
+    }
+
+    function resetTaskAddTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.taskAddTimeoutCount = 0;
+    }
+
+    function resetTaskDeleteAcceptTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount = 0;
+    }
+
+    function resetTaskDeleteTimeoutCount(address addr) external {
+        nodes[addr].serviceInfo.taskDeleteTimeoutCount = 0;
+    }
+
+    function totalTaskTimeoutCount(address addr) external view returns (uint256) {
+        INodeStorage.ServiceInfo storage serviceInfo = nodes[addr].serviceInfo;
+        return serviceInfo.taskAddAcceptTimeoutCount +
+                serviceInfo.taskAddTimeoutCount +
+                serviceInfo.taskDeleteAcceptTimeoutCount +
+                serviceInfo.taskDeleteTimeoutCount;
+    }
+
     function maintainCount(address addr) public view returns (uint256) {
         return nodes[addr].serviceInfo.maintainCount;
     }
@@ -114,6 +190,10 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function serviceInfo(address addr) public view returns (ServiceInfo memory) {
         return nodes[addr].serviceInfo;
+    }
+
+    function freeSpace(address addr) external view returns (uint256) {
+        return nodes[addr].storageInfo.space.sub(nodes[addr].storageInfo.used);
     }
 
     function pid(address addr) public view returns (string memory) {

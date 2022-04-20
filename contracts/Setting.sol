@@ -14,6 +14,7 @@ contract Setting is ExternalStorable, ISetting {
     bytes32 private constant MAX_MONITOR_EXT_LENGTH = 'MaxMonitorExtLength';
     bytes32 private constant MAX_CID_LENGTH = 'MaxCidLength';
     bytes32 private constant MAX_PID_LENGTH = 'MaxPidLength';
+    bytes32 private constant MAX_TIMEOUT = 'MaxTimeout';
 
     constructor() public {
         setContractName(CONTRACT_SETTING);
@@ -85,5 +86,13 @@ contract Setting is ExternalStorable, ISetting {
 
     function setMaxPidLength(uint256 length) external {
         Storage().setUint(MAX_PID_LENGTH, length);
+    }
+
+    function maxTimeout() external view returns (uint256) {
+        return Storage().getUint(MAX_TIMEOUT);
+    }
+
+    function setMaxTimeout(uint256 value) external {
+        Storage().setUint(MAX_TIMEOUT, value);
     }
 }

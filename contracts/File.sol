@@ -6,6 +6,7 @@ import "./base/ExternalStorable.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/storages/IFileStorage.sol";
 import "./interfaces/INode.sol";
+import "./interfaces/ITask.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -25,6 +26,10 @@ contract File is Importable, ExternalStorable, IFile {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
+    function Task() private view returns (ITask) {
+        return ITask(requireAddress(CONTRACT_TASK));
+    }
+
     function addFile(string calldata cid, uint size, address owner, uint256 duration) external {
         if(Storage().exist(cid)) {
             if(!Storage().ownerExist(cid, owner)) {
@@ -32,23 +37,25 @@ contract File is Importable, ExternalStorable, IFile {
             }
         } else {
             Storage().newFile(cid, size);
+            Storage().addOwner(cid, owner);
             Node().addFile(cid, size, duration);
         }
     }
 
     function deleteFile(string calldata cid, address owner) external {
-//        if(Storage().ownerExist(cid, owner)) {
-//            Storage().delOwner(cid, owner);
-//            address[] memory owners = Storage().owners(cid);
-//            if(0 == owners.length) {
-//                address[] storage nodes = Storage().nodes(cid);
-//                for(uint i=0; i<nodes.length; i++) {
-//                    // TODO Task().issueDeleteTask(cid, nodes[i], "");
-//                }
-//                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
-//                Storage().deleteFile(cid);
-//            }
-//        }
+        if(Storage().ownerExist(cid, owner)) {
+            uint256 size = Storage().size(cid);
+            Storage().delOwner(cid, owner);
+            address[] memory owners = Storage().owners(cid);
+            if(0 == owners.length) {
+                address[] memory nodes = Storage().nodes(cid);
+                for(uint i=0; i<nodes.length; i++) {
+                    Task().issueTaskDelete(cid, nodes[i], size);
+                }
+                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
+                Storage().deleteFile(cid);
+            }
+        }
     }
 
     function exist(string calldata cid) external view returns (bool) {

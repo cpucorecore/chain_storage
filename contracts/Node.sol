@@ -118,6 +118,24 @@ contract Node is Importable, ExternalStorable, INode {
 
     }
 
+    function taskAcceptTimeout(uint256 tid) external {
+        ITaskStorage.TaskItem memory task = Task().task(tid);
+        if(ITaskStorage.Action.Add == task.action) {
+            Storage().upTaskAddAcceptTimeoutCount(task.node);
+            if(Storage().totalTaskTimeoutCount(task.node) > Setting().maxTimeout()) {
+                offline(task.node);
+            }
+
+            addFile(task.cid, task.size, task.duration);
+        } else if(ITaskStorage.Action.Delete == task.action) {
+            Storage().upTaskDeleteAcceptTimeoutCount(task.node);
+        }
+    }
+
+    function taskTimeout(uint256 tid) external {
+        ITaskStorage.TaskItem memory task = Task().task(tid);
+    }
+
     function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
         address[] memory onlineNodeAddresses;
         Paging.Page memory page;
@@ -127,7 +145,9 @@ contract Node is Importable, ExternalStorable, INode {
         } else {
             address[] memory nodes = new address[](count);
             for(uint256 i=0; i<count; i++) {
-                nodes[i] = onlineNodeAddresses[i];
+                if(Storage().freeSpace(onlineNodeAddresses[i]) >= size) {
+                    nodes[i] = onlineNodeAddresses[i];
+                }
             }
             return nodes;
         }

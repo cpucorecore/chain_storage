@@ -1,4 +1,5 @@
 pragma solidity ^0.5.17;
+pragma experimental ABIEncoderV2;
 
 interface ITaskStorage {
     enum Status {
@@ -6,7 +7,8 @@ interface ITaskStorage {
         AcceptTimeout,
         Accepted,
         Timeout,
-        Finished
+        Finished,
+        Failed
     }
 
     enum Action {
@@ -18,6 +20,7 @@ interface ITaskStorage {
         string cid;
         address node;
         uint256 size;
+        uint256 duration;
         Action action;
         Status status;
         uint256 createdBlock;
@@ -25,12 +28,14 @@ interface ITaskStorage {
         uint256 acceptedBlock;
         uint256 timeoutBlock;
         uint256 FinishedBlock;
+        uint256 FailedBlock;
         bool exist;
     }
 
     function currentTid() external view returns(uint256);
-    function newTask(string calldata cid, address node, uint256 size, Action action, uint256 block) external returns (uint256);
+    function newTask(string calldata cid, address node, uint256 size, Action action, uint256 block, uint256 duration) external returns (uint256);
     function exist(uint256 tid) external view returns (bool);
+    function task(uint256 tid) external view returns (TaskItem memory);
     function cid(uint256 tid) external view returns (string memory);
     function node(uint256 tid) external view returns (address);
     function status(uint256 tid) external view returns (Status);
@@ -43,5 +48,7 @@ interface ITaskStorage {
     function setTimeoutBlock(uint256 tid, uint256 block) external;
     function finishedBlock(uint256 tid) external view returns (uint256);
     function setFinishedBlock(uint256 tid, uint256 block) external;
+    function failedBlock(uint256 tid) external view returns (uint256);
+    function setFailedBlock(uint256 tid, uint256 block) external;
     function blockInfo(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256);
 }

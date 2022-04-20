@@ -18,5 +18,8 @@ interface ISetting {
     function maxPidLength() external view returns (uint256);
     function setMaxPidLength(uint256 length) external;
 
+    function maxTimeout() external view returns (uint256);
+    function setMaxTimeout(uint256 value) external;
+
     event SettingChanged(bytes32 indexed name, bytes32 indexed field, uint256 previousValue, uint256 newValue);
 }

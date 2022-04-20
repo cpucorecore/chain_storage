@@ -51,6 +51,7 @@ contract User is Importable, ExternalStorable, IUser {
         require(Storage().spaceEnough(addr, size), contractName.concat(": space not enough"));
 
         File().addFile(cid, size, addr, duration);
+
         Storage().addFile(addr, cid, duration, ext);
         Storage().useSpace(addr, size);
     }
@@ -58,10 +59,10 @@ contract User is Importable, ExternalStorable, IUser {
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
-        File().deleteFile(cid, addr);
         uint256 size = File().size(cid);
         Storage().freeSpace(addr, size);
         Storage().deleteFile(addr, cid);
+        File().deleteFile(cid, addr);
     }
 
     function changeSpace(address addr, uint256 size) public {

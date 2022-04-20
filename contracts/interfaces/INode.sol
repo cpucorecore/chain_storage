@@ -23,4 +23,7 @@ interface INode {
 
     function taskFinished(uint256 tid) external;
     function taskFailed(uint256 tid) external;
+
+    function taskAcceptTimeout(uint256 tid) external; // for monitor
+    function taskTimeout(uint256 tid) external; // for monitor
 }

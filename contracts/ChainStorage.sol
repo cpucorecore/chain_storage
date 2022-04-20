@@ -57,6 +57,7 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     }
 
     function userDeleteFile(string calldata cid) external onlyInitialized notPaused {
+        require(bytes(cid).length <= Setting().maxCidLength(), contractName.concat(": cid too long"));
         User().deleteFile(msg.sender, cid);
     }
 
