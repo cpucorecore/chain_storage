@@ -153,8 +153,16 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.maintainCount;
     }
 
+    function upMaintainCount(address addr) external {
+        nodes[addr].serviceInfo.maintainCount.add(1);
+    }
+
     function offlineCount(address addr) public view returns (uint256) {
         return nodes[addr].serviceInfo.offlineCount;
+    }
+
+    function upOfflineCount(address addr) external {
+        nodes[addr].serviceInfo.offlineCount.add(1);
     }
 
     function starve(address addr) public view returns (uint256) {

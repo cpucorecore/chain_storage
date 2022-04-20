@@ -30,8 +30,8 @@ interface INodeStorage {
         uint256 taskDeleteAcceptTimeoutCount;
         uint256 taskDeleteTimeoutCount;
 
-        uint256 offlineCount;
         uint256 maintainCount;
+        uint256 offlineCount;
 
         uint256 servingDuration;
         uint256 registerAt;
@@ -86,7 +86,9 @@ interface INodeStorage {
     function totalTaskTimeoutCount(address addr) external view returns (uint256);
 
     function maintainCount(address addr) external view returns (uint256);
+    function upMaintainCount(address addr) external;
     function offlineCount(address addr) external view returns (uint256);
+    function upOfflineCount(address addr) external;
 
     function starve(address addr) external view returns (uint256);
     function setStarve(address addr, uint256 starve) external;

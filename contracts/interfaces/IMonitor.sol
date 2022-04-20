@@ -8,5 +8,6 @@ interface IMonitor {
     function deRegister(address addr) external;
     function online(address addr) external;
     function maintain(address addr) external;
+    function reportTaskAcceptTimeout(address addr, uint256 tid) external;
     function reportTaskTimeout(address addr, uint256 tid) external;
 }

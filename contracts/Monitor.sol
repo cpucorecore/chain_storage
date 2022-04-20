@@ -58,11 +58,19 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().setStatus(addr, IMonitorStorage.Status.Maintain);
     }
 
+    function reportTaskAcceptTimeout(address addr, uint256 tid) external {
+        require(Storage().exist(addr), contractName.concat(": monitor not exist"));
+        IMonitorStorage.Status status = Storage().status(addr);
+        require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status, must online"));
+        Storage().addReport(addr, tid, now);
+        Node().taskAcceptTimeout(tid);
+    }
+
     function reportTaskTimeout(address addr, uint256 tid) external {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         IMonitorStorage.Status status = Storage().status(addr);
         require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status, must online"));
         Storage().addReport(addr, tid, now);
-        Node().taskFailed(tid);
+        Node().taskTimeout(tid);
     }
 }
