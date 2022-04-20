@@ -66,8 +66,8 @@ contract Node is Importable, ExternalStorable, INode {
                 INodeStorage.Status.Offline == status,
             contractName.concat(": wrong status"));
 
-        INodeStorage.BlockInfo memory blockInfo = Storage().blockInfo(addr);
-        require(blockInfo.currentBlock == blockInfo.targetBlock, contractName.concat("must finish all task"));
+        TaskBlock memory blockInfo = Storage().blockInfo(addr);
+        require(blockInfo.current == blockInfo.target, contractName.concat("must finish all task"));
 
         Storage().setStatus(addr, INodeStorage.Status.Online);
     }
@@ -126,11 +126,14 @@ contract Node is Importable, ExternalStorable, INode {
 
         if(ITaskStorage.Action.Add == task.action) {
             File().fileAdded(task.cid, task.node);
+            // TODO useSpace(task.size)
         } else if(ITaskStorage.Action.Delete == task.action) {
             File().fileDeleted(task.cid, task.node);
+            // TODO freeSpace(task.size)
         }
 
         // TODO count task finished
+
         Task().finishTask(tid);
     }
 

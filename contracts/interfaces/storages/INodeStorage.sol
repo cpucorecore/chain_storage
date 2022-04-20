@@ -15,96 +15,83 @@ interface INodeStorage {
         DeRegistered
     }
 
-    struct StatusInfo {
-        Status status;
-        uint256 timestamp;
-    }
-
     struct ServiceInfo {
-        uint256 totalTaskAddAcceptTimeoutCount;
-        uint256 totalTaskAddTimeoutCount;
-        uint256 totalTaskDeleteAcceptTimeoutCount;
-        uint256 totalTaskDeleteTimeoutCount;
+        uint256 continuousTimeoutCount;
+        uint256 maintainCount;
+        uint256 offlineCount;
         uint256 taskAddAcceptTimeoutCount;
         uint256 taskAddTimeoutCount;
         uint256 taskDeleteAcceptTimeoutCount;
         uint256 taskDeleteTimeoutCount;
-
-        uint256 maintainCount;
-        uint256 offlineCount;
-
-        uint256 servingDuration;
-        uint256 registerAt;
-        uint256 onlineAt;
     }
 
-    struct StorageInfo {
+    struct Space {
+        uint256 total;
         uint256 used;
-        uint256 space;
     }
 
-    struct BlockInfo {
-        uint256 currentBlock;
-        uint256 targetBlock;
+    struct TaskBlock {
+        uint256 current;
+        uint256 target;
     }
 
     struct NodeItem {
-        string pid;
         Status status;
         ServiceInfo serviceInfo;
-        StorageInfo storageInfo;
-        uint256 starve;
-        BlockInfo blockInfo;
+        Space space;
+        TaskBlock taskBlock;
         string ext;
-        uint256 score;
         bool exist;
     }
 
-    function newNode(address addr, string calldata pid, uint256 space, string calldata ext) external;
+    function newNode(address addr, uint256 totalSpace, string calldata ext) external;
     function deleteNode(address addr) external;
-    function exist(address addr) external returns (bool);
-    function node(address addr) external returns (NodeItem memory);
+    function exist(address addr) external view returns (bool);
 
-    function setSpace(address addr, uint256 space) external;
-    function setUsed(address addr, uint256 space) external;
+    function getNode(address addr) external view returns (NodeItem memory);
+    function getServiceInfo(address addr) external view returns (ServiceInfo memory);
+    function getSpace(address addr) external view returns (Space memory);
+    function getTaskBlock(address addr) external view returns (TaskBlock memory);
 
-    function status(address addr) external view returns (Status);
+    function getStatus(address addr) external view returns (Status);
     function setStatus(address addr, Status status) external;
 
-    function taskAddAcceptTimeoutCount(address addr) external view returns (uint256);
-    function taskAddTimeoutCount(address addr) external view returns (uint256);
-    function taskDeleteAcceptTimeoutCount(address addr) external view returns (uint256);
-    function taskDeleteTimeoutCount(address addr) external view returns (uint256);
-    function upTaskAddAcceptTimeoutCount(address addr) external;
-    function upTaskAddTimeoutCount(address addr) external;
-    function upTaskDeleteAcceptTimeoutCount(address addr) external;
-    function upTaskDeleteTimeoutCount(address addr) external;
-    function resetTaskAddAcceptTimeoutCount(address addr) external;
-    function resetTaskAddTimeoutCount(address addr) external;
-    function resetTaskDeleteAcceptTimeoutCount(address addr) external;
-    function resetTaskDeleteTimeoutCount(address addr) external;
-    function totalTaskTimeoutCount(address addr) external view returns (uint256);
+    function getContinuousTimeoutCount(address addr) external view returns (uint256);
+    function setContinuousTimeoutCount(address addr, uint256 value) external;
 
-    function maintainCount(address addr) external view returns (uint256);
-    function upMaintainCount(address addr) external;
-    function offlineCount(address addr) external view returns (uint256);
-    function upOfflineCount(address addr) external;
+    function getMaintainCount(address addr) external view returns (uint256);
+    function setMaintainCount(address addr, uint256 value) external;
 
-    function starve(address addr) external view returns (uint256);
-    function setStarve(address addr, uint256 starve) external;
+    function getOfflineCount(address addr) external view returns (uint256);
+    function setOfflineCount(address addr, uint256 value) external;
 
-    function blockInfo(address addr) external view returns (BlockInfo memory);
-    function setCurrentBlock(address addr, uint256 block) external;
-    function setTargetBlock(address addr, uint256 block) external;
+    function getTaskAddAcceptTimeoutCount(address addr) external view returns (uint256);
+    function setTaskAddAcceptTimeoutCount(address addr, uint256 value) external;
 
-    function ext(address addr) external view returns (string memory);
+    function getTaskAddTimeoutCount(address addr) external view returns (uint256);
+    function setTaskAddTimeoutCount(address addr, uint256 value) external;
+
+    function getTaskDeleteAcceptTimeoutCount(address addr) external view returns (uint256);
+    function setTaskDeleteAcceptTimeoutCount(address addr, uint256 value) external;
+
+    function getTaskDeleteTimeoutCount(address addr) external view returns (uint256);
+    function setTaskDeleteTimeoutCount(address addr, uint256 value) external;
+
+    function getTotalSpace(address addr) external view returns (uint256);
+    function setTotalSpace(address addr, uint256 value) external;
+
+    function getUsedSpace(address addr) external view returns (uint256);
+    function setUsedSpace(address addr, uint256 value) external;
+
+    function getCurrentTaskBlock(address addr) external view returns (uint256);
+    function setCurrentTaskBlock(address addr, uint256 value) external;
+
+    function getTargetTaskBlock(address addr) external view returns (uint256);
+    function setTargetTaskBlock(address addr, uint256 value) external;
+
+    function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
 
-    function storageInfo(address addr) external view returns (StorageInfo memory);
-    function serviceInfo(address addr) external view returns (ServiceInfo memory);
-    function freeSpace(address addr) external view returns (uint256);
-
-    function pid(address addr) external view returns (string memory);
     function nodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
     function onlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
     function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
