@@ -13,10 +13,10 @@ contract Node is Importable, ExternalStorable, INode {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
-        CONTRACT_SETTING,
-        CONTRACT_FILE,
-        CONTRACT_USER,
-        CONTRACT_TASK
+            CONTRACT_SETTING,
+            CONTRACT_FILE,
+            CONTRACT_USER,
+            CONTRACT_TASK
         ];
     }
 
@@ -36,91 +36,86 @@ contract Node is Importable, ExternalStorable, INode {
         return IFile(requireAddress(CONTRACT_FILE));
     }
 
-    function register(address addr, string calldata pid, uint256 space, string calldata ext) external {
+    function register(address addr, uint256 space, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        Storage().newNode(addr, pid, space, ext);
-    }
+        require(bytes(ext).length <= Setting().maxNodeExtLength(), contractName.concat(": ext too long"));
+        require(space > 0, contractName.concat(": space must > 0"));
 
-    function ext(address addr) external returns (string memory) {
-        check(addr);
-        return Storage().ext(addr);
-    }
-
-    function updateExt(address addr, string calldata ext) external {
-        check(addr);
-        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, max lenght[1024]"));
-        Storage().setExt(addr, ext);
+        Storage().newNode(addr, space, ext);
     }
 
     function deRegister(address addr) public {
-        check(addr);
+        // TODO check
+        checkExist(addr);
         Storage().deleteNode(addr);
     }
 
-    function online(address addr) external {
-        check(addr);
+    function getExt(address addr) external view returns (string memory) {
+        checkExist(addr);
+        return Storage().getExt(addr);
+    }
 
-        INodeStorage.Status status = Storage().status(addr);
+    function setExt(address addr, string calldata ext) external {
+        checkExist(addr);
+        require(bytes(ext).length <= Setting().maxNodeExtLength(), contractName.concat(": ext too long"));
+        Storage().setExt(addr, ext);
+    }
+
+    function online(address addr) external {
+        checkExist(addr);
+
+        INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Registered == status ||
                 INodeStorage.Status.Maintain == status ||
                 INodeStorage.Status.Offline == status,
             contractName.concat(": wrong status"));
-
-        TaskBlock memory blockInfo = Storage().blockInfo(addr);
-        require(blockInfo.current == blockInfo.target, contractName.concat("must finish all task"));
-
+        INodeStorage.TaskBlock memory taskBlock = Storage().getTaskBlock(addr);
+        require(taskBlock.current == taskBlock.target, contractName.concat("must finish all task"));
         Storage().setStatus(addr, INodeStorage.Status.Online);
     }
 
-    function offline(address addr) public {
-        check(addr);
-
-        INodeStorage.Status status = Storage().status(addr);
+    function offline(address addr) private {
+        checkExist(addr);
+        INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
-
         Storage().setStatus(addr, INodeStorage.Status.Offline);
-        Storage().upOfflineCount(addr);
+        uint256 offlineCount = Storage().getOfflineCount(addr).add(1);
+        Storage().setOfflineCount(addr, offlineCount);
     }
 
     function maintain(address addr) public {
-        check(addr);
-
-        INodeStorage.Status status = Storage().status(addr);
+        checkExist(addr);
+        INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
-
         Storage().setStatus(addr, INodeStorage.Status.Maintain);
-        Storage().upMaintainCount(addr);
+        uint256 maintainCount = Storage().getMaintainCount(addr).add(1);
+        Storage().setMaintainCount(addr, maintainCount);
     }
 
     function addFile(string memory cid, uint256 size, uint256 duration) public {
-        uint256 replica = Setting().replica();
-        address[] memory addrs = selectNodes(size, replica);
-        require(addrs.length != replica, contractName.concat(": no available node"));
+        uint256 replica = Setting().getReplica();
+        address[] memory nodeAddrs = selectNodes(size, replica);
+        require(nodeAddrs.length != replica, contractName.concat(": no available node"));
 
-        for(uint256 i=0; i<addrs.length; i++) {
-            Task().issueTaskAdd(cid, addrs[i], size, duration);
+        for(uint256 i=0; i<nodeAddrs.length; i++) {
+            Task().issueTaskAdd(cid, nodeAddrs[i], size, duration);
         }
     }
 
-    function pid(address addr) public view returns (string memory) {
-        return Storage().pid(addr);
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getAllNodeAddresses(pageSize, pageNumber);
     }
 
-    function nodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
-        return Storage().nodeAddresses(pageSize, pageNumber);
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getAllOnlineNodeAddresses(pageSize, pageNumber);
     }
 
-    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
-        return Storage().cids(addr, pageSize, pageNumber);
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
+        return Storage().getNodeCids(addr, pageSize, pageNumber);
     }
 
-    function starve(address addr) public view returns (uint256) {
-        return Storage().starve(addr);
-    }
-
-    function taskFinished(uint256 tid) public {
-        ITaskStorage.TaskItem memory task = Task().task(tid);
-
+    function taskAddFileFinished(uint256 tid, bool skip) public {
+        ITaskStorage.TaskItem memory task = Task().getTask(tid);
         require(task.exist, contractName.concat(": tid not exist"));
         require(ITaskStorage.Status.Accepted == task.status, contractName.concat(": wrong status"));
 
@@ -222,7 +217,22 @@ contract Node is Importable, ExternalStorable, INode {
 
     }
 
-    function check(address addr) private {
+    function checkExist(address addr) private {
         require(Storage().exist(addr), contractName.concat(": node not exist"));
+    }
+    ////////////////////////////////////////////
+    function setStatus(address addr, Status status) public {
+        nodes[addr].status = status;
+        if(Status.Online == status) {
+            onlineNodeAddrs.add(addr);
+        } else if(Status.Maintain == status) {
+            onlineNodeAddrs.remove(addr);
+            nodes[addr].serviceInfo.maintainCount = nodes[addr].serviceInfo.maintainCount.add(1);
+        } else if(Status.Offline == status) {
+            onlineNodeAddrs.remove(addr);
+            nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
+        } else if(Status.DeRegistered == status) {
+            onlineNodeAddrs.remove(addr);
+        }
     }
 }

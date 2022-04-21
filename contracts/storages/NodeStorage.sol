@@ -22,7 +22,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     function newNode(address addr, uint256 totalSpace, string calldata ext) external {
         nodes[addr] = NodeItem(pid,
             Status.Registered,
-            ServiceInfo(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, now, 0),
+            ServiceInfo(0, 0, 0, 0, 0, 0, 0),
             Space(totalSpace, 0, totalSpace),
             0, TaskBlock(0, 0), ext, 0, true);
 
@@ -163,109 +163,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].ext = ext;
     }
 
-//////////////////
-    function setStatus(address addr, Status status) public {
-        nodes[addr].status = status;
-        if(Status.Online == status) {
-            onlineNodeAddrs.add(addr);
-        } else if(Status.Maintain == status) {
-            onlineNodeAddrs.remove(addr);
-            nodes[addr].serviceInfo.maintainCount = nodes[addr].serviceInfo.maintainCount.add(1);
-        } else if(Status.Offline == status) {
-            onlineNodeAddrs.remove(addr);
-            nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
-        } else if(Status.DeRegistered == status) {
-            onlineNodeAddrs.remove(addr);
-        }
-    }
-
-    function upTaskAddAcceptTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo.taskAddAcceptTimeoutCount.add(1);
-        nodes[addr].serviceInfo._taskAddAcceptTimeoutCount.add(1);
-    }
-
-    function upTaskAddTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo.taskAddTimeoutCount.add(1);
-        nodes[addr].serviceInfo._taskAddTimeoutCount.add(1);
-    }
-
-    function upTaskDeleteAcceptTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount.add(1);
-        nodes[addr].serviceInfo._taskDeleteAcceptTimeoutCount.add(1);
-    }
-
-    function upTaskDeleteTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo.taskDeleteTimeoutCount.add(1);
-        nodes[addr].serviceInfo._taskDeleteTimeoutCount.add(1);
-    }
-
-    function resetTaskAddAcceptTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo._taskAddAcceptTimeoutCount = 0;
-    }
-
-    function resetTaskAddTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo._taskAddTimeoutCount = 0;
-    }
-
-    function resetTaskDeleteAcceptTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo._taskDeleteAcceptTimeoutCount = 0;
-    }
-
-    function resetTaskDeleteTimeoutCount(address addr) external {
-        nodes[addr].serviceInfo._taskDeleteTimeoutCount = 0;
-    }
-
-    function totalTaskTimeoutCount(address addr) external view returns (uint256) {
-        INodeStorage.ServiceInfo storage serviceInfo = nodes[addr].serviceInfo;
-        return serviceInfo._taskAddAcceptTimeoutCount +
-                serviceInfo._taskAddTimeoutCount +
-                serviceInfo._taskDeleteAcceptTimeoutCount +
-                serviceInfo._taskDeleteTimeoutCount;
-    }
-
-    function maintainCount(address addr) public view returns (uint256) {
-        return nodes[addr].serviceInfo.maintainCount;
-    }
-
-    function upMaintainCount(address addr) external {
-        nodes[addr].serviceInfo.maintainCount.add(1);
-    }
-
-    function offlineCount(address addr) public view returns (uint256) {
-        return nodes[addr].serviceInfo.offlineCount;
-    }
-
-    function upOfflineCount(address addr) external {
-        nodes[addr].serviceInfo.offlineCount.add(1);
-    }
-
-    function starve(address addr) public view returns (uint256) {
-        return nodes[addr].starve;
-    }
-
-    function setStarve(address addr, uint256 starve) public {
-        nodes[addr].starve = starve;
-    }
-
-
-
-    function setCurrentBlock(address addr, uint256 block) external {
-        nodes[addr].blockInfo.current = block;
-    }
-
-    function setTargetBlock(address addr, uint256 block) external {
-        nodes[addr].blockInfo.target = block;
-    }
-
-
-
-
-
-    function freeSpace(address addr) external view returns (uint256) {
-        return nodes[addr].storageInfo.total.sub(nodes[addr].storageInfo.used);
-    }
-
-    function nodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(nodeAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
@@ -275,7 +173,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return (result, page);
     }
 
-    function onlineNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(onlineNodeAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
@@ -285,7 +183,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return (result, page);
     }
 
-    function cids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
         EnumerableSet.Bytes32Set storage cidHashs = node2cidHashs[addr];
         Paging.Page memory page = Paging.getPage(cidHashs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);

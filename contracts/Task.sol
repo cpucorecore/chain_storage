@@ -14,9 +14,9 @@ contract Task is Importable, ExternalStorable, ITask {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
-        CONTRACT_FILE,
-        CONTRACT_USER,
-        CONTRACT_NODE
+            CONTRACT_FILE,
+            CONTRACT_USER,
+            CONTRACT_NODE
         ];
     }
 
@@ -24,18 +24,18 @@ contract Task is Importable, ExternalStorable, ITask {
         return ITaskStorage(getStorage());
     }
 
-    function issueTaskAdd(string calldata cid, address node, uint256 size, uint256 duration) external {
+    function issueAddFileTask(string calldata cid, address node, uint256 size, uint256 duration) external {
         uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Add, block.number, duration);
         emit TaskIssued(tid, cid, node, ITaskStorage.Action.Add, size, duration);
     }
 
-    function issueTaskDelete(string calldata cid, address node, uint256 size) external {
+    function issueDeleteFileTask(string calldata cid, address node, uint256 size) external {
         uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Delete, block.number, 0);
         emit TaskIssued(tid, cid, node, ITaskStorage.Action.Delete, size, 0);
     }
 
-    function task(uint256 tid) external view returns (ITaskStorage.TaskItem memory) {
-        return Storage().task(tid);
+    function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory) {
+        return Storage().getTaskItem(tid);
     }
 
     function acceptTask(uint256 tid) external {
@@ -59,7 +59,6 @@ contract Task is Importable, ExternalStorable, ITask {
     }
 
     function failTask(uint256 tid) public {
-        // TODO config.monitor can fail task
         require(Storage().exist(tid), contractName.concat(": task not exist"));
         require(ITaskStorage.Status.Accepted == Storage().status(tid), contractName.concat(": wrong task status"));
 

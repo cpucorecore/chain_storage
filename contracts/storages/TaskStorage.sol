@@ -6,11 +6,9 @@ import "./ExternalStorage.sol";
 
 contract TaskStorage is ExternalStorage, ITaskStorage {
     uint256 private tid;
-    mapping(uint256=>TaskItem) tasks;
-
-    function currentTid() public view returns(uint256) {
-        return tid;
-    }
+    mapping(uint256=>TaskItem) private tid2taskItem;
+    mapping(uint256=>TaskStatus) private tid2taskStatus;
+    mapping(uint256=>AddFileTaskProgress) private tid2addFileTaskProgress;
 
     function newTask(string memory cid, address node, uint256 size, Action action, uint256 block, uint256 duration) public returns(uint256) {
         tid = tid.add(1);
@@ -18,75 +16,37 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid;
     }
 
+    function newTask(
+        address owner,
+        Action action,
+        string calldata cid,
+        uint256 size,
+        address node,
+        uint256 createBlock,
+        uint256 createTime
+    ) external returns (uint256) {
+        tid = tid.add(1);
+        tid2taskItem[tid] = TaskItem(owner, action, node, size, cid, true);
+        tid2taskStatus[tid] = TaskStatus(ITaskStorage.Status.Created, block.number, block.timestamp, 0, 0, 0, 0, 0, true);
+        if(ITaskStorage.Action.Add == action) {
+            tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, true);
+        }
+        return tid;
+    }
+
     function exist(uint256 tid) external view returns (bool) {
-        return tasks[tid].exist;
+        return tid2taskItem[tid].exist && tid2taskStatus[tid].exist;
     }
 
-    function task(uint256 tid) external view returns (TaskItem memory) {
-        return tasks[tid];
+    function getTaskItem(uint256 tid) external view returns (TaskItem memory) {
+        return tid2taskItem[tid];
     }
 
-    function cid(uint256 tid) external view returns (string memory) {
-        return tasks[tid].cid;
+    function getTaskStatus(uint256 tid) external view returns (TaskStatus memory) {
+        return tid2taskStatus[tid];
     }
 
-    function node(uint256 tid) external view returns (address) {
-        return tasks[tid].node;
-    }
-
-    function status(uint256 tid) external view returns (Status) {
-        return tasks[tid].status;
-    }
-
-    function setStatus(uint256 tid, Status status) public {// TODO check authority
-        tasks[tid].status = status;
-    }
-
-    function acceptTimeoutBlock(uint256 tid) external view returns (uint256) {
-        return tasks[tid].acceptTimeoutBlock;
-    }
-
-    function setAcceptTimeoutBlock(uint256 tid, uint256 block) external {
-        tasks[tid].acceptTimeoutBlock = block;
-    }
-
-    function acceptedBlock(uint256 tid) external view returns (uint256) {
-        return tasks[tid].acceptedBlock;
-    }
-
-    function setAcceptedBlock(uint256 tid, uint256 block) external {
-        tasks[tid].acceptedBlock = block;
-    }
-
-    function timeoutBlock(uint256 tid) external view returns (uint256) {
-        return tasks[tid].timeoutBlock;
-    }
-
-    function setTimeoutBlock(uint256 tid, uint256 block) external {
-        tasks[tid].timeoutBlock = block;
-    }
-
-    function finishedBlock(uint256 tid) external view returns (uint256) {
-        return tasks[tid].FinishedBlock;
-    }
-
-    function setFinishedBlock(uint256 tid, uint256 block) external {
-        tasks[tid].FinishedBlock = block;
-    }
-
-    function failedBlock(uint256 tid) external view returns (uint256) {
-        return tasks[tid].FailedBlock;
-    }
-
-    function setFailedBlock(uint256 tid, uint256 block) external {
-        tasks[tid].FailedBlock = block;
-    }
-
-    function blockInfo(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256) {
-        return (tasks[tid].createdBlock,
-                tasks[tid].acceptTimeoutBlock,
-                tasks[tid].acceptedBlock,
-                tasks[tid].timeoutBlock,
-                tasks[tid].FinishedBlock);
+    function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory) {
+        return tid2addFileTaskProgress[tid];
     }
 }

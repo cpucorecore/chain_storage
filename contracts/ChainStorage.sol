@@ -61,12 +61,8 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         User().deleteFile(msg.sender, cid);
     }
 
-    function nodeRegister(string calldata pid, uint256 space, string calldata ext) external onlyInitialized notPaused {
-        require(bytes(pid).length <= Setting().maxPidLength(), contractName.concat(": pid too long"));
-        require(bytes(ext).length <= Setting().maxNodeExtLength(), contractName.concat(": ext too long"));
-        require(space > 0, contractName.concat(": space must > 0"));
-
-        Node().register(msg.sender, pid, space, ext);
+    function nodeRegister(uint256 space, string calldata ext) external onlyInitialized notPaused {
+        Node().register(msg.sender, space, ext);
     }
 
     function nodeOnline() external onlyInitialized notPaused {

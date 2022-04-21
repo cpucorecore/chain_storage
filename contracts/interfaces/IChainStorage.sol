@@ -5,7 +5,7 @@ interface IChainStorage {
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external;
     function userDeleteFile(string calldata cid) external;
 
-    function nodeRegister(string calldata pid, uint256 space, string calldata ext) external;
+    function nodeRegister(uint256 space, string calldata ext) external;
     function nodeOnline() external;
 
     function monitorRegister(string calldata ext) external;

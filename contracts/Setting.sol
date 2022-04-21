@@ -13,7 +13,6 @@ contract Setting is ExternalStorable, ISetting {
     bytes32 private constant MAX_NODE_EXT_LENGTH = 'MaxNodeExtLength';
     bytes32 private constant MAX_MONITOR_EXT_LENGTH = 'MaxMonitorExtLength';
     bytes32 private constant MAX_CID_LENGTH = 'MaxCidLength';
-    bytes32 private constant MAX_PID_LENGTH = 'MaxPidLength';
     bytes32 private constant MAX_TIMEOUT = 'MaxTimeout';
 
     constructor() public {
@@ -24,7 +23,7 @@ contract Setting is ExternalStorable, ISetting {
         return ISettingStorage(getStorage());
     }
 
-    function replica() external view returns (uint256) {
+    function getReplica() external view returns (uint256) {
         return Storage().getUint(REPLICA);
     }
 
@@ -32,7 +31,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(REPLICA, replica);
     }
 
-    function initSpace() external view returns (uint256) {
+    function getInitSpace() external view returns (uint256) {
         return Storage().getUint(INIT_SPACE);
     }
 
@@ -40,7 +39,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(INIT_SPACE, space);
     }
 
-    function admin() external view returns (address) {
+    function getAdmin() external view returns (address) {
         return Storage().getAddress(ADMIN_ACCOUNT);
     }
 
@@ -48,7 +47,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setAddress(ADMIN_ACCOUNT, addr);
     }
 
-    function maxUserExtLength() external view returns (uint256) {
+    function getMaxUserExtLength() external view returns (uint256) {
         return Storage().getUint(MAX_USER_EXT_LENGTH);
     }
 
@@ -56,7 +55,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(MAX_USER_EXT_LENGTH, length);
     }
 
-    function maxNodeExtLength() external view returns (uint256) {
+    function getMaxNodeExtLength() external view returns (uint256) {
         return Storage().getUint(MAX_NODE_EXT_LENGTH);
     }
 
@@ -64,7 +63,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(MAX_NODE_EXT_LENGTH, length);
     }
 
-    function maxMonitorExtLength() external view returns (uint256) {
+    function getMaxMonitorExtLength() external view returns (uint256) {
         return Storage().getUint(MAX_MONITOR_EXT_LENGTH);
     }
 
@@ -72,7 +71,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(MAX_MONITOR_EXT_LENGTH, length);
     }
 
-    function maxCidLength() external view returns (uint256) {
+    function getMaxCidLength() external view returns (uint256) {
         return Storage().getUint(MAX_CID_LENGTH);
     }
 
@@ -80,15 +79,7 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(MAX_CID_LENGTH, length);
     }
 
-    function maxPidLength() external view returns (uint256) {
-        return Storage().getUint(MAX_PID_LENGTH);
-    }
-
-    function setMaxPidLength(uint256 length) external {
-        Storage().setUint(MAX_PID_LENGTH, length);
-    }
-
-    function maxTimeout() external view returns (uint256) {
+    function getMaxTimeout() external view returns (uint256) {
         return Storage().getUint(MAX_TIMEOUT);
     }
 
