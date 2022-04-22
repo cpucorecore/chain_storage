@@ -7,9 +7,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
 contract Task is Importable, ExternalStorable, ITask {
-    event TaskIssued(uint256 indexed tid, string cid, address node, ITaskStorage.Action action, uint256 size, uint256 duration);
-    event TaskAccepted(uint256 indexed tid);
-    event TaskFinished(uint256 indexed tid);
+    event TaskIssued(uint256 indexed tid, address node);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
@@ -24,47 +22,63 @@ contract Task is Importable, ExternalStorable, ITask {
         return ITaskStorage(getStorage());
     }
 
-    function issueAddFileTask(string calldata cid, address node, uint256 size, uint256 duration) external {
-        uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Add, block.number, duration);
+    function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
+        uint256 tid = Storage().newTask(owner, action, cid, size, node, now);
         emit TaskIssued(tid, cid, node, ITaskStorage.Action.Add, size, duration);
-    }
-
-    function issueDeleteFileTask(string calldata cid, address node, uint256 size) external {
-        uint256 tid = Storage().newTask(cid, node, size, ITaskStorage.Action.Delete, block.number, 0);
-        emit TaskIssued(tid, cid, node, ITaskStorage.Action.Delete, size, 0);
+        return tid;
     }
 
     function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory) {
         return Storage().getTaskItem(tid);
     }
 
+    function getStatusInfo(uint256 tid) external view returns (ITaskStorage.StatusInfo memory) {
+        return Storage().getStatusInfo(tid);
+    }
+
+    function getAddFileTaskProgress(uint256 tid) external view returns (ITaskStorage.AddFileTaskProgress memory) {
+        return Storage().getAddFileTaskProgress(tid);
+    }
+
     function acceptTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
-        require(ITaskStorage.Status.Created == Storage().status(tid), contractName.concat(": wrong task status"));
-
-        Storage().setStatus(tid, ITaskStorage.Status.Accepted);
-        Storage().setAcceptedBlock(tid, block.number);
-
-        emit TaskAccepted(tid);
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Created == status, contractName.concat(": task status is not Created"));
+        Storage().setStatusAndTime(tid, ITaskStorage.Status.Accepted, now);
     }
 
-    function finishTask(uint256 tid) public {
+    function finishTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
-        require(ITaskStorage.Status.Accepted == Storage().status(tid), contractName.concat(": wrong task status"));
-
-        Storage().setStatus(tid, ITaskStorage.Status.Finished);
-        Storage().setFinishedBlock(tid, block.number);
-
-        emit TaskFinished(tid);
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+        Storage().setStatusAndTime(tid, ITaskStorage.Status.Finished, now);
     }
 
-    function failTask(uint256 tid) public {
+    function failTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
-        require(ITaskStorage.Status.Accepted == Storage().status(tid), contractName.concat(": wrong task status"));
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+        Storage().setStatusAndTime(tid, ITaskStorage.Status.Failed, now);
+    }
 
-        Storage().setStatus(tid, ITaskStorage.Status.Failed);
-        Storage().setFailedBlock(tid, block.number);
+    function TaskAcceptTimeout(uint256 tid) external {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Created == status, contractName.concat(": task status is not Created"));
+        Storage().setStatusAndTime(tid, ITaskStorage.Status.AcceptTimeout, now);
+    }
 
-        emit TaskFinished(tid);
+    function TaskTimeout(uint256 tid) external {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+        Storage().setStatusAndTime(tid, ITaskStorage.Status.Timeout, now);
+    }
+
+    function reportAddFileProgress(uint256 tid, uint256 size) external {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+        Storage().setAddFileTaskProgress(tid, now, size);
     }
 }

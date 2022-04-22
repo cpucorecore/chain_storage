@@ -23,8 +23,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr] = NodeItem(pid,
             Status.Registered,
             ServiceInfo(0, 0, 0, 0, 0, 0, 0),
-            Space(totalSpace, 0, totalSpace),
-            0, TaskBlock(0, 0), ext, 0, true);
+            SpaceInfo(totalSpace, 0, totalSpace),
+            0, TasksProgress(0, 0), ext, 0, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
         node2cidHashs[addr] = cidHashs;
@@ -50,14 +50,13 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo;
     }
 
-    function getSpace(address addr) public view returns (Space memory) {
-        return nodes[addr].storageInfo;
+    function getSpaceInfo(address addr) public view returns (SpaceInfo memory) {
+        return nodes[addr].spaceInfo;
     }
 
-    function getTaskBlock(address addr) external view returns (TaskBlock memory) {
-        return nodes[addr].blockInfo;
+    function getTasksProgress(address addr) external view returns (TasksProgress memory) {
+        return nodes[addr].tasksProgress;
     }
-
 
     function getStatus(address addr) external view returns (Status) {
         return nodes[addr].status;
@@ -65,14 +64,6 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function setStatus(address addr, Status status) external {
         nodes[addr].status = status;
-    }
-
-    function getContinuousTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.continuousTimeoutCount;
-    }
-
-    function setContinuousTimeoutCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.continuousTimeoutCount = value;
     }
 
     function getMaintainCount(address addr) external view returns (uint256) {
@@ -91,68 +82,36 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].serviceInfo.offlineCount = value;
     }
 
-    function getTaskAddAcceptTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskAddAcceptTimeoutCount;
-    }
-
-    function setTaskAddAcceptTimeoutCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskAddAcceptTimeoutCount = value;
-    }
-
-    function getTaskAddTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskAddTimeoutCount;
-    }
-
-    function setTaskAddTimeoutCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskAddTimeoutCount = value;
-    }
-
-    function getTaskDeleteAcceptTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount;
-    }
-
-    function setTaskDeleteAcceptTimeoutCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskDeleteAcceptTimeoutCount = value;
-    }
-
-    function getTaskDeleteTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskDeleteTimeoutCount;
-    }
-
-    function setTaskDeleteTimeoutCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskDeleteTimeoutCount = value;
-    }
-
     function getTotalSpace(address addr) external view returns (uint256) {
-        return nodes[addr].space.total;
+        return nodes[addr].spaceInfo.total;
     }
 
     function setTotalSpace(address addr, uint256 value) external {
-        nodes[addr].space.total = value;
+        nodes[addr].spaceInfo.total = value;
     }
 
     function getUsedSpace(address addr) external view returns (uint256) {
-        return nodes[addr].space.used;
+        return nodes[addr].spaceInfo.used;
     }
 
     function setUsedSpace(address addr, uint256 value) external {
-        nodes[addr].space.used = value;
+        nodes[addr].spaceInfo.used = value;
     }
 
-    function getCurrentTaskBlock(address addr) external view returns (uint256) {
-        return nodes[addr].taskBlock.current;
+    function getTasksProgressCurrentTime(address addr) external view returns (uint256) {
+        return nodes[addr].tasksProgress.currentTime;
     }
 
-    function setCurrentTaskBlock(address addr, uint256 value) external {
-        nodes[addr].taskBlock.current = value;
+    function setTasksProgressCurrentTime(address addr, uint256 value) external {
+        nodes[addr].tasksProgress.currentTime = value;
     }
 
-    function getTargetTaskBlock(address addr) external view returns (uint256) {
-        return nodes[addr].taskBlock.target;
+    function getTasksProgressTargetTime(address addr) external view returns (uint256) {
+        return nodes[addr].tasksProgress.targetTime;
     }
 
-    function setTargetTaskBlock(address addr, uint256 value) external {
-        nodes[addr].taskBlock.target = value;
+    function getTasksProgressTargetTime(address addr, uint256 value) external {
+        nodes[addr].tasksProgress.targetTime = value;
     }
 
     function getExt(address addr) external view returns (string memory) {

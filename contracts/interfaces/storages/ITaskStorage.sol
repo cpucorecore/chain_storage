@@ -4,11 +4,11 @@ pragma experimental ABIEncoderV2;
 interface ITaskStorage {
     enum Status {
         Created,
-        AcceptTimeout,
         Accepted,
-        Timeout,
+        AcceptTimeout,
         Finished,
-        Failed
+        Failed,
+        Timeout
     }
 
     enum Action {
@@ -25,9 +25,8 @@ interface ITaskStorage {
         bool exist;
     }
 
-    struct TaskStatus {
+    struct StatusInfo {
         Status status;
-        uint256 createBlock;
         uint256 createTime;
         uint256 acceptTime;
         uint256 acceptTimeoutTime;
@@ -39,8 +38,9 @@ interface ITaskStorage {
 
     struct AddFileTaskProgress {
         uint256 time;
-        uint256 lastProgress;
-        uint256 progress;
+        uint256 lastSize;
+        uint256 currentSize;
+        uint256 size;
         bool exist;
     }
 
@@ -50,12 +50,17 @@ interface ITaskStorage {
         string calldata cid,
         uint256 size,
         address node,
-        uint256 createBlock,
         uint256 createTime
     ) external returns (uint256);
     function exist(uint256 tid) external view returns (bool);
 
     function getTaskItem(uint256 tid) external view returns (TaskItem memory);
-    function getTaskStatus(uint256 tid) external view returns (TaskStatus memory);
+
+    function getStatus(uint256 tid) external view returns (Status);
+    function getStatusAndTime(uint256 tid) external view returns (Status, uint256);
+    function getStatusInfo(uint256 tid) external view returns (StatusInfo memory);
+    function setStatusAndTime(uint256 tid, Status status, uint256 time) external;
+
     function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory);
+    function setAddFileTaskProgress(uint256 tid, uint256 time, uint256 size) external;
 }

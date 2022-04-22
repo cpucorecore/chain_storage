@@ -16,30 +16,27 @@ interface INodeStorage {
     }
 
     struct ServiceInfo {
-        uint256 continuousTimeoutCount;
         uint256 maintainCount;
         uint256 offlineCount;
-        uint256 taskAddAcceptTimeoutCount;
-        uint256 taskAddTimeoutCount;
-        uint256 taskDeleteAcceptTimeoutCount;
-        uint256 taskDeleteTimeoutCount;
+        uint256 taskAcceptTimeoutCount;
+        uint256 taskTimeoutCount;
     }
 
-    struct Space {
+    struct SpaceInfo {
         uint256 total;
         uint256 used;
     }
 
-    struct TaskBlock {
-        uint256 current;
-        uint256 target;
+    struct TasksProgress {
+        uint256 currentTime;
+        uint256 targetTime;
     }
 
     struct NodeItem {
         Status status;
         ServiceInfo serviceInfo;
-        Space space;
-        TaskBlock taskBlock;
+        SpaceInfo spaceInfo;
+        TasksProgress tasksProgress;
         string ext;
         bool exist;
     }
@@ -50,14 +47,11 @@ interface INodeStorage {
 
     function getNode(address addr) external view returns (NodeItem memory);
     function getServiceInfo(address addr) external view returns (ServiceInfo memory);
-    function getSpace(address addr) external view returns (Space memory);
-    function getTaskBlock(address addr) external view returns (TaskBlock memory);
+    function getSpaceInfo(address addr) external view returns (SpaceInfo memory);
+    function getTasksProgress(address addr) external view returns (TasksProgress memory);
 
     function getStatus(address addr) external view returns (Status);
     function setStatus(address addr, Status status) external;
-
-    function getContinuousTimeoutCount(address addr) external view returns (uint256);
-    function setContinuousTimeoutCount(address addr, uint256 value) external;
 
     function getMaintainCount(address addr) external view returns (uint256);
     function setMaintainCount(address addr, uint256 value) external;
@@ -65,17 +59,11 @@ interface INodeStorage {
     function getOfflineCount(address addr) external view returns (uint256);
     function setOfflineCount(address addr, uint256 value) external;
 
-    function getTaskAddAcceptTimeoutCount(address addr) external view returns (uint256);
-    function setTaskAddAcceptTimeoutCount(address addr, uint256 value) external;
+    function getTaskAcceptTimeoutCount(address addr) external view returns (uint256);
+    function setTaskAcceptTimeoutCount(address addr, uint256 value) external;
 
-    function getTaskAddTimeoutCount(address addr) external view returns (uint256);
-    function setTaskAddTimeoutCount(address addr, uint256 value) external;
-
-    function getTaskDeleteAcceptTimeoutCount(address addr) external view returns (uint256);
-    function setTaskDeleteAcceptTimeoutCount(address addr, uint256 value) external;
-
-    function getTaskDeleteTimeoutCount(address addr) external view returns (uint256);
-    function setTaskDeleteTimeoutCount(address addr, uint256 value) external;
+    function getTaskTimeoutCount(address addr) external view returns (uint256);
+    function setTaskTimeoutCount(address addr, uint256 value) external;
 
     function getTotalSpace(address addr) external view returns (uint256);
     function setTotalSpace(address addr, uint256 value) external;
@@ -83,11 +71,10 @@ interface INodeStorage {
     function getUsedSpace(address addr) external view returns (uint256);
     function setUsedSpace(address addr, uint256 value) external;
 
-    function getCurrentTaskBlock(address addr) external view returns (uint256);
-    function setCurrentTaskBlock(address addr, uint256 value) external;
-
-    function getTargetTaskBlock(address addr) external view returns (uint256);
-    function setTargetTaskBlock(address addr, uint256 value) external;
+    function getTasksProgressCurrentTime(address addr) external view returns (uint256);
+    function setTasksProgressCurrentTime(address addr, uint256 value) external;
+    function getTasksProgressTargetTime(address addr) external view returns (uint256);
+    function getTasksProgressTargetTime(address addr, uint256 value) external;
 
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;

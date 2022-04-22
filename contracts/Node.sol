@@ -44,8 +44,8 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().newNode(addr, space, ext);
     }
 
-    function deRegister(address addr) public {
-        // TODO check
+    function deRegister(address addr) external {
+        // TODO
         checkExist(addr);
         Storage().deleteNode(addr);
     }
@@ -69,8 +69,8 @@ contract Node is Importable, ExternalStorable, INode {
                 INodeStorage.Status.Maintain == status ||
                 INodeStorage.Status.Offline == status,
             contractName.concat(": wrong status"));
-        INodeStorage.TaskBlock memory taskBlock = Storage().getTaskBlock(addr);
-        require(taskBlock.current == taskBlock.target, contractName.concat("must finish all task"));
+        TaskTimeProgress.TaskBlock memory taskBlock = Storage().getTaskBlock(addr);
+        require(taskBlock.currentTime == taskBlock.targetTime, contractName.concat("must finish all task"));
         Storage().setStatus(addr, INodeStorage.Status.Online);
     }
 
@@ -83,7 +83,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setOfflineCount(addr, offlineCount);
     }
 
-    function maintain(address addr) public {
+    function maintain(address addr) external {
         checkExist(addr);
         INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
@@ -92,13 +92,13 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setMaintainCount(addr, maintainCount);
     }
 
-    function addFile(string memory cid, uint256 size, uint256 duration) public {
+    function addFile(address owner, string memory cid, uint256 size) public {
         uint256 replica = Setting().getReplica();
         address[] memory nodeAddrs = selectNodes(size, replica);
         require(nodeAddrs.length != replica, contractName.concat(": no available node"));
 
         for(uint256 i=0; i<nodeAddrs.length; i++) {
-            Task().issueTaskAdd(cid, nodeAddrs[i], size, duration);
+            Task().issueTask(ITaskStorage.Action.add, owner, cid, nodeAddrs[i], size);
         }
     }
 
@@ -211,10 +211,6 @@ contract Node is Importable, ExternalStorable, INode {
         }
 
         // TODO select by socre
-    }
-
-    function feedNode(uint256 food) private {
-
     }
 
     function checkExist(address addr) private {

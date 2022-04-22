@@ -4,12 +4,16 @@ pragma experimental ABIEncoderV2;
 import "./storages/ITaskStorage.sol";
 
 interface ITask {
-    function issueAddFileTask(string calldata cid, address node, uint256 size, uint256 duration) external;
-    function issueDeleteFileTask(string calldata cid, address node, uint256 size) external;
+    function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256);
 
     function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory);
+    function getStatusInfo(uint256 tid) external view returns (ITaskStorage.StatusInfo memory);
+    function getAddFileTaskProgress(uint256 tid) external view returns (ITaskStorage.AddFileTaskProgress memory);
 
     function acceptTask(uint256 tid) external;
     function finishTask(uint256 tid) external;
     function failTask(uint256 tid) external;
+    function TaskAcceptTimeout(uint256 tid) external;
+    function TaskTimeout(uint256 tid) external;
+    function reportAddFileProgress(uint256 tid, uint256 size) external;
 }
