@@ -9,6 +9,8 @@ import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 
 contract User is Importable, ExternalStorable, IUser {
+    using SafeMath for uint256;
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
@@ -48,33 +50,47 @@ contract User is Importable, ExternalStorable, IUser {
 
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
-        require(Storage().spaceEnough(addr, size), contractName.concat(": space not enough"));
+        require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
 
-        File().addFile(cid, size, addr, duration);
+        File().addFile(cid, size, addr);
 
-        Storage().addFile(addr, cid, duration, ext);
-        Storage().useSpace(addr, size);
+        Storage().addFile(addr, cid, duration, ext, now);
+        useStorage(addr, size); // TODO to wait fileAdded?
     }
 
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
         uint256 size = File().size(cid);
-        Storage().freeSpace(addr, size);
+        freeStorage(addr, size); // TODO to wait fileDeleted?
         Storage().deleteFile(addr, cid);
         File().deleteFile(cid, addr);
     }
 
     function changeSpace(address addr, uint256 size) public {
         require(Setting().getAdmin() == msg.sender, ": no auth");
-        Storage().setSpace(addr, size);
+        require(size >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used bigger"));
+        Storage().setStorageTotal(addr, size);
     }
 
-    function cids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
-        return Storage().cids(addr, pageSize, pageNumber);
+    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
+        return Storage().getCids(addr, pageSize, pageNumber);
     }
 
-    function storageInfo(address addr) public returns(uint256, uint256) {
-        return Storage().storageInfo(addr);
+    function getStorageInfo(address addr) external view returns (IUserStorage.StorageInfo memory) {
+        return Storage().getStorageInfo(addr);
+    }
+
+    /////////////////////// private functions ///////////////////////
+    function useStorage(address node, uint256 size) private {
+        IUserStorage.StorageInfo memory storageInfo = Storage().getStorageInfo(node);
+        require(size > 0 && storageInfo.used.add(size) <= storageInfo.total, contractName.concat(": space not enough"));
+        Storage().setStorageUsed(node, storageInfo.used.add(size));
+    }
+
+    function freeStorage(address node, uint256 size) private {
+        IUserStorage.StorageInfo memory storageInfo = Storage().getStorageInfo(node);
+        require(size > 0 && size <= storageInfo.used, contractName.concat("free size can not big than used size"));
+        Storage().setStorageUsed(node, storageInfo.used.sub(size));
     }
 }

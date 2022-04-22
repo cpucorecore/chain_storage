@@ -30,7 +30,7 @@ contract File is Importable, ExternalStorable, IFile {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function addFile(string calldata cid, uint size, address owner, uint256 duration) external {
+    function addFile(string calldata cid, uint size, address owner) external {
         if(Storage().exist(cid)) {
             if(!Storage().ownerExist(cid, owner)) {
                 Storage().addOwner(cid, owner);

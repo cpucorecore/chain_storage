@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../lib/Paging.sol";
 
 interface IFile {
-    function addFile(string calldata cid, uint size, address owner, uint256 duration) external;
+    function addFile(string calldata cid, uint size, address owner) external;
     function deleteFile(string calldata cid, address owner) external;
     function exist(string calldata cid) external view returns (bool);
     function size(string calldata cid) external view returns (uint256);

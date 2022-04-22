@@ -22,7 +22,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     function newNode(address addr, uint256 totalSpace, string calldata ext) external {
         nodes[addr] = NodeItem(Status.Registered,
             ServiceInfo(0, 0, 0, 0, 0, 0),
-            SpaceInfo(totalSpace, 0),
+            StorageInfo(totalSpace, 0),
             TasksProgress(0, 0), ext, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
@@ -49,8 +49,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo;
     }
 
-    function getSpaceInfo(address addr) public view returns (SpaceInfo memory) {
-        return nodes[addr].spaceInfo;
+    function getStorageInfo(address addr) public view returns (StorageInfo memory) {
+        return nodes[addr].storageInfo;
     }
 
     function getTasksProgress(address addr) external view returns (TasksProgress memory) {
@@ -113,25 +113,25 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].serviceInfo.taskTimeoutCount = value;
     }
 
-    function getFreeSpace(address addr) external view returns (uint256) {
-        if(nodes[addr].spaceInfo.used > nodes[addr].spaceInfo.total) return 0;
-        return nodes[addr].spaceInfo.total.sub(nodes[addr].spaceInfo.used);
+    function getStorageFree(address addr) external view returns (uint256) {
+        if(nodes[addr].storageInfo.used > nodes[addr].storageInfo.total) return 0;
+        return nodes[addr].storageInfo.total.sub(nodes[addr].storageInfo.used);
     }
 
-    function getTotalSpace(address addr) external view returns (uint256) {
-        return nodes[addr].spaceInfo.total;
+    function getStorageTotal(address addr) external view returns (uint256) {
+        return nodes[addr].storageInfo.total;
     }
 
-    function setTotalSpace(address addr, uint256 value) external {
-        nodes[addr].spaceInfo.total = value;
+    function setStorageTotal(address addr, uint256 value) external {
+        nodes[addr].storageInfo.total = value;
     }
 
-    function getUsedSpace(address addr) external view returns (uint256) {
-        return nodes[addr].spaceInfo.used;
+    function getStorageUsed(address addr) external view returns (uint256) {
+        return nodes[addr].storageInfo.used;
     }
 
-    function setUsedSpace(address addr, uint256 value) external {
-        nodes[addr].spaceInfo.used = value;
+    function setStorageUsed(address addr, uint256 value) external {
+        nodes[addr].storageInfo.used = value;
     }
 
     function getTasksProgressCurrentTime(address addr) external view returns (uint256) {

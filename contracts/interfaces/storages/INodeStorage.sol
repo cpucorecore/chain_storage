@@ -24,7 +24,7 @@ interface INodeStorage {
         uint256 taskTimeoutCount;
     }
 
-    struct SpaceInfo {
+    struct StorageInfo {
         uint256 total;
         uint256 used;
     }
@@ -37,7 +37,7 @@ interface INodeStorage {
     struct NodeItem {
         Status status;
         ServiceInfo serviceInfo;
-        SpaceInfo spaceInfo;
+        StorageInfo storageInfo;
         TasksProgress tasksProgress;
         string ext;
         bool exist;
@@ -49,7 +49,7 @@ interface INodeStorage {
 
     function getNode(address addr) external view returns (NodeItem memory);
     function getServiceInfo(address addr) external view returns (ServiceInfo memory);
-    function getSpaceInfo(address addr) external view returns (SpaceInfo memory);
+    function getStorageInfo(address addr) external view returns (StorageInfo memory);
     function getTasksProgress(address addr) external view returns (TasksProgress memory);
 
     function getStatus(address addr) external view returns (Status);
@@ -73,12 +73,12 @@ interface INodeStorage {
     function getTaskTimeoutCount(address addr) external view returns (uint256);
     function setTaskTimeoutCount(address addr, uint256 value) external;
 
-    function getFreeSpace(address addr) external view returns (uint256);
-    function getTotalSpace(address addr) external view returns (uint256);
-    function setTotalSpace(address addr, uint256 value) external;
+    function getStorageFree(address addr) external view returns (uint256);
+    function getStorageTotal(address addr) external view returns (uint256);
+    function setStorageTotal(address addr, uint256 value) external;
 
-    function getUsedSpace(address addr) external view returns (uint256);
-    function setUsedSpace(address addr, uint256 value) external;
+    function getStorageUsed(address addr) external view returns (uint256);
+    function setStorageUsed(address addr, uint256 value) external;
 
     function getTasksProgressCurrentTime(address addr) external view returns (uint256);
     function setTasksProgressCurrentTime(address addr, uint256 value) external;
