@@ -82,6 +82,38 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].serviceInfo.offlineCount = value;
     }
 
+    function getTaskFinishCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskFinishCount;
+    }
+
+    function setTaskFinishCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskFinishCount = value;
+    }
+
+    function getTaskFailCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskFailCount;
+    }
+
+    function setTaskFailCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskFailCount = value;
+    }
+
+    function getTaskAcceptTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskAcceptTimeoutCount;
+    }
+
+    function setTaskAcceptTimeoutCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskAcceptTimeoutCount = value;
+    }
+
+    function getTaskTimeoutCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskTimeoutCount;
+    }
+
+    function setTaskTimeoutCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskTimeoutCount = value;
+    }
+
     function getTotalSpace(address addr) external view returns (uint256) {
         return nodes[addr].spaceInfo.total;
     }

@@ -7,7 +7,10 @@ interface ITask {
     function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256);
 
     function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory);
+
+    function getCreateTime(uint256 tid) external view returns (uint256);
     function getStatusInfo(uint256 tid) external view returns (ITaskStorage.StatusInfo memory);
+
     function getAddFileTaskProgress(uint256 tid) external view returns (ITaskStorage.AddFileTaskProgress memory);
 
     function acceptTask(uint256 tid) external;

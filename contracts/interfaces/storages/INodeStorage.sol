@@ -18,6 +18,8 @@ interface INodeStorage {
     struct ServiceInfo {
         uint256 maintainCount;
         uint256 offlineCount;
+        uint256 taskFinishCount;
+        uint256 taskFailCount;
         uint256 taskAcceptTimeoutCount;
         uint256 taskTimeoutCount;
     }
@@ -58,6 +60,12 @@ interface INodeStorage {
 
     function getOfflineCount(address addr) external view returns (uint256);
     function setOfflineCount(address addr, uint256 value) external;
+
+    function getTaskFinishCount(address addr) external view returns (uint256);
+    function setTaskFinishCount(address addr, uint256 value) external;
+
+    function getTaskFailCount(address addr) external view returns (uint256);
+    function setTaskFailCount(address addr, uint256 value) external;
 
     function getTaskAcceptTimeoutCount(address addr) external view returns (uint256);
     function setTaskAcceptTimeoutCount(address addr, uint256 value) external;

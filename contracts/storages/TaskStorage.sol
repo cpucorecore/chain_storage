@@ -38,8 +38,16 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid];
     }
 
+    function getAction(uint256 tid) external view returns (Action) {
+        return tid2taskItem[tid].action;
+    }
+
     function getStatus(uint256 tid) external view returns (Status) {
         return tid2statusInfo[tid].status;
+    }
+
+    function getCreateTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].createTime;
     }
 
     function getStatusAndTime(uint256 tid) external view returns (Status, uint256) {

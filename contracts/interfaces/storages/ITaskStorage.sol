@@ -55,8 +55,10 @@ interface ITaskStorage {
     function exist(uint256 tid) external view returns (bool);
 
     function getTaskItem(uint256 tid) external view returns (TaskItem memory);
+    function getAction(uint256 tid) external view returns (Action);
 
     function getStatus(uint256 tid) external view returns (Status);
+    function getCreateTime(uint256 tid) external view returns (uint256);
     function getStatusAndTime(uint256 tid) external view returns (Status, uint256);
     function getStatusInfo(uint256 tid) external view returns (StatusInfo memory);
     function setStatusAndTime(uint256 tid, Status status, uint256 time) external;

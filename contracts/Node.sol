@@ -69,8 +69,9 @@ contract Node is Importable, ExternalStorable, INode {
                 INodeStorage.Status.Maintain == status ||
                 INodeStorage.Status.Offline == status,
             contractName.concat(": wrong status"));
-        TaskTimeProgress.TaskBlock memory taskBlock = Storage().getTaskBlock(addr);
-        require(taskBlock.currentTime == taskBlock.targetTime, contractName.concat("must finish all task"));
+
+        INodeStorage.TasksProgress memory tasksProgress = Storage().getTasksProgress(addr);
+        require(tasksProgress.currentTime == tasksProgress.targetTime, contractName.concat("must finish all task"));
         Storage().setStatus(addr, INodeStorage.Status.Online);
     }
 
@@ -92,7 +93,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setMaintainCount(addr, maintainCount);
     }
 
-    function addFile(address owner, string memory cid, uint256 size) public {
+    function addFile(address owner, string memory cid, uint256 size) external {
         uint256 replica = Setting().getReplica();
         address[] memory nodeAddrs = selectNodes(size, replica);
         require(nodeAddrs.length != replica, contractName.concat(": no available node"));
@@ -114,78 +115,52 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getNodeCids(addr, pageSize, pageNumber);
     }
 
-    function taskAddFileFinished(uint256 tid, bool skip) public {
-        ITaskStorage.TaskItem memory task = Task().getTask(tid);
-        require(task.exist, contractName.concat(": tid not exist"));
-        require(ITaskStorage.Status.Accepted == task.status, contractName.concat(": wrong status"));
-
+    function finishTask(uint256 tid) external {
+        ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
         if(ITaskStorage.Action.Add == task.action) {
             File().fileAdded(task.cid, task.node);
-            // TODO useSpace(task.size)
+            useSpace(task.node, task.size);
         } else if(ITaskStorage.Action.Delete == task.action) {
             File().fileDeleted(task.cid, task.node);
-            // TODO freeSpace(task.size)
+            freeSpace(task.node, task.size);
         }
 
-        // TODO count task finished
+        uint256 taskCreateTime = Task().getCreateTime(tid);
+        uint256 nodeTime = Storage().getTasksProgressCurrentTime(task.node);
+        if (taskCreateTime > nodeTime) {
+            Storage().setTasksProgressCurrentTime(task.node, taskCreateTime);
+        }
 
+        Storage().setTaskFinishCount(task.node, Storage.getTaskFinishCount(task.node).add(1));
         Task().finishTask(tid);
     }
 
-    function taskFailed(uint256 tid) public {
-        ITaskStorage.TaskItem memory task = Task().task(tid);
-
-        require(task.exist, contractName.concat(": tid not exist"));
-        require(ITaskStorage.Status.Accepted == task.status, contractName.concat(": wrong status"));
-
-        if(ITaskStorage.Action.Add == task.action) {
-            File().fileAdded(task.cid, task.node);
-        } else if(ITaskStorage.Action.Delete == task.action) {
-            File().fileDeleted(task.cid, task.node);
-        }
-
-        // TODO count task failed
+    function failTask(uint256 tid) external {
+        ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
+        Storage().setTaskFailCount(task.node, Storage.getTaskFailCount(task.node).add(1));
         Task().failTask(tid);
     }
 
     function taskAcceptTimeout(uint256 tid) external {
         ITaskStorage.TaskItem memory task = Task().task(tid);
+        Storage().setTaskAcceptTimeoutCount(task.node, Storage().getTaskAcceptTimeoutCount(task.node).add(1));
 
-        require(task.exist, contractName.concat(": tid not exist"));
-        require(ITaskStorage.Status.Created == task.status, contractName.concat(": wrong status"));
-
-        if(ITaskStorage.Action.Add == task.action) {
-            Storage().upTaskAddAcceptTimeoutCount(task.node);
-        } else if(ITaskStorage.Action.Delete == task.action) {
-            Storage().upTaskDeleteAcceptTimeoutCount(task.node);
-        }
-
-        if(Storage().totalTaskTimeoutCount(task.node) > Setting().maxTimeout()) {
-            offline(task.node);
-        }
+        offline(task.node);
+        Task().TaskAcceptTimeout(tid);
 
         if(ITaskStorage.Action.Add == task.action) {
             address[] memory addrs = selectNodes(task.size, 1);
             require(1 == addrs.length, contractName.concat(": no available node:1"));
-            Task().issueTaskAdd(task.cid, addrs[0], task.size, task.duration);
+            Task().issueTask(ITaskStorage.Action.Add, task.owner, task.cid, addrs[0], task.size);
         }
     }
 
     function taskTimeout(uint256 tid) external {
-        ITaskStorage.TaskItem memory task = Task().task(tid);
+        ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
+        Storage().setTaskTimeoutCount(task.node, Storage().getTaskTimeoutCount(task.node).add(1));
 
-        require(task.exist, contractName.concat(": tid not exist"));
-        require(ITaskStorage.Status.Accepted == task.status, contractName.concat(": wrong status"));
-
-        if(ITaskStorage.Action.Add == task.action) {
-            Storage().upTaskAddTimeoutCount(task.node);
-        } else if(ITaskStorage.Action.Delete == task.action) {
-            Storage().upTaskDeleteTimeoutCount(task.node);
-        }
-
-        if(Storage().totalTaskTimeoutCount(task.node) > Setting().maxTimeout()) {
-            offline(task.node);
-        }
+        offline(task.node);
+        Task().TaskTimeout(tid);
 
         if(ITaskStorage.Action.Add == task.action) {
             address[] memory addrs = selectNodes(task.size, 1);
@@ -194,6 +169,8 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
+
+    //////////////////////// private functions ////////////////////////
     function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
         address[] memory onlineNodeAddresses;
         Paging.Page memory page;
@@ -209,26 +186,21 @@ contract Node is Importable, ExternalStorable, INode {
             }
             return nodes;
         }
-
-        // TODO select by socre
     }
 
     function checkExist(address addr) private {
         require(Storage().exist(addr), contractName.concat(": node not exist"));
     }
-    ////////////////////////////////////////////
-    function setStatus(address addr, Status status) public {
-        nodes[addr].status = status;
-        if(Status.Online == status) {
-            onlineNodeAddrs.add(addr);
-        } else if(Status.Maintain == status) {
-            onlineNodeAddrs.remove(addr);
-            nodes[addr].serviceInfo.maintainCount = nodes[addr].serviceInfo.maintainCount.add(1);
-        } else if(Status.Offline == status) {
-            onlineNodeAddrs.remove(addr);
-            nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
-        } else if(Status.DeRegistered == status) {
-            onlineNodeAddrs.remove(addr);
-        }
+
+    function useSpace(address node, uint256 size) private {
+        INodeStorage.SpaceInfo spaceInfo = Storage().getSpaceInfo(node);
+        require(size > 0 && spaceInfo.used.add(size) <= spaceInfo.total, contractName.concat(": space not enough"));
+        Storage().setUsedSpace(node, spaceInfo.used.add(size));
+    }
+
+    function freeSpace(address node, uint256 size) private {
+        INodeStorage.SpaceInfo spaceInfo = Storage().getSpaceInfo(node);
+        require(size >0 && size < spaceInfo.used, contractName.concat("free size can not big than used size"));
+        Storage().setUsedSpace(node, spaceInfo.used.sub(size));
     }
 }

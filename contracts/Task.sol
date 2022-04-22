@@ -32,6 +32,10 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getTaskItem(tid);
     }
 
+    function getCreateTime(uint256 tid) external view returns (uint256) {
+        return Storage().getCreateTime(tid);
+    }
+
     function getStatusInfo(uint256 tid) external view returns (ITaskStorage.StatusInfo memory) {
         return Storage().getStatusInfo(tid);
     }
@@ -42,8 +46,17 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function acceptTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.TaskItem task = Storage().getTaskItem(tid);
         ITaskStorage.Status status = Storage().getStatus(tid);
-        require(ITaskStorage.Status.Created == status, contractName.concat(": task status is not Created"));
+        if(ITaskStorage.Acction.Add == task.action) {
+            require(ITaskStorage.Status.Created == status, contractName.concat(": add file task status is not Created"));
+        } else {
+            require(ITaskStorage.Status.Created == status ||
+                    ITaskStorage.Status.AcceptTimeout == status ||
+                    ITaskStorage.Status.Timeout == status,
+                contractName.concat(": delete file task status is not in [Created,AcceptTimeout,Timeout]"));
+        }
+
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Accepted, now);
     }
 
@@ -56,6 +69,8 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function failTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.Action action = Storage().getAction(tid);
+        require(ITaskStorage.Action.Add == action, contractName.concat(": only add file task can fail"));
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Failed, now);

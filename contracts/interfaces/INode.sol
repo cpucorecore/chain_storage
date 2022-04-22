@@ -13,14 +13,13 @@ interface INode {
     function online(address addr) external;
     function maintain(address addr) external;
 
-    function addFile(address owner, string calldata cid, uint256 size, uint256 duration) external;
+    function addFile(address owner, string calldata cid, uint256 size) external;
 
     function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 
-    function taskAddFileFinished(uint256 tid, bool skip) external;
-    function taskAddFileFailed(uint256 tid) external;
-    function taskDeleteFileFinished(uint256 tid) external;
+    function finishTask(uint256 tid) external;
+    function failTask(uint256 tid) external;
 
     function taskAcceptTimeout(uint256 tid) external;
     function taskTimeout(uint256 tid) external;
