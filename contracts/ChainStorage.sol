@@ -50,14 +50,14 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
 
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused {
         require(size > 0, contractName.concat(": size must > 0"));
-        require(bytes(ext).length <= Setting().maxUserExtLength(), contractName.concat(": ext too long"));
-        require(bytes(cid).length <= Setting().maxCidLength(), contractName.concat(": cid too long"));
+        require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": ext too long"));
+        require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
 
         User().addFile(msg.sender, cid, size, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external onlyInitialized notPaused {
-        require(bytes(cid).length <= Setting().maxCidLength(), contractName.concat(": cid too long"));
+        require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         User().deleteFile(msg.sender, cid);
     }
 
@@ -70,7 +70,7 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     }
 
     function monitorRegister(string calldata ext) external {
-        require(bytes(ext).length <= Setting().maxMonitorExtLength(), contractName.concat(": ext too long"));
+        require(bytes(ext).length <= Setting().getMaxMonitorExtLength(), contractName.concat(": ext too long"));
         Monitor().register(msg.sender, ext);
     }
 

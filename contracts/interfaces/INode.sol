@@ -5,7 +5,7 @@ import "../lib/Paging.sol";
 
 interface INode {
     function register(address addr, uint256 space, string calldata ext) external;
-    function deRegister(address addr) external;
+    function exist(address addr) external view returns (bool);
 
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
@@ -20,7 +20,6 @@ interface INode {
 
     function finishTask(uint256 tid) external;
     function failTask(uint256 tid) external;
-
     function taskAcceptTimeout(uint256 tid) external;
     function taskTimeout(uint256 tid) external;
 }

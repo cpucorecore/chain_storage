@@ -38,7 +38,7 @@ contract File is Importable, ExternalStorable, IFile {
         } else {
             Storage().newFile(cid, size);
             Storage().addOwner(cid, owner);
-            Node().addFile(cid, size, duration);
+            Node().addFile(owner, cid, size);
         }
     }
 
@@ -50,10 +50,8 @@ contract File is Importable, ExternalStorable, IFile {
             if(0 == owners.length) {
                 address[] memory nodes = Storage().nodes(cid);
                 for(uint i=0; i<nodes.length; i++) {
-                    Task().issueTaskDelete(cid, nodes[i], size);
+                    Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], size);
                 }
-                // TODO issueDeleteTask all success then to deleteFile? or wait all node response: fileDeleted then to deleteFile?
-                Storage().deleteFile(cid);
             }
         }
     }
@@ -66,15 +64,20 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().size(cid);
     }
 
-    function fileAdded(string memory cid, address node) public {
-//        Storage().addNode(cid, node);
+    function fileAdded(string calldata cid, address node) external {
+        require(!Storage().nodeExist(cid, node), contractName.concat(": node exist"));
+        Storage().addNode(cid, node);
     }
 
-    function fileDeleted(string memory cid, address node) public {
-//        Storage().delNode(cid, node);
+    function fileDeleted(string calldata cid, address node) external {
+        require(Storage().nodeExist(cid, node), contractName.concat(": node not exist"));
+        Storage().delNode(cid, node);
+        if(Storage().nodeEmpty(cid)) {
+            Storage().deleteFile(cid);
+        }
     }
 
-    function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns(address[] memory, Paging.Page memory) {
-//        return Storage().owners(cid, pageSize, pageNumber);
+    function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().owners(cid, pageSize, pageNumber);
     }
 }

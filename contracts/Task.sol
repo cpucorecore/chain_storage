@@ -7,7 +7,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
 contract Task is Importable, ExternalStorable, ITask {
-    event TaskIssued(uint256 indexed tid, address node);
+    event TaskIssued(address indexed node, uint256 indexed tid);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
@@ -24,7 +24,7 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
         uint256 tid = Storage().newTask(owner, action, cid, size, node, now);
-        emit TaskIssued(tid, cid, node, ITaskStorage.Action.Add, size, duration);
+        emit TaskIssued(node, tid);
         return tid;
     }
 
@@ -46,9 +46,9 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function acceptTask(uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
-        ITaskStorage.TaskItem task = Storage().getTaskItem(tid);
+        ITaskStorage.TaskItem memory task = Storage().getTaskItem(tid);
         ITaskStorage.Status status = Storage().getStatus(tid);
-        if(ITaskStorage.Acction.Add == task.action) {
+        if(ITaskStorage.Action.Add == task.action) {
             require(ITaskStorage.Status.Created == status, contractName.concat(": add file task status is not Created"));
         } else {
             require(ITaskStorage.Status.Created == status ||

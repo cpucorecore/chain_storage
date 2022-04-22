@@ -52,6 +52,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     function getStatusAndTime(uint256 tid) external view returns (Status, uint256) {
         uint256 time = 0;
+        Status status = tid2statusInfo[tid].status;
         if(ITaskStorage.Status.Created == status) {
             time = tid2statusInfo[tid].createTime;
         } else if(ITaskStorage.Status.Accepted == status) {
@@ -65,7 +66,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         } else if(ITaskStorage.Status.Timeout == status) {
             time = tid2statusInfo[tid].timeoutTime;
         }
-        return (tid2statusInfo[tid].status, time);
+        return (status, time);
     }
 
     function getStatusInfo(uint256 tid) external view returns (StatusInfo memory) {

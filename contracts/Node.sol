@@ -10,6 +10,8 @@ import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 
 contract Node is Importable, ExternalStorable, INode {
+    using SafeMath for uint256;
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
@@ -38,26 +40,28 @@ contract Node is Importable, ExternalStorable, INode {
 
     function register(address addr, uint256 space, string calldata ext) external {
         require(false == Storage().exist(addr), contractName.concat(": node exist"));
-        require(bytes(ext).length <= Setting().maxNodeExtLength(), contractName.concat(": ext too long"));
+        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
         require(space > 0, contractName.concat(": space must > 0"));
 
         Storage().newNode(addr, space, ext);
     }
 
-    function deRegister(address addr) external {
-        // TODO
+    function deRegister(address addr) private {
         checkExist(addr);
         Storage().deleteNode(addr);
     }
 
+    function exist(address addr) external view returns (bool) {
+        return Storage().exist(addr);
+    }
+
     function getExt(address addr) external view returns (string memory) {
-        checkExist(addr);
         return Storage().getExt(addr);
     }
 
     function setExt(address addr, string calldata ext) external {
         checkExist(addr);
-        require(bytes(ext).length <= Setting().maxNodeExtLength(), contractName.concat(": ext too long"));
+        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
         Storage().setExt(addr, ext);
     }
 
@@ -80,8 +84,8 @@ contract Node is Importable, ExternalStorable, INode {
         INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, INodeStorage.Status.Offline);
-        uint256 offlineCount = Storage().getOfflineCount(addr).add(1);
-        Storage().setOfflineCount(addr, offlineCount);
+        uint256 offlineCount = Storage().getOfflineCount(addr);
+        Storage().setOfflineCount(addr, offlineCount.add(1));
     }
 
     function maintain(address addr) external {
@@ -89,17 +93,17 @@ contract Node is Importable, ExternalStorable, INode {
         INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, INodeStorage.Status.Maintain);
-        uint256 maintainCount = Storage().getMaintainCount(addr).add(1);
-        Storage().setMaintainCount(addr, maintainCount);
+        uint256 maintainCount = Storage().getMaintainCount(addr);
+        Storage().setMaintainCount(addr, maintainCount.add(1));
     }
 
-    function addFile(address owner, string memory cid, uint256 size) external {
+    function addFile(address owner, string calldata cid, uint256 size) external {
         uint256 replica = Setting().getReplica();
         address[] memory nodeAddrs = selectNodes(size, replica);
         require(nodeAddrs.length != replica, contractName.concat(": no available node"));
 
         for(uint256 i=0; i<nodeAddrs.length; i++) {
-            Task().issueTask(ITaskStorage.Action.add, owner, cid, nodeAddrs[i], size);
+            Task().issueTask(ITaskStorage.Action.Add, owner, cid, nodeAddrs[i], size);
         }
     }
 
@@ -131,18 +135,18 @@ contract Node is Importable, ExternalStorable, INode {
             Storage().setTasksProgressCurrentTime(task.node, taskCreateTime);
         }
 
-        Storage().setTaskFinishCount(task.node, Storage.getTaskFinishCount(task.node).add(1));
+        Storage().setTaskFinishCount(task.node, Storage().getTaskFinishCount(task.node).add(1));
         Task().finishTask(tid);
     }
 
     function failTask(uint256 tid) external {
         ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
-        Storage().setTaskFailCount(task.node, Storage.getTaskFailCount(task.node).add(1));
+        Storage().setTaskFailCount(task.node, Storage().getTaskFailCount(task.node).add(1));
         Task().failTask(tid);
     }
 
     function taskAcceptTimeout(uint256 tid) external {
-        ITaskStorage.TaskItem memory task = Task().task(tid);
+        ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
         Storage().setTaskAcceptTimeoutCount(task.node, Storage().getTaskAcceptTimeoutCount(task.node).add(1));
 
         offline(task.node);
@@ -165,7 +169,7 @@ contract Node is Importable, ExternalStorable, INode {
         if(ITaskStorage.Action.Add == task.action) {
             address[] memory addrs = selectNodes(task.size, 1);
             require(1 == addrs.length, contractName.concat(": no available node:1"));
-            Task().issueTaskAdd(task.cid, addrs[0], task.size, task.duration);
+            Task().issueTask(ITaskStorage.Action.Add, task.owner, task.cid, addrs[0], task.size);
         }
     }
 
@@ -174,13 +178,13 @@ contract Node is Importable, ExternalStorable, INode {
     function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
         address[] memory onlineNodeAddresses;
         Paging.Page memory page;
-        (onlineNodeAddresses, page) = Storage().onlineNodeAddresses(50, 1);
+        (onlineNodeAddresses, page) = Storage().getAllOnlineNodeAddresses(50, 1);
         if(onlineNodeAddresses.length <= count) {
             return onlineNodeAddresses;
         } else {
             address[] memory nodes = new address[](count);
             for(uint256 i=0; i<count; i++) {
-                if(Storage().freeSpace(onlineNodeAddresses[i]) >= size) {
+                if(Storage().getFreeSpace(onlineNodeAddresses[i]) >= size) {
                     nodes[i] = onlineNodeAddresses[i];
                 }
             }
@@ -193,13 +197,13 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function useSpace(address node, uint256 size) private {
-        INodeStorage.SpaceInfo spaceInfo = Storage().getSpaceInfo(node);
+        INodeStorage.SpaceInfo memory spaceInfo = Storage().getSpaceInfo(node);
         require(size > 0 && spaceInfo.used.add(size) <= spaceInfo.total, contractName.concat(": space not enough"));
         Storage().setUsedSpace(node, spaceInfo.used.add(size));
     }
 
     function freeSpace(address node, uint256 size) private {
-        INodeStorage.SpaceInfo spaceInfo = Storage().getSpaceInfo(node);
+        INodeStorage.SpaceInfo memory spaceInfo = Storage().getSpaceInfo(node);
         require(size >0 && size < spaceInfo.used, contractName.concat("free size can not big than used size"));
         Storage().setUsedSpace(node, spaceInfo.used.sub(size));
     }

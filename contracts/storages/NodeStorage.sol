@@ -20,11 +20,10 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function newNode(address addr, uint256 totalSpace, string calldata ext) external {
-        nodes[addr] = NodeItem(pid,
-            Status.Registered,
-            ServiceInfo(0, 0, 0, 0, 0, 0, 0),
-            SpaceInfo(totalSpace, 0, totalSpace),
-            0, TasksProgress(0, 0), ext, 0, true);
+        nodes[addr] = NodeItem(Status.Registered,
+            ServiceInfo(0, 0, 0, 0, 0, 0),
+            SpaceInfo(totalSpace, 0),
+            TasksProgress(0, 0), ext, true);
 
         EnumerableSet.Bytes32Set memory cidHashs;
         node2cidHashs[addr] = cidHashs;
@@ -38,11 +37,11 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodeAddrs.remove(addr);
     }
 
-    function exist(address addr) public returns (bool) {
+    function exist(address addr) external view returns (bool) {
         return nodes[addr].exist;
     }
 
-    function getNode(address addr) public returns (NodeItem memory) {
+    function getNode(address addr) external view returns (NodeItem memory) {
         return nodes[addr];
     }
 
@@ -112,6 +111,11 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function setTaskTimeoutCount(address addr, uint256 value) external {
         nodes[addr].serviceInfo.taskTimeoutCount = value;
+    }
+
+    function getFreeSpace(address addr) external view returns (uint256) {
+        if(nodes[addr].spaceInfo.used > nodes[addr].spaceInfo.total) return 0;
+        return nodes[addr].spaceInfo.total.sub(nodes[addr].spaceInfo.used);
     }
 
     function getTotalSpace(address addr) external view returns (uint256) {

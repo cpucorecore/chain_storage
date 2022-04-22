@@ -73,6 +73,7 @@ interface INodeStorage {
     function getTaskTimeoutCount(address addr) external view returns (uint256);
     function setTaskTimeoutCount(address addr, uint256 value) external;
 
+    function getFreeSpace(address addr) external view returns (uint256);
     function getTotalSpace(address addr) external view returns (uint256);
     function setTotalSpace(address addr, uint256 value) external;
 

@@ -42,6 +42,10 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return exist(cid) && cid2fileItem[cid].owners.contains(owner);
     }
 
+    function ownerEmpty(string calldata cid) external view returns (bool) {
+        return 0 == cid2fileItem[cid].owners.length();
+    }
+
     function addOwner(string calldata cid, address owner) external {
         cid2fileItem[cid].owners.add(owner);
     }
@@ -73,6 +77,10 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function nodeExist(string calldata cid, address node) external view returns (bool) {
         return cid2fileItem[cid].nodes.contains(node);
+    }
+
+    function nodeEmpty(string calldata cid) external view returns (bool) {
+        return 0 == cid2fileItem[cid].nodes.length();
     }
 
     function addNode(string calldata cid, address node) external {
