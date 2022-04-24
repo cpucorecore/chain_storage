@@ -73,7 +73,27 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].cidHashes.contains(cidHash);
     }
 
-    function fileNumber(address addr) external view returns (uint256) {
+    function getFileExt(address addr, string calldata cid) external view returns (string memory) {
+        bytes32 cidHash = keccak256(bytes(cid));
+        return files[addr][cidHash].ext;
+    }
+
+    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+        bytes32 cidHash = keccak256(bytes(cid));
+        files[addr][cidHash].ext = ext;
+    }
+
+    function getFileDuration(address addr, string calldata cid) external view returns (uint256) {
+        bytes32 cidHash = keccak256(bytes(cid));
+        return files[addr][cidHash].duration;
+    }
+
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+        bytes32 cidHash = keccak256(bytes(cid));
+        files[addr][cidHash].duration = duration;
+    }
+
+    function getFileNumber(address addr) external view returns (uint256) {
         return users[addr].cidHashes.length();
     }
 

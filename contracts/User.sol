@@ -11,13 +11,16 @@ import "./interfaces/IFile.sol";
 contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
 
+    event FileAdded(address indexed owner, string indexed cid);
+    event FileDeleted(address indexed owner, string indexed cid);
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
-        CONTRACT_SETTING,
-        CONTRACT_FILE,
-        CONTRACT_NODE,
-        CONTRACT_TASK
+            CONTRACT_SETTING,
+            CONTRACT_FILE,
+            CONTRACT_NODE,
+            CONTRACT_TASK
         ];
     }
 
@@ -40,7 +43,7 @@ contract User is Importable, ExternalStorable, IUser {
 
     function deRegister(address addr) public {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
-        //TODO delete all files, issue deleteFile task to TASK
+        require(0 == Storage().getFileNumber(addr), contractName.concat(": files not empty"));
         Storage().deleteUser(addr);
     }
 
@@ -53,18 +56,44 @@ contract User is Importable, ExternalStorable, IUser {
         require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
 
         File().addFile(cid, size, addr);
-
         Storage().addFile(addr, cid, duration, ext, now);
-        useStorage(addr, size); // TODO to wait fileAdded?
     }
 
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
-        uint256 size = File().size(cid);
-        freeStorage(addr, size); // TODO to wait fileDeleted?
         Storage().deleteFile(addr, cid);
         File().deleteFile(cid, addr);
+    }
+
+    function finishAddFile(address owner, address node, string calldata cid) external {
+        if(!File().ownerExist(cid, owner)) {
+            uint256 size = File().getSize(cid);
+            useStorage(owner, size);
+        }
+    }
+
+    function finishDeleteFile(address owner, address node, string calldata cid) external {
+        if(File().ownerExist(cid, owner)) {
+            uint256 size = File().getSize(cid);
+            freeStorage(owner, size);
+        }
+    }
+
+    function getFileExt(address addr, string calldata cid) external view returns (string memory) {
+        return Storage().getFileExt(addr, cid);
+    }
+
+    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+        Storage().setFileExt(addr, cid, ext);
+    }
+
+    function getFileDuration(address addr, string calldata cid) external view returns (uint256) {
+        return Storage().getFileDuration(addr, cid);
+    }
+
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+        Storage().setFileDuration(addr, cid, duration);
     }
 
     function changeSpace(address addr, uint256 size) public {
@@ -73,12 +102,12 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().setStorageTotal(addr, size);
     }
 
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
-        return Storage().getCids(addr, pageSize, pageNumber);
-    }
-
     function getStorageInfo(address addr) external view returns (IUserStorage.StorageInfo memory) {
         return Storage().getStorageInfo(addr);
+    }
+
+    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
+        return Storage().getCids(addr, pageSize, pageNumber);
     }
 
     /////////////////////// private functions ///////////////////////

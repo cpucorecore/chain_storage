@@ -8,6 +8,7 @@ import "./interfaces/storages/INodeStorage.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
+import "./interfaces/IUser.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     using SafeMath for uint256;
@@ -36,6 +37,10 @@ contract Node is Importable, ExternalStorable, INode {
 
     function File() private view returns (IFile) {
         return IFile(requireAddress(CONTRACT_FILE));
+    }
+
+    function User() private view returns (IUser) {
+        return IUser(requireAddress(CONTRACT_USER));
     }
 
     function register(address addr, uint256 space, string calldata ext) external {
@@ -124,9 +129,11 @@ contract Node is Importable, ExternalStorable, INode {
         if(ITaskStorage.Action.Add == task.action) {
             File().fileAdded(task.cid, task.node);
             useStorage(task.node, task.size);
+            User().finishAddFile(task.owner, task.node, task.cid);
         } else if(ITaskStorage.Action.Delete == task.action) {
             File().fileDeleted(task.cid, task.node);
             freeStorage(task.node, task.size);
+            User().finishDeleteFile(task.owner, task.node, task.cid);
         }
 
         uint256 taskCreateTime = Task().getCreateTime(tid);
@@ -143,6 +150,12 @@ contract Node is Importable, ExternalStorable, INode {
         ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
         Storage().setTaskFailCount(task.node, Storage().getTaskFailCount(task.node).add(1));
         Task().failTask(tid);
+
+        if(ITaskStorage.Action.Add == task.action) {
+            address[] memory addrs = selectNodes(task.size, 1);
+            require(1 == addrs.length, contractName.concat(": no available node:1"));
+            Task().issueTask(ITaskStorage.Action.Add, task.owner, task.cid, addrs[0], task.size);
+        }
     }
 
     function taskAcceptTimeout(uint256 tid) external {

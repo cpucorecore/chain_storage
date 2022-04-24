@@ -37,7 +37,7 @@ contract File is Importable, ExternalStorable, IFile {
             }
         } else {
             Storage().newFile(cid, size);
-            Storage().addOwner(cid, owner);
+            Storage().addOwner(cid, owner); // TODO wait node return FileAdded?
             Node().addFile(owner, cid, size);
         }
     }
@@ -60,7 +60,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
-    function size(string calldata cid) external view returns (uint256) {
+    function getSize(string calldata cid) external view returns (uint256) {
         return Storage().size(cid);
     }
 
@@ -75,6 +75,10 @@ contract File is Importable, ExternalStorable, IFile {
         if(Storage().nodeEmpty(cid)) {
             Storage().deleteFile(cid);
         }
+    }
+
+    function ownerExist(string calldata cid, address owner) external view returns (bool) {
+        return Storage().ownerExist(cid, owner);
     }
 
     function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {

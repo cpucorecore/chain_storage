@@ -46,7 +46,14 @@ interface IUserStorage {
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external;
     function deleteFile(address addr, string calldata cid) external;
     function fileExist(address addr, string calldata cid) external view returns (bool);
-    function fileNumber(address addr) external view returns (uint256);
+
+    function getFileExt(address addr, string calldata cid) external view returns (string memory);
+    function setFileExt(address addr, string calldata cid, string calldata ext) external;
+
+    function getFileDuration(address addr, string calldata cid) external view returns (uint256);
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external;
+
+    function getFileNumber(address addr) external view returns (uint256);
     function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
     function getFileItem(address addr, string calldata cid) external view returns (FileItem memory);
 }
