@@ -12,6 +12,7 @@ contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
 
     event FileAdded(address indexed owner, string indexed cid); // for User Client
+    event FileAddFailed(address indexed owner, string indexed cid); // for User Client
     event FileDeleted(address indexed owner, string indexed cid); // for User Client
 
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -71,6 +72,14 @@ contract User is Importable, ExternalStorable, IUser {
             uint256 size = File().getSize(cid);
             useStorage(owner, size);
             emit FileAdded(owner, cid);
+        }
+    }
+
+    function failAddFile(address owner, string calldata cid) external {
+        if(!File().ownerExist(cid, owner)) {
+            uint256 invalidAddFileCount = Storage().getInvalidAddFileCount(owner);
+            Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
+            emit FileAddFailed(owner, cid);
         }
     }
 

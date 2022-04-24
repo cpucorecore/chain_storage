@@ -37,6 +37,8 @@ interface ISetting {
     function getAddFileProgressTimeoutSeconds() external view returns (uint256);
     function setAddFileProgressTimeoutSeconds(uint256 value) external;
 
+    function getMaxAddFileFailedCount() external view returns (uint256);
+    function setMaxAddFileFailedCount(uint256 value) external;
 
     event SettingChanged(bytes32 indexed name, bytes32 indexed field, uint256 previousValue, uint256 newValue);
 }

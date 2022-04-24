@@ -23,6 +23,7 @@ interface IUserStorage {
     struct UserItem {
         StorageInfo storageInfo;
         EnumerableSet.Bytes32Set cidHashes;
+        uint256 invalidAddFileCount;
         string ext;
         bool exist;
     }
@@ -56,4 +57,7 @@ interface IUserStorage {
     function getFileNumber(address addr) external view returns (uint256);
     function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
     function getFileItem(address addr, string calldata cid) external view returns (FileItem memory);
+
+    function getInvalidAddFileCount(address addr) external view returns (uint256);
+    function setInvalidAddFileCount(address addr, uint256 count) external;
 }

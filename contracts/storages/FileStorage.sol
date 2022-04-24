@@ -8,7 +8,17 @@ import "../lib/EnumerableSet.sol";
 contract FileStorage is ExternalStorage, IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    enum Status {
+        New,
+        Adding,
+        PartialAdded,
+        Added,
+        PartialDeleted,
+        Deleted
+    }
+
     struct FileItem {
+        Status status;
         uint256 size;
         EnumerableSet.AddressSet owners;
         EnumerableSet.AddressSet nodes;
@@ -23,7 +33,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
     function newFile(string calldata cid, uint256 size) external {
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
-        cid2fileItem[cid] = FileItem(size, owners, nodes, true);
+        cid2fileItem[cid] = FileItem(Status.New, size, owners, nodes, true);
     }
 
     function deleteFile(string calldata cid) external {

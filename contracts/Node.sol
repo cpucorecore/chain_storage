@@ -152,6 +152,14 @@ contract Node is Importable, ExternalStorable, INode {
         Task().failTask(tid);
 
         if(ITaskStorage.Action.Add == task.action) {
+            uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
+            uint256 addFileFailedCount = Storage().getAddFileFailedCount(task.cid);
+            if(addFileFailedCount >= maxAddFileFailedCount) {
+                User().failAddFile(task.owner, task.cid);
+                return;
+            }
+            Storage().setAddFileFailedCount(task.cid, addFileFailedCount.add(1));
+
             address[] memory addrs = selectNodes(task.size, 1);
             require(1 == addrs.length, contractName.concat(": no available node:1"));
             Task().issueTask(ITaskStorage.Action.Add, task.owner, task.cid, addrs[0], task.size);
@@ -180,6 +188,13 @@ contract Node is Importable, ExternalStorable, INode {
         Task().TaskTimeout(tid);
 
         if(ITaskStorage.Action.Add == task.action) {
+            uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
+            uint256 addFileFailedCount = Storage().getAddFileFailedCount(task.cid);
+            if(addFileFailedCount >= maxAddFileFailedCount) {
+                return;
+            }
+            Storage().setAddFileFailedCount(task.cid, addFileFailedCount.add(1));
+
             address[] memory addrs = selectNodes(task.size, 1);
             require(1 == addrs.length, contractName.concat(": no available node:1"));
             Task().issueTask(ITaskStorage.Action.Add, task.owner, task.cid, addrs[0], task.size);

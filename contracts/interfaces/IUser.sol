@@ -13,6 +13,7 @@ interface IUser {
     function deleteFile(address addr, string calldata cid) external;
 
     function finishAddFile(address owner, address node, string calldata cid) external;
+    function failAddFile(address owner, string calldata cid) external;
     function finishDeleteFile(address owner, address node, string calldata cid) external;
 
     function getFileExt(address addr, string calldata cid) external view returns (string memory);

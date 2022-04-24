@@ -19,6 +19,8 @@ contract Setting is ExternalStorable, ISetting {
     bytes32 private constant ADD_FILE_PROGRESS_TIMEOUT_SECONDS = 'AddFileProgressTimeoutSeconds';
     bytes32 private constant DELETE_FILE_TASK_TIMEOUT_SECONDS = 'DeleteFileTaskTimeoutSeconds';
 
+    bytes32 private constant MAX_ADD_FILE_RETRY_COUNT = 'MaxAddFileFailedCount';
+
     constructor() public {
         setContractName(CONTRACT_SETTING);
     }
@@ -113,5 +115,13 @@ contract Setting is ExternalStorable, ISetting {
 
     function setAddFileProgressTimeoutSeconds(uint256 value) external {
         Storage().setUint(ADD_FILE_PROGRESS_TIMEOUT_SECONDS, value);
+    }
+
+    function getMaxAddFileFailedCount() external view returns (uint256) {
+        return Storage().getUint(MaxAddFileFailedCount);
+    }
+
+    function setMaxAddFileFailedCount(uint256 value) external {
+        Storage().setUint(MaxAddFileRetryCount, value);
     }
 }

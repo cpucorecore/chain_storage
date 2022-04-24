@@ -10,12 +10,14 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    mapping(address=>NodeItem) nodes;
-    EnumerableSet.AddressSet nodeAddrs;
-    EnumerableSet.AddressSet onlineNodeAddrs;
+    mapping(address=>NodeItem) private nodes;
+    EnumerableSet.AddressSet private nodeAddrs;
+    EnumerableSet.AddressSet private onlineNodeAddrs;
 
-    mapping(address=>EnumerableSet.Bytes32Set) node2cidHashs;
-    mapping(bytes32=>string) cidHash2cid;
+    mapping(address=>EnumerableSet.Bytes32Set) private node2cidHashs;
+    mapping(bytes32=>string) private cidHash2cid;
+
+    mapping(string=>uint256) private cid2addFileFailedCount;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -187,5 +189,13 @@ contract NodeStorage is ExternalStorage, INodeStorage {
             result[i] = cidHash2cid[cidHashs.at(start+i)];
         }
         return (result, page);
+    }
+
+    function getAddFileFailedCount(string calldata cid) external view returns (uint256) {
+        return cid2addFileFailedCount[cid];
+    }
+
+    function setAddFileFailedCount(string calldata cid, uint256 count) external {
+        cid2addFileFailedCount[cid] = count;
     }
 }

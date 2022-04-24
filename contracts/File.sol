@@ -31,13 +31,13 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function addFile(string calldata cid, uint size, address owner) external {
-        if(Storage().exist(cid)) {
+        if(Storage().exist(cid)) { // TODO use IFileStorage.Status
             if(!Storage().ownerExist(cid, owner)) {
                 Storage().addOwner(cid, owner);
             }
         } else {
             Storage().newFile(cid, size);
-            Storage().addOwner(cid, owner); // TODO wait node return FileAdded?
+            Storage().addOwner(cid, owner); // TODO wait node return FileAdded? 20220424: use File.Status to soleve this problem
             Node().addFile(owner, cid, size);
         }
     }
