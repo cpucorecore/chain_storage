@@ -23,9 +23,13 @@ contract Task is Importable, ExternalStorable, ITask {
     }
 
     function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
-        uint256 tid = Storage().newTask(owner, action, cid, size, node, now);
+        uint256 tid = Storage().newTask(owner, action, cid, size, node, block.number, now);
         emit TaskIssued(node, tid);
         return tid;
+    }
+
+    function getCurrentTid() external view returns (uint256) {
+        return Storage().getCurrentTid();
     }
 
     function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory) {
@@ -34,6 +38,10 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function getCreateTime(uint256 tid) external view returns (uint256) {
         return Storage().getCreateTime(tid);
+    }
+
+    function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
+        return Storage().getCreateBlockNumber(tid);
     }
 
     function getStatusInfo(uint256 tid) external view returns (ITaskStorage.StatusInfo memory) {

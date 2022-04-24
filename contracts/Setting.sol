@@ -13,7 +13,11 @@ contract Setting is ExternalStorable, ISetting {
     bytes32 private constant MAX_NODE_EXT_LENGTH = 'MaxNodeExtLength';
     bytes32 private constant MAX_MONITOR_EXT_LENGTH = 'MaxMonitorExtLength';
     bytes32 private constant MAX_CID_LENGTH = 'MaxCidLength';
-    bytes32 private constant MAX_TIMEOUT = 'MaxTimeout';
+
+    bytes32 private constant TASK_ACCEPT_TIMEOUT_SECONDS = 'TaskAcceptTimeoutSeconds';
+    bytes32 private constant ADD_FILE_TASK_TIMEOUT_SECONDS = 'AddFileTaskTimeoutSeconds';
+    bytes32 private constant ADD_FILE_PROGRESS_TIMEOUT_SECONDS = 'AddFileProgressTimeoutSeconds';
+    bytes32 private constant DELETE_FILE_TASK_TIMEOUT_SECONDS = 'DeleteFileTaskTimeoutSeconds';
 
     constructor() public {
         setContractName(CONTRACT_SETTING);
@@ -79,11 +83,35 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(MAX_CID_LENGTH, length);
     }
 
-    function getMaxTimeout() external view returns (uint256) {
-        return Storage().getUint(MAX_TIMEOUT);
+    function getTaskAcceptTimeoutSeconds() external view returns (uint256) {
+        return Storage().getUint(TASK_ACCEPT_TIMEOUT_SECONDS);
     }
 
-    function setMaxTimeout(uint256 value) external {
-        Storage().setUint(MAX_TIMEOUT, value);
+    function setTaskAcceptTimeoutSeconds(uint256 value) external {
+        Storage().setUint(TASK_ACCEPT_TIMEOUT_SECONDS, value);
+    }
+
+    function getAddFileTaskTimeoutSeconds() external view returns (uint256) {
+        return Storage().getUint(ADD_FILE_TASK_TIMEOUT_SECONDS);
+    }
+
+    function setAddFileTaskTimeoutSeconds(uint256 value) external {
+        Storage().setUint(ADD_FILE_TASK_TIMEOUT_SECONDS, value);
+    }
+
+    function getDeleteFileTaskTimeoutSeconds() external view returns (uint256) {
+        return Storage().getUint(DELETE_FILE_TASK_TIMEOUT_SECONDS);
+    }
+
+    function setDeleteFileTaskTimeoutSeconds(uint256 value) external {
+        Storage().setUint(DELETE_FILE_TASK_TIMEOUT_SECONDS, value);
+    }
+
+    function getAddFileProgressTimeoutSeconds() external view returns (uint256) {
+        return Storage().getUint(ADD_FILE_PROGRESS_TIMEOUT_SECONDS);
+    }
+
+    function setAddFileProgressTimeoutSeconds(uint256 value) external {
+        Storage().setUint(ADD_FILE_PROGRESS_TIMEOUT_SECONDS, value);
     }
 }

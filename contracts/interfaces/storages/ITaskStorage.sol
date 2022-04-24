@@ -22,6 +22,7 @@ interface ITaskStorage {
         address node;
         uint256 size;
         string cid;
+        uint256 createBlockNumber;
         bool exist;
     }
 
@@ -50,12 +51,15 @@ interface ITaskStorage {
         string calldata cid,
         uint256 size,
         address node,
+        uint256 createBlock,
         uint256 createTime
     ) external returns (uint256);
     function exist(uint256 tid) external view returns (bool);
+    function getCurrentTid() external view returns (uint256);
 
     function getTaskItem(uint256 tid) external view returns (TaskItem memory);
     function getAction(uint256 tid) external view returns (Action);
+    function getCreateBlockNumber(uint256 tid) external view returns (uint256);
 
     function getStatus(uint256 tid) external view returns (Status);
     function getCreateTime(uint256 tid) external view returns (uint256);

@@ -8,19 +8,18 @@ import "../lib/Paging.sol";
 
 contract MonitorStorage is ExternalStorage, IMonitorStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
-    using EnumerableSet for EnumerableSet.UintSet;
 
     mapping(address=>MonitorItem) monitors;
     EnumerableSet.AddressSet monitorAddrs;
     EnumerableSet.AddressSet onlineMonitorAddrs;
 
-    mapping(address=>uint256) monitor2reportCount;
+    mapping(address=>uint256) monitor2rid; // rid=0: no report;
     mapping(address=>Report[]) monitor2reports;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function newMonitor(address addr, string calldata ext) external {
-        monitors[addr] = MonitorItem(Status.Registered, 0, ext, true);
+        monitors[addr] = MonitorItem(Status.Registered, 0, 0, ext, true);
         monitorAddrs.add(addr);
     }
 
@@ -33,11 +32,11 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].exist;
     }
 
-    function monitor(address addr) external view returns (MonitorItem memory) {
+    function getMonitor(address addr) external view returns (MonitorItem memory) {
         return monitors[addr];
     }
 
-    function currentTid(address addr) external view returns (uint256) {
+    function getCurrentTid(address addr) external view returns (uint256) {
         return monitors[addr].currentTid;
     }
 
@@ -45,26 +44,31 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         monitors[addr].currentTid = tid;
     }
 
+    function getFirstOnlineTid(address addr) external view returns (uint256) {
+        return monitors[addr].firstOnlineTid;
+    }
+
+    function setFirstOnlineTid(address addr, uint256 tid) external {
+        monitors[addr].firstOnlineTid = tid;
+    }
+
+    function getStatus(address addr) external view returns (Status) {
+        return monitors[addr].status;
+    }
+
     function setStatus(address addr, Status status) external {
         monitors[addr].status = status;
-        
-        if(Status.Online == status) {
-            onlineMonitorAddrs.add(addr);
-        } else if(Status.Maintain == status) {
-            onlineMonitorAddrs.remove(addr);
-        } else if(Status.DeRegistered == status) {
-            onlineMonitorAddrs.remove(addr);
-        }
     }
 
-    mapping(address=>EnumerableSet.UintSet) monitor2rids;
-    mapping(address=>mapping(uint256=>Report)) monitorRid2report;
-    function addReport(address addr, uint256 tid, uint256 timestamp) external {
-        monitor2reportCount[addr] = monitor2reportCount[addr].add(1);
-        monitor2reports[addr].push(Report(tid, timestamp));
+    function addOnlineMonitor(address addr) external {
+        onlineMonitorAddrs.add(addr);
     }
 
-    function monitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function deleteOnlineMonitor(address addr) external {
+        onlineMonitorAddrs.remove(addr);
+    }
+
+    function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(monitorAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
@@ -74,7 +78,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return (result, page);
     }
 
-    function onlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(onlineMonitorAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
@@ -84,8 +88,13 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return (result, page);
     }
 
-    function reports(address addr, uint256 pageSize, uint256 pageNumber) external view returns (Report[] memory, Paging.Page memory) {
-        Paging.Page memory page = Paging.getPage(monitor2reportCount[addr], pageSize, pageNumber);
+    function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external {
+        monitor2rid[addr] = monitor2rid[addr].add(1);
+        monitor2reports[addr].push(Report(tid, reportType, timestamp));
+    }
+
+    function getReports(address addr, uint256 pageSize, uint256 pageNumber) external view returns (Report[] memory, Paging.Page memory) {
+        Paging.Page memory page = Paging.getPage(monitor2rid[addr], pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         Report[] memory result = new Report[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {

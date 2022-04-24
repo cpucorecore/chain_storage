@@ -7,7 +7,7 @@ import "./ExternalStorage.sol";
 contract TaskStorage is ExternalStorage, ITaskStorage {
     uint256 private tid;
     mapping(uint256=>TaskItem) private tid2taskItem;
-    mapping(uint256=> StatusInfo) private tid2statusInfo;
+    mapping(uint256=>StatusInfo) private tid2statusInfo;
     mapping(uint256=>AddFileTaskProgress) private tid2addFileTaskProgress;
 
     function newTask(
@@ -21,7 +21,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     ) external returns (uint256) {
         tid = tid.add(1);
 
-        tid2taskItem[tid] = TaskItem(owner, action, node, size, cid, true);
+        tid2taskItem[tid] = TaskItem(owner, action, node, size, cid, createBlock, true);
         tid2statusInfo[tid] = StatusInfo(ITaskStorage.Status.Created, createTime, 0, 0, 0, 0, 0, true);
         if(ITaskStorage.Action.Add == action) {
             tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, true);
@@ -34,12 +34,20 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid].exist && tid2statusInfo[tid].exist;
     }
 
+    function getCurrentTid() external view returns (uint256) {
+        return tid;
+    }
+
     function getTaskItem(uint256 tid) external view returns (TaskItem memory) {
         return tid2taskItem[tid];
     }
 
     function getAction(uint256 tid) external view returns (Action) {
         return tid2taskItem[tid].action;
+    }
+
+    function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
+        return tid2taskItem[tid].createBlockNumber;
     }
 
     function getStatus(uint256 tid) external view returns (Status) {
