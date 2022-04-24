@@ -70,6 +70,7 @@ contract User is Importable, ExternalStorable, IUser {
         if(!File().ownerExist(cid, owner)) {
             uint256 size = File().getSize(cid);
             useStorage(owner, size);
+            emit FileAdded(owner, cid);
         }
     }
 
@@ -77,6 +78,7 @@ contract User is Importable, ExternalStorable, IUser {
         if(File().ownerExist(cid, owner)) {
             uint256 size = File().getSize(cid);
             freeStorage(owner, size);
+            emit FileDeleted(owner, cid);
         }
     }
 
