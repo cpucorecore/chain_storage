@@ -11,8 +11,8 @@ import "./interfaces/IFile.sol";
 contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
 
-    event FileAdded(address indexed owner, string indexed cid);
-    event FileDeleted(address indexed owner, string indexed cid);
+    event FileAdded(address indexed owner, string indexed cid); // for User Client
+    event FileDeleted(address indexed owner, string indexed cid); // for User Client
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
