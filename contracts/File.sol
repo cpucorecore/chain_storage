@@ -79,7 +79,7 @@ contract File is Importable, ExternalStorable, IFile {
         IFileStorage.Status status = Storage().getStatus(cid);
         if(IFileStorage.Status.Adding == status) {
             Storage().setStatus(cid, IFileStorage.Status.Added);
-            User().finishAddFile(owner, node, cid);
+            User().finishAddFile(owner, node, cid); // TODO: here is a bug: User1 addFile(cid1), User1 deleteFile(cid1), User2 addFile(cid1);当用户1的添加文件成功返回后，他会收到文件添加成功的通知，而实际上用户1是删除文件，这个通知应该是给User2的
         } else if(IFileStorage.Status.Deleting == status) {
             Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
         }
