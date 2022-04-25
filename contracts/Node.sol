@@ -127,13 +127,11 @@ contract Node is Importable, ExternalStorable, INode {
     function finishTask(uint256 tid) external {
         ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
         if(ITaskStorage.Action.Add == task.action) {
-            File().fileAdded(task.cid, task.node);
+            File().fileAdded(task.node, task.owner, task.cid);
             useStorage(task.node, task.size);
-            User().finishAddFile(task.owner, task.node, task.cid);
         } else if(ITaskStorage.Action.Delete == task.action) {
-            File().fileDeleted(task.cid, task.node);
+            File().fileDeleted(task.node, task.owner, task.cid);
             freeStorage(task.node, task.size);
-            User().finishDeleteFile(task.owner, task.node, task.cid);
         }
 
         uint256 taskCreateTime = Task().getCreateTime(tid);

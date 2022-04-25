@@ -63,8 +63,8 @@ contract User is Importable, ExternalStorable, IUser {
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
-        Storage().deleteFile(addr, cid);
         File().deleteFile(cid, addr);
+        Storage().deleteFile(addr, cid);
     }
 
     function finishAddFile(address owner, address node, string calldata cid) external {
@@ -84,11 +84,9 @@ contract User is Importable, ExternalStorable, IUser {
     }
 
     function finishDeleteFile(address owner, address node, string calldata cid) external {
-        if(File().ownerExist(cid, owner)) {
-            uint256 size = File().getSize(cid);
-            freeStorage(owner, size);
-            emit FileDeleted(owner, cid);
-        }
+        uint256 size = File().getSize(cid);
+        freeStorage(owner, size);
+        emit FileDeleted(owner, cid);
     }
 
     function getFileExt(address addr, string calldata cid) external view returns (string memory) {

@@ -31,27 +31,31 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function addFile(string calldata cid, uint size, address owner) external {
-        if(Storage().exist(cid)) { // TODO use IFileStorage.Status
+        if(Storage().exist(cid)) {
+            if(IFileStorage.Status.Deleting == Storage().getStatus(cid)) {
+                Storage().setStatus(cid, IFileStorage.Status.Adding);
+                Node().addFile(owner, cid, size);
+            }
             if(!Storage().ownerExist(cid, owner)) {
                 Storage().addOwner(cid, owner);
             }
         } else {
             Storage().newFile(cid, size);
-            Storage().addOwner(cid, owner); // TODO wait node return FileAdded? 20220424: use File.Status to soleve this problem
+            Storage().addOwner(cid, owner);
             Node().addFile(owner, cid, size);
         }
     }
 
     function deleteFile(string calldata cid, address owner) external {
-        if(Storage().ownerExist(cid, owner)) {
-            uint256 size = Storage().size(cid);
-            Storage().delOwner(cid, owner);
-            address[] memory owners = Storage().owners(cid);
-            if(0 == owners.length) {
-                address[] memory nodes = Storage().nodes(cid);
-                for(uint i=0; i<nodes.length; i++) {
-                    Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], size);
-                }
+        require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
+        require(Storage().ownerExist(cid, owner), contractName.concat(": should not be happen: owner not exist"));
+
+        Storage().delOwner(cid, owner);
+        if(Storage().ownerEmpty(cid)) {
+            Storage().setStatus(cid, IFileStorage.Status.Deleting);
+            address[] memory nodes = Storage().getNodes(cid);
+            for(uint i=0; i<nodes.length; i++) {
+                Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], Storage().getSize(cid));
             }
         }
     }
@@ -60,20 +64,37 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
+    function getStatus(string calldata cid) external view returns (IFileStorage.Status) {
+        return Storage().getStatus(cid);
+    }
+
     function getSize(string calldata cid) external view returns (uint256) {
         return Storage().size(cid);
     }
 
-    function fileAdded(string calldata cid, address node) external {
+    function fileAdded(address node, address owner, string calldata cid) external {
         require(!Storage().nodeExist(cid, node), contractName.concat(": node exist"));
         Storage().addNode(cid, node);
+
+        IFileStorage.Status status = Storage().getStatus(cid);
+        if(IFileStorage.Status.Adding == status) {
+            Storage().setStatus(cid, IFileStorage.Status.Added);
+            User().finishAddFile(owner, node, cid);
+        } else if(IFileStorage.Status.Deleting == status) {
+            Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+        }
     }
 
-    function fileDeleted(string calldata cid, address node) external {
+    function fileDeleted(address node, address owner, string calldata cid) external {
         require(Storage().nodeExist(cid, node), contractName.concat(": node not exist"));
         Storage().delNode(cid, node);
+
         if(Storage().nodeEmpty(cid)) {
-            Storage().deleteFile(cid);
+            IFileStorage.Status status = Storage().getStatus(cid);
+            if(IFileStorage.Status.Deleting == status) {
+                Storage().deleteFile(cid);
+                User().finishDeleteFile(owner, node, cid);
+            }
         }
     }
 
@@ -81,7 +102,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().ownerExist(cid, owner);
     }
 
-    function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
-        return Storage().owners(cid, pageSize, pageNumber);
+    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getOwners(cid, pageSize, pageNumber);
     }
 }

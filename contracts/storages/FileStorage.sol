@@ -8,15 +8,6 @@ import "../lib/EnumerableSet.sol";
 contract FileStorage is ExternalStorage, IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    enum Status {
-        New,
-        Adding,
-        PartialAdded,
-        Added,
-        PartialDeleted,
-        Deleted
-    }
-
     struct FileItem {
         Status status;
         uint256 size;
@@ -33,7 +24,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
     function newFile(string calldata cid, uint256 size) external {
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
-        cid2fileItem[cid] = FileItem(Status.New, size, owners, nodes, true);
+        cid2fileItem[cid] = FileItem(Status.Adding, size, owners, nodes, true);
     }
 
     function deleteFile(string calldata cid) external {
@@ -44,7 +35,15 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cid2fileItem[cid].exist;
     }
 
-    function size(string calldata cid) external view returns (uint256) {
+    function getStatus(string calldata cid) external view returns (Status) {
+        return cid2fileItem[cid].status;
+    }
+
+    function setStatus(string calldata cid, Status status) external {
+        cid2fileItem[cid].status = status;
+    }
+
+    function getSize(string calldata cid) external view returns (uint256) {
         return cid2fileItem[cid].size;
     }
 
@@ -60,11 +59,11 @@ contract FileStorage is ExternalStorage, IFileStorage {
         cid2fileItem[cid].owners.add(owner);
     }
 
-    function delOwner(string calldata cid, address owner) external {
+    function deleteOwner(string calldata cid, address owner) external {
         cid2fileItem[cid].owners.remove(owner);
     }
 
-    function owners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
         EnumerableSet.AddressSet storage _owners = cid2fileItem[cid].owners;
         Paging.Page memory page = Paging.getPage(_owners.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
@@ -75,7 +74,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return (result, page);
     }
 
-    function owners(string calldata cid) external view returns (address[] memory) {
+    function getOwners(string calldata cid) external view returns (address[] memory) {
         EnumerableSet.AddressSet storage _owners = cid2fileItem[cid].owners;
         uint256 count = _owners.length();
         address[] memory result = new address[](count);
@@ -97,11 +96,11 @@ contract FileStorage is ExternalStorage, IFileStorage {
         cid2fileItem[cid].nodes.add(node);
     }
 
-    function delNode(string calldata cid, address node) external {
+    function deleteNode(string calldata cid, address node) external {
         cid2fileItem[cid].nodes.remove(node);
     }
 
-    function nodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
         EnumerableSet.AddressSet storage _nodes = cid2fileItem[cid].nodes;
         Paging.Page memory page = Paging.getPage(_nodes.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
@@ -113,7 +112,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return (result, page);
     }
 
-    function nodes(string calldata cid) external view returns (address[] memory) {
+    function getNodes(string calldata cid) external view returns (address[] memory) {
         EnumerableSet.AddressSet storage _nodes = cid2fileItem[cid].nodes;
         uint256 count = _nodes.length();
         address[] memory result = new address[](count);
