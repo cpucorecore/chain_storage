@@ -55,15 +55,15 @@ contract User is Importable, ExternalStorable, IUser {
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
-        Storage().addFile(addr, cid, duration, ext, now);
 
+        Storage().addFile(addr, cid, duration, ext, now);
         File().addFile(cid, size, addr);
     }
 
     function deleteFile(address addr, string memory cid) public {
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
-        Storage().deleteFile(addr, cid);
 
+        Storage().deleteFile(addr, cid);
         File().deleteFile(cid, addr);
     }
 
