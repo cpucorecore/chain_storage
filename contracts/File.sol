@@ -31,6 +31,8 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function addFile(string calldata cid, uint size, address owner) external {
+        require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
+
         if(Storage().exist(cid)) {
             if(IFileStorage.Status.Deleting == Storage().getStatus(cid)) {
                 Storage().setStatus(cid, IFileStorage.Status.Adding);
@@ -73,7 +75,9 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function fileAdded(address node, address owner, string calldata cid) external {
-        require(!Storage().nodeExist(cid, node), contractName.concat(": node exist"));
+        if(Storage().nodeExist(cid, node)) {
+            return;
+        }
         Storage().addNode(cid, node);
 
         IFileStorage.Status status = Storage().getStatus(cid);
@@ -83,11 +87,15 @@ contract File is Importable, ExternalStorable, IFile {
             Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
         }
 
-        User().finishAddFile(owner, node, cid);
+        if(Storage().ownerExist(cid, owner)) {
+            User().finishAddFile(owner, node, cid);
+        }
     }
 
     function fileDeleted(address node, address owner, string calldata cid) external {
-        require(Storage().nodeExist(cid, node), contractName.concat(": node not exist"));
+        if(!Storage().nodeExist(cid, node)) {
+            return;
+        }
         Storage().delNode(cid, node);
 
         if(Storage().nodeEmpty(cid)) {
@@ -95,9 +103,8 @@ contract File is Importable, ExternalStorable, IFile {
             if(IFileStorage.Status.Deleting == status) {
                 Storage().deleteFile(cid);
             }
+            User().finishDeleteFile(owner, node, cid);
         }
-
-        User().finishDeleteFile(owner, node, cid);
     }
 
     function ownerExist(string calldata cid, address owner) external view returns (bool) {
