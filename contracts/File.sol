@@ -7,6 +7,7 @@ import "./interfaces/IFile.sol";
 import "./interfaces/storages/IFileStorage.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/ITask.sol";
+import "./interfaces/IUser.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -20,6 +21,10 @@ contract File is Importable, ExternalStorable, IFile {
 
     function Storage() private view returns(IFileStorage) {
         return IFileStorage(getStorage());
+    }
+
+    function User() private view returns (IUser) {
+        return IUser(requireAddress(CONTRACT_USER));
     }
 
     function Node() private view returns (INode) {
@@ -52,7 +57,7 @@ contract File is Importable, ExternalStorable, IFile {
         require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
         require(Storage().ownerExist(cid, owner), contractName.concat(": should not be happen: owner not exist"));
 
-        Storage().delOwner(cid, owner);
+        Storage().deleteOwner(cid, owner);
         if(Storage().ownerEmpty(cid)) {
             Storage().setStatus(cid, IFileStorage.Status.Deleting);
             address[] memory nodes = Storage().getNodes(cid);
@@ -71,7 +76,7 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function getSize(string calldata cid) external view returns (uint256) {
-        return Storage().size(cid);
+        return Storage().getSize(cid);
     }
 
     function fileAdded(address node, address owner, string calldata cid) external {
@@ -96,7 +101,7 @@ contract File is Importable, ExternalStorable, IFile {
         if(!Storage().nodeExist(cid, node)) {
             return;
         }
-        Storage().delNode(cid, node);
+        Storage().deleteNode(cid, node);
 
         if(Storage().nodeEmpty(cid)) {
             IFileStorage.Status status = Storage().getStatus(cid);

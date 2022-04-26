@@ -12,7 +12,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
         EnumerableSet.Bytes32Set memory cidHashes;
-        users[addr] = UserItem(StorageInfo(storageTotal, 0), cidHashes, ext, true);
+        users[addr] = UserItem(StorageInfo(storageTotal, 0), cidHashes, 0, ext, true);
     }
 
     function deleteUser(address addr) external {
