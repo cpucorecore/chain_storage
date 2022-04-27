@@ -16,7 +16,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
         bool exist;
     }
 
-    mapping(string=>FileItem) cid2fileItem;
+    mapping(string=>FileItem) cid2fileItem; // TODO check: string=>FileItem --> bytes32=>FileItem?
+    mapping(bytes32=>string) cidHash2cid;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -25,6 +26,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
         cid2fileItem[cid] = FileItem(Status.Adding, size, owners, nodes, true);
+        bytes32 cidHash = keccak256(bytes(cid));
+        cidHash2cid[cidHash] = cid;
     }
 
     function deleteFile(string calldata cid) external {
@@ -33,6 +36,10 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function exist(string memory cid) public view returns (bool) {
         return cid2fileItem[cid].exist;
+    }
+
+    function getCidByCidHash(bytes32 cidHash) external view returns (string memory) {
+        return cidHash2cid[cidHash];
     }
 
     function getStatus(string calldata cid) external view returns (Status) {

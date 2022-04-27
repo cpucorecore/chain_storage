@@ -13,6 +13,7 @@ contract IFileStorage {
     function newFile(string calldata cid, uint256 size) external;
     function deleteFile(string calldata cid) external;
     function exist(string memory cid) public view returns (bool);
+    function getCidByCidHash(bytes32 cidHash) external view returns (string memory);
 
     function getStatus(string calldata cid) external view returns (Status);
     function setStatus(string calldata cid, Status status) external;
