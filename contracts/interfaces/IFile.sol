@@ -5,7 +5,7 @@ import "../lib/Paging.sol";
 import "./storages/IFileStorage.sol";
 
 interface IFile {
-    function addFile(string calldata cid, uint size, address owner) external;
+    function addFile(string calldata cid, uint256 size, address owner) external;
     function deleteFile(string calldata cid, address owner) external;
     function exist(string calldata cid) external view returns (bool);
 

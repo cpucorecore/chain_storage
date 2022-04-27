@@ -35,7 +35,7 @@ contract File is Importable, ExternalStorable, IFile {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function addFile(string calldata cid, uint size, address owner) external {
+    function addFile(string calldata cid, uint256 size, address owner) external {
         require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
 
         if(Storage().exist(cid)) {

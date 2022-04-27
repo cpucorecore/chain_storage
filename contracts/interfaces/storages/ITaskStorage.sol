@@ -71,5 +71,5 @@ interface ITaskStorage {
 
     function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory);
     function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external;
-    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 size) external;
+    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 percentage) external;
 }

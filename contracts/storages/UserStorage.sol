@@ -10,6 +10,8 @@ contract UserStorage is ExternalStorage, IUserStorage {
     mapping(address=>UserItem) private users;
     mapping(address=>mapping(bytes32=>FileItem)) files;
 
+    constructor(address _manager) public ExternalStorage(_manager) {}
+
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
         EnumerableSet.Bytes32Set memory cidHashes;
         users[addr] = UserItem(StorageInfo(storageTotal, 0), cidHashes, 0, ext, true);
@@ -111,5 +113,13 @@ contract UserStorage is ExternalStorage, IUserStorage {
     function getFileItem(address addr, string calldata cid) external view returns (FileItem memory) {
         bytes32 cidHash = keccak256(bytes(cid));
         return files[addr][cidHash];
+    }
+
+    function getInvalidAddFileCount(address addr) external view returns (uint256) {
+        return users[addr].invalidAddFileCount;
+    }
+
+    function setInvalidAddFileCount(address addr, uint256 count) external {
+        users[addr].invalidAddFileCount = count;
     }
 }

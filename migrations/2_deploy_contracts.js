@@ -2,9 +2,11 @@ const fs = require('fs');
 const Web3Utils = require('web3-utils');
 const {checkUndefined} = require('./util');
 
-const Setting = artifacts.require("Setting");
+
 const Resolver = artifacts.require("Resolver");
 
+const Setting = artifacts.require("Setting");
+const SettingStorage = artifacts.require("SettingStorage");
 const FileStorage = artifacts.require("FileStorage");
 const File = artifacts.require("File");
 const UserStorage = artifacts.require("UserStorage");
@@ -19,48 +21,58 @@ module.exports = function(deployer) {
     let contractAddrs = {};
 
     deployer
-        .then(function() {
-            return deployer.deploy(Setting);
-        })
-
-        // Setting deploy
-        .then(setting => {
-            checkUndefined('setting', setting);
-            contracts.setting = setting;
-            contractAddrs.setting = setting.address;
+        .then( () => {
             return deployer.deploy(Resolver);
         })
+
+        //Setting and SettingStorage
         .then(resolver => {
             checkUndefined('resolver', resolver);
             contracts.resolver = resolver;
             contractAddrs.resolver = resolver.address;
+            return deployer.deploy(Setting);
+        })
+        .then(setting => {
+            checkUndefined('setting', setting);
+            contracts.setting = setting;
+            contractAddrs.setting = setting.address;
+            return deployer.deploy(SettingStorage, contracts.setting.address);
+        })
+        .then(settingStorage => {
+            checkUndefined('settingStorage', settingStorage);
+            contracts.settingStorage = settingStorage;
+            contractAddrs.settingStorage = settingStorage.address;
+            return contracts.setting.setStorage(contracts.settingStorage.address);
+        })
+        .then(receipt => {
+            console.log('setting.setStorage receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('Setting'), contracts.setting.address);
         })
 
         // File and FileStorage deploy
-        .then((receipt) => {
+        .then(receipt => {
             console.log('resolver.setAddress(Setting) receipts: ', receipt);
             return deployer.deploy(File, contracts.resolver.address);
         })
-        .then((file) => {
+        .then(file => {
             checkUndefined('file', file);
             contracts.file = file;
             contractAddrs.file = file.address;
             return deployer.deploy(FileStorage, contracts.file.address);
         })
-        .then((fileStorage) => {
-            checkUndefined('fileStorage', contracts.settingStorage);
+        .then(fileStorage => {
+            checkUndefined('fileStorage', fileStorage);
             contracts.fileStorage = fileStorage;
             contractAddrs.fileStorage = fileStorage.address;
-            return contracts.file.setStorage(contracts.settingStorage.address);
+            return contracts.file.setStorage(contracts.fileStorage.address);
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('file.setStorage receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('File'), contracts.file.address);
         })
 
         // User and UserStorage deploy
-        .then((receipt) => {
+        .then(receipt => {
             console.log('resolver.setAddress(File) receipts: ', receipt);
             return deployer.deploy(User, contracts.resolver.address);
         })
@@ -70,81 +82,81 @@ module.exports = function(deployer) {
             contractAddrs.user = user.address;
             return deployer.deploy(UserStorage, contracts.user.address);
         })
-        .then((userStorage) => {
-            checkUndefined('userStorage', contracts.userStorage);
+        .then(userStorage => {
+            checkUndefined('userStorage', userStorage);
             contracts.userStorage = userStorage;
             contractAddrs.userStorage = userStorage.address;
             return contracts.user.setStorage(contracts.userStorage.address);
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('user.setStorage receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('User'), contracts.user.address);
         })
 
         // Node and NodeStorage deploy
-        .then((receipt) => {
+        .then(receipt => {
             console.log('resolver.setAddress(User) receipts: ', receipt);
             return deployer.deploy(Node, contracts.resolver.address);
         })
-        .then((node) => {
+        .then(node => {
             checkUndefined('node', node);
             contracts.node = node;
             contractAddrs.node = node.address;
             return deployer.deploy(NodeStorage, contracts.node.address);
         })
-        .then((nodeStorage) => {
-            checkUndefined('nodeStorage', contracts.nodeStorage);
+        .then(nodeStorage => {
+            checkUndefined('nodeStorage', nodeStorage);
             contracts.nodeStorage = nodeStorage;
             contractAddrs.nodeStorage = nodeStorage.address;
             return contracts.node.setStorage(contracts.nodeStorage.address);
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('node.setStorage receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('Node'), contracts.node.address);
         })
 
         // Task and TaskStorage deploy
-        .then((receipt) => {
+        .then(receipt => {
             console.log('resolver.setAddress(Node) receipts: ', receipt);
             return deployer.deploy(Task, contracts.resolver.address);
         })
-        .then((task) => {
+        .then(task => {
             checkUndefined('task', task);
             contracts.task = task;
             contractAddrs.task = task.address;
             return deployer.deploy(TaskStorage, contracts.task.address);
         })
-        .then((taskStorage) => {
-            checkUndefined('taskStorage', contracts.taskStorage);
+        .then(taskStorage => {
+            checkUndefined('taskStorage', taskStorage);
             contracts.taskStorage = taskStorage;
             contractAddrs.taskStorage = taskStorage.address;
             return contracts.task.setStorage(contracts.taskStorage.address);
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('task.setStorage receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('Task'), contracts.task.address);
         })
 
         // refreshCache
-        .then((receipt) => {
+        .then(receipt => {
             console.log('resolver.setAddress(Task) receipts: ', receipt);
             return contracts.file.refreshCache();
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('file.refreshCache receipt: ', receipt);
             return contracts.user.refreshCache();
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('user.refreshCache receipt: ', receipt);
             return contracts.node.refreshCache();
         })
-        .then((receipt) => {
+        .then(receipt => {
             console.log('node.refreshCache receipt: ', receipt);
             return contracts.task.refreshCache();
         })
 
         // save contract addresses
-        .then((receipt) => {
+        .then(receipt => {
             console.log('task.refreshCache receipt: ', receipt);
             console.log("contracts deployment finished\n\n");
             const addrs = JSON.stringify(contractAddrs, null, '\t');

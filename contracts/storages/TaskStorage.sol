@@ -10,6 +10,8 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     mapping(uint256=>StatusInfo) private tid2statusInfo;
     mapping(uint256=>AddFileTaskProgress) private tid2addFileTaskProgress;
 
+    constructor(address _manager) public ExternalStorage(_manager) {}
+
     function newTask(
         address owner,
         Action action,
@@ -100,9 +102,15 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2addFileTaskProgress[tid];
     }
 
-    function setAddFileTaskProgress(uint256 tid, uint256 time, uint256 size) external {
+    function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external {
         tid2addFileTaskProgress[tid].time = time;
         tid2addFileTaskProgress[tid].lastSize = tid2addFileTaskProgress[tid].currentSize;
         tid2addFileTaskProgress[tid].currentSize = size;
+    }
+
+    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 percentage) external {
+        tid2addFileTaskProgress[tid].time = time;
+        tid2addFileTaskProgress[tid].lastPercentage = tid2addFileTaskProgress[tid].currentPercentage;
+        tid2addFileTaskProgress[tid].currentPercentage = percentage;
     }
 }

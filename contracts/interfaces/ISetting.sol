@@ -2,7 +2,7 @@ pragma solidity ^0.5.17;
 
 interface ISetting {
     function getReplica() external view returns (uint256);
-    function setReplica(uint256 replicas) external;
+    function setReplica(uint256 replica) external;
 
     function getInitSpace() external view returns (uint256);
     function setInitSpace(uint256 space) external;
@@ -21,9 +21,6 @@ interface ISetting {
 
     function getMaxCidLength() external view returns (uint256);
     function setMaxCidLength(uint256 length) external;
-
-    function getMaxPidLength() external view returns (uint256);
-    function setMaxPidLength(uint256 length) external;
 
     function getTaskAcceptTimeoutSeconds() external view returns (uint256);
     function setTaskAcceptTimeoutSeconds(uint256 value) external;
