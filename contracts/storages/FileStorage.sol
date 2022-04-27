@@ -16,11 +16,10 @@ contract FileStorage is ExternalStorage, IFileStorage {
         bool exist;
     }
 
-    mapping(string=>FileItem) cid2fileItem; // TODO check: string=>FileItem --> bytes32=>FileItem?
-    mapping(bytes32=>string) cidHash2cid;
+    mapping(string=>FileItem) private cid2fileItem; // TODO check: string=>FileItem --> bytes32=>FileItem?
+    mapping(bytes32=>string) private cidHash2cid;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
-
 
     function newFile(string calldata cid, uint256 size) external {
         EnumerableSet.AddressSet memory owners;
