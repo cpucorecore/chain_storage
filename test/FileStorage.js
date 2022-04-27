@@ -1,11 +1,11 @@
 const FileStorage = artifacts.require("FileStorage");
 const IFileStorage = artifacts.require("IFileStorage");
 
-contract('FileStorage', accounts => {
+contract.skip('FileStorage', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
 
-    it.skip('exist', async () => {
+    it('exist', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 
         let exist = await fileStorageInstance.exist.call(cid);
@@ -20,7 +20,7 @@ contract('FileStorage', accounts => {
         assert.equal(exist, false, "should not exist");
     });
 
-    it.skip('getSize', async () => {
+    it('getSize', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 
         let actualSize = await fileStorageInstance.getSize.call(cid);
@@ -35,7 +35,7 @@ contract('FileStorage', accounts => {
         assert.equal(actualSize, 0, "size should be 0");
     });
 
-    it.skip('getStatus', async () => {
+    it('getStatus', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 
         let status = await fileStorageInstance.getStatus.call(cid);
@@ -50,7 +50,7 @@ contract('FileStorage', accounts => {
         assert.equal(status, 0, "wrong status");
     });
 
-    it.skip('setStatus', async () => {
+    it('setStatus', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 
         let status = await fileStorageInstance.getStatus.call(cid);
@@ -65,7 +65,7 @@ contract('FileStorage', accounts => {
         assert.equal(status, 0, "wrong status");
     });
 
-    it.skip('owner test', async () => {
+    it('owner test', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 
         await fileStorageInstance.newFile(cid, size);

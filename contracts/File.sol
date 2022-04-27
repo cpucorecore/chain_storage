@@ -80,20 +80,20 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function fileAdded(address node, address owner, string calldata cid) external {
-        if(Storage().nodeExist(cid, node)) {
-            return;
-        }
-        Storage().addNode(cid, node);
-
         IFileStorage.Status status = Storage().getStatus(cid);
-        if(IFileStorage.Status.Adding == status) {
-            Storage().setStatus(cid, IFileStorage.Status.Added);
-        } else if(IFileStorage.Status.Deleting == status) {
+        if(IFileStorage.Status.Deleting == status) {
             Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
-        }
+        } else {
+            if(IFileStorage.Status.Adding == status) {
+                Storage().setStatus(cid, IFileStorage.Status.Added);
+            }
 
-        if(Storage().ownerExist(cid, owner)) {
-            User().finishAddFile(owner, node, cid);
+            if(!Storage().nodeExist(cid, node)) {
+                Storage().addNode(cid, node);
+                if(Storage().ownerExist(cid, owner)) {
+                    User().finishAddFile(owner, node, cid);
+                }
+            }
         }
     }
 
