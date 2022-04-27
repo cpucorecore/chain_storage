@@ -5,6 +5,7 @@ import "../../lib/Paging.sol";
 
 contract IFileStorage {
     enum Status {
+        Default,
         Adding,
         Added,
         Deleting
