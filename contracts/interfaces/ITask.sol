@@ -19,5 +19,6 @@ interface ITask {
     function failTask(uint256 tid) external;
     function TaskAcceptTimeout(uint256 tid) external;
     function TaskTimeout(uint256 tid) external;
-    function reportAddFileProgress(uint256 tid, uint256 size) external;
+    function reportAddFileProgressBySize(uint256 tid, uint256 size) external;
+    function reportAddFileProgressByPercentage(uint256 tid, uint256 percentage) external;
 }

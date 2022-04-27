@@ -24,7 +24,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         tid2taskItem[tid] = TaskItem(owner, action, node, size, cid, createBlock, true);
         tid2statusInfo[tid] = StatusInfo(ITaskStorage.Status.Created, createTime, 0, 0, 0, 0, 0, true);
         if(ITaskStorage.Action.Add == action) {
-            tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, true);
+            tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
         }
 
         return tid;

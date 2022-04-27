@@ -98,10 +98,17 @@ contract Task is Importable, ExternalStorable, ITask {
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Timeout, now);
     }
 
-    function reportAddFileProgress(uint256 tid, uint256 size) external {
+    function reportAddFileProgressBySize(uint256 tid, uint256 size) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
-        Storage().setAddFileTaskProgress(tid, now, size);
+        Storage().setAddFileTaskProgressBySize(tid, now, size);
+    }
+
+    function reportAddFileProgressByPercentage(uint256 tid, uint256 percentage) external {
+        require(Storage().exist(tid), contractName.concat(": task not exist"));
+        ITaskStorage.Status status = Storage().getStatus(tid);
+        require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+        Storage().setAddFileTaskProgressByPercentage(tid, now, percentage);
     }
 }

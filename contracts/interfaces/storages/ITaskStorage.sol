@@ -42,6 +42,8 @@ interface ITaskStorage {
         uint256 lastSize;
         uint256 currentSize;
         uint256 size;
+        uint256 lastPercentage;
+        uint256 currentPercentage;
         bool exist;
     }
 
@@ -68,5 +70,6 @@ interface ITaskStorage {
     function setStatusAndTime(uint256 tid, Status status, uint256 time) external;
 
     function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory);
-    function setAddFileTaskProgress(uint256 tid, uint256 time, uint256 size) external;
+    function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external;
+    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 size) external;
 }
