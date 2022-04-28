@@ -8,17 +8,23 @@ contract('FileStorage', accounts => {
     let nodeSpace = 1024*1024*1024*1024;
     let nodeExt = '{"key":"value"}';
 
-    it('exist', async () => {
-        const settingInstance = await Setting.deployed();
+    let settingInstance;
+    let nodeInstance;
+    let fileInstance;
+
+    before(async () => {
+        settingInstance = await Setting.deployed();
+        nodeInstance = await Node.deployed();
+        fileInstance = await File.deployed();
+
         await settingInstance.setReplica(2);
         await settingInstance.setMaxNodeExtLength(1024);
 
-        const nodeInstance = await Node.deployed();
         await nodeInstance.register(accounts[0], nodeSpace, nodeExt);
         await nodeInstance.register(accounts[1], nodeSpace, nodeExt);
+    })
 
-        const fileInstance = await File.deployed();
-
+    it('exist', async () => {
         let exist = await fileInstance.exist.call(cid);
         assert.equal(exist, false);
 
