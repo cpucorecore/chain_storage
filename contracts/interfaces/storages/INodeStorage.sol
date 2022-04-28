@@ -8,6 +8,7 @@ interface INodeStorage {
     using SafeMath for uint256;
 
     enum Status {
+        Default,
         Registered,
         Online,
         Maintain,
@@ -47,6 +48,10 @@ interface INodeStorage {
     function deleteNode(address addr) external;
     function exist(address addr) external view returns (bool);
     function getNode(address addr) external view returns (NodeItem memory);
+
+    function isNodeOnline(address addr) external view returns (bool);
+    function addOnlineNode(address addr) external;
+    function deleteOnlineNode(address addr) external;
 
     function getServiceInfo(address addr) external view returns (ServiceInfo memory);
     function getStorageInfo(address addr) external view returns (StorageInfo memory);
@@ -88,8 +93,13 @@ interface INodeStorage {
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
 
+    function getAllNodeAddresses() external view returns (address[] memory);
     function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function getAllOnlineNodeAddresses() external view returns (address[] memory);
     function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function getNodeCids(address addr) external view returns (string[] memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 
     function getAddFileFailedCount(string calldata cid) external view returns (uint256);

@@ -15,5 +15,10 @@ interface IFile {
     function fileDeleted(address node, address owner, string calldata cid) external;
 
     function ownerExist(string calldata cid, address owner) external view returns (bool);
+    function getOwners(string calldata cid) external view returns (address[] memory);
     function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function nodeExist(string calldata cid, address node) external view returns (bool);
+    function getNodes(string calldata cid) external view returns (address[] memory);
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
 }

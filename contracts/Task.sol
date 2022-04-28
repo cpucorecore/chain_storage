@@ -52,7 +52,7 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getAddFileTaskProgress(tid);
     }
 
-    function acceptTask(uint256 tid) external {
+    function acceptTask(address addr, uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
         ITaskStorage.TaskItem memory task = Storage().getTaskItem(tid);
         ITaskStorage.Status status = Storage().getStatus(tid);

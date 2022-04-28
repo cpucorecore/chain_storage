@@ -14,7 +14,7 @@ interface ITask {
 
     function getAddFileTaskProgress(uint256 tid) external view returns (ITaskStorage.AddFileTaskProgress memory);
 
-    function acceptTask(uint256 tid) external;
+    function acceptTask(address addr, uint256 tid) external;
     function finishTask(uint256 tid) external;
     function failTask(uint256 tid) external;
     function TaskAcceptTimeout(uint256 tid) external;

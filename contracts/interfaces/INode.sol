@@ -15,7 +15,13 @@ interface INode {
 
     function addFile(address owner, string calldata cid, uint256 size) external;
 
+    function getAllNodeAddresses() external view returns (address[] memory);
     function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function getAllOnlineNodeAddresses() external view returns (address[] memory);
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function getNodeCids(address addr) external view returns (string[] memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 
     function finishTask(uint256 tid) external;

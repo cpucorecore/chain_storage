@@ -82,7 +82,9 @@ contract File is Importable, ExternalStorable, IFile {
     function fileAdded(address node, address owner, string calldata cid) external {
         IFileStorage.Status status = Storage().getStatus(cid);
         if(IFileStorage.Status.Deleting == status) {
-            Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+            if(nodeExist(cid, node)) {
+                Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+            }
         } else {
             if(IFileStorage.Status.Adding == status) {
                 Storage().setStatus(cid, IFileStorage.Status.Added);
@@ -112,11 +114,27 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function ownerExist(string calldata cid, address owner) external view returns (bool) {
+    function ownerExist(string memory cid, address owner) public view returns (bool) {
         return Storage().ownerExist(cid, owner);
+    }
+
+    function getOwners(string calldata cid) external view returns (address[] memory) {
+        return Storage().getOwners(cid);
     }
 
     function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
         return Storage().getOwners(cid, pageSize, pageNumber);
+    }
+
+    function nodeExist(string memory cid, address node) public view returns (bool) {
+        return Storage().nodeExist(cid, node);
+    }
+
+    function getNodes(string calldata cid) external view returns (address[] memory) {
+        return Storage().getNodes(cid);
+    }
+
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getNodes(cid, pageSize, pageNumber);
     }
 }
