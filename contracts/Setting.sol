@@ -12,6 +12,7 @@ contract Setting is ExternalStorable, ISetting {
     bytes32 private constant MAX_USER_EXT_LENGTH = 'MaxUserExtLength';
     bytes32 private constant MAX_NODE_EXT_LENGTH = 'MaxNodeExtLength';
     bytes32 private constant MAX_MONITOR_EXT_LENGTH = 'MaxMonitorExtLength';
+    bytes32 private constant MAX_FILE_EXT_LENGTH = 'MaxFileExtLength';
     bytes32 private constant MAX_CID_LENGTH = 'MaxCidLength';
 
     bytes32 private constant TASK_ACCEPT_TIMEOUT_SECONDS = 'TaskAcceptTimeoutSeconds';
@@ -75,6 +76,14 @@ contract Setting is ExternalStorable, ISetting {
 
     function setMaxMonitorExtLength(uint256 length) external {
         Storage().setUint(MAX_MONITOR_EXT_LENGTH, length);
+    }
+
+    function getMaxFileExtLength() external view returns (uint256) {
+        return Storage().getUint(MAX_FILE_EXT_LENGTH);
+    }
+
+    function setMaxFileExtLength(uint256 length) external {
+        Storage().setUint(MAX_FILE_EXT_LENGTH, length);
     }
 
     function getMaxCidLength() external view returns (uint256) {

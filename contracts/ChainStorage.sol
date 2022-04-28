@@ -8,6 +8,7 @@ import "./interfaces/IUser.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/ISetting.sol";
+import "./interfaces/ITask.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
     constructor() public Importable(IResolver(0)) {}
@@ -19,12 +20,10 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         setContractName(CONTRACT_CHAIN_STORAGE);
 
         imports = [
-        CONTRACT_SETTING,
-        CONTRACT_USER,
-        CONTRACT_FILE,
-        CONTRACT_NODE,
-        CONTRACT_TASK,
-        CONTRACT_MONITOR
+            CONTRACT_USER,
+            CONTRACT_NODE,
+            CONTRACT_TASK,
+            CONTRACT_MONITOR
         ];
     }
 
@@ -44,37 +43,89 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         return IMonitor(requireAddress(CONTRACT_MONITOR));
     }
 
+    function Task() private view returns (ITask) {
+        return ITask(requireAddress(CONTRACT_TASK));
+    }
+
     function userRegister(string calldata ext) external onlyInitialized notPaused {
         User().register(msg.sender, ext);
     }
 
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused {
-        require(size > 0, contractName.concat(": size must > 0"));
-        require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": ext too long"));
-        require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
-
         User().addFile(msg.sender, cid, size, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external onlyInitialized notPaused {
-        require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         User().deleteFile(msg.sender, cid);
+    }
+
+    function userSetExt(string calldata ext) external onlyInitialized notPaused {
+        User().setExt(msg.sender, ext);
+    }
+
+    function userSetFileExt(address addr, string calldata cid, string calldata ext) external {
+        User().setFileExt(addr, cid, ext);
+    }
+
+    function userSetFileDuration(address addr, string calldata cid, uint256 duration) external {
+        User().setFileDuration(addr, cid, duration);
+    }
+
+    function changeUserSpace(address addr, uint256 space) external onlyInitialized notPaused {
+        require(msg.sender == Setting().getAdmin(), contractName.concat(": no auth")); // TODO check onlyOwner?
+        User().changeSpace(addr, space);
     }
 
     function nodeRegister(uint256 space, string calldata ext) external onlyInitialized notPaused {
         Node().register(msg.sender, space, ext);
     }
 
+    function nodeSetExt(string calldata ext) external {
+        Node().setExt(msg.sender, ext);
+    }
+
     function nodeOnline() external onlyInitialized notPaused {
         Node().online(msg.sender);
     }
 
-    function monitorRegister(string calldata ext) external {
+    function nodeMaintain() external onlyInitialized notPaused {
+        Node().maintain(msg.sender);
+    }
+
+    function nodeAcceptTask(uint256 tid) external onlyInitialized notPaused {
+        Task().acceptTask(msg.sender, tid);
+    }
+
+    function nodeFinishTask(uint256 tid) external onlyInitialized notPaused {
+        Node().finishTask(msg.sender, tid);
+    }
+
+    function nodeFailTask(uint256 tid) external onlyInitialized notPaused {
+        Node().failTask(msg.sender, tid);
+    }
+
+    function changeNodeSpace(uint256 space) external onlyInitialized notPaused {
+        Node().changeSpace(msg.sender, space);
+    }
+
+    function monitorRegister(string calldata ext) external onlyInitialized notPaused {
         require(bytes(ext).length <= Setting().getMaxMonitorExtLength(), contractName.concat(": ext too long"));
         Monitor().register(msg.sender, ext);
     }
 
-    function monitorOnline() external {
+    function monitorOnline() external onlyInitialized notPaused {
         Monitor().online(msg.sender);
+    }
+
+    function monitorMaintain() external onlyInitialized notPaused {
+        Monitor().maintain(msg.sender);
+    }
+
+    function monitorCheckTask(uint256 tid) external onlyInitialized notPaused {
+        Monitor().checkTask(msg.sender, tid);
+    }
+
+    function monitorResetCurrentTid(uint256 tid) external onlyInitialized notPaused {
+        Monitor().resetCurrentTid(msg.sender, tid);
     }
 }

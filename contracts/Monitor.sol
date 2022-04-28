@@ -13,7 +13,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
 
     constructor(IResolver _resolver) public Importable(_resolver) {
-        setContractName(CONTRACT_FILE);
+        setContractName(CONTRACT_MONITOR);
         imports = [
             CONTRACT_SETTING,
             CONTRACT_FILE,

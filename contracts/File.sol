@@ -93,7 +93,7 @@ contract File is Importable, ExternalStorable, IFile {
             if(!Storage().nodeExist(cid, node)) {
                 Storage().addNode(cid, node);
                 if(Storage().ownerExist(cid, owner)) {
-                    User().finishAddFile(owner, node, cid);
+                    User().callbackFinishAddFile(owner, node, cid);
                 }
             }
         }
@@ -110,7 +110,7 @@ contract File is Importable, ExternalStorable, IFile {
             if(IFileStorage.Status.Deleting == status) {
                 Storage().deleteFile(cid);
             }
-            User().finishDeleteFile(owner, node, cid);
+            User().callbackFinishDeleteFile(owner, node, cid);
         }
     }
 

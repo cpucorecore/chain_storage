@@ -10,7 +10,7 @@ contract Task is Importable, ExternalStorable, ITask {
     event TaskIssued(address indexed node, uint256 indexed tid);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
-        setContractName(CONTRACT_FILE);
+        setContractName(CONTRACT_TASK);
         imports = [
             CONTRACT_FILE,
             CONTRACT_USER,
@@ -54,7 +54,10 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function acceptTask(address addr, uint256 tid) external {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+
         ITaskStorage.TaskItem memory task = Storage().getTaskItem(tid);
+        require(addr == task.node, contractName.concat(": node have no this task"));
+
         ITaskStorage.Status status = Storage().getStatus(tid);
         if(ITaskStorage.Action.Add == task.action) {
             require(ITaskStorage.Status.Created == status, contractName.concat(": add file task status is not Created"));
@@ -68,47 +71,62 @@ contract Task is Importable, ExternalStorable, ITask {
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Accepted, now);
     }
 
-    function finishTask(uint256 tid) external {
+    function finishTask(uint256 tid) external { // TODO only Node
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Finished, now);
     }
 
-    function failTask(uint256 tid) external {
+    function failTask(uint256 tid) external { // TODO only Node
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+
         ITaskStorage.Action action = Storage().getAction(tid);
         require(ITaskStorage.Action.Add == action, contractName.concat(": only add file task can fail"));
+
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Failed, now);
     }
 
-    function TaskAcceptTimeout(uint256 tid) external {
+    function TaskAcceptTimeout(uint256 tid) external { // TODO only Monitor
         require(Storage().exist(tid), contractName.concat(": task not exist"));
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Created == status, contractName.concat(": task status is not Created"));
         Storage().setStatusAndTime(tid, ITaskStorage.Status.AcceptTimeout, now);
     }
 
-    function TaskTimeout(uint256 tid) external {
+    function TaskTimeout(uint256 tid) external { // TODO only Monitor
         require(Storage().exist(tid), contractName.concat(": task not exist"));
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
         Storage().setStatusAndTime(tid, ITaskStorage.Status.Timeout, now);
     }
 
-    function reportAddFileProgressBySize(uint256 tid, uint256 size) external {
+    function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external { // TODO only Node
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+
+        ITaskStorage.TaskItem memory task = Storage().getTaskItem(tid);
+        require(addr == task.node, contractName.concat(": node have no this task"));
+
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+
         Storage().setAddFileTaskProgressBySize(tid, now, size);
     }
 
-    function reportAddFileProgressByPercentage(uint256 tid, uint256 percentage) external {
+    function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external { // TODO only Node
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+
+        ITaskStorage.TaskItem memory task = Storage().getTaskItem(tid);
+        require(addr == task.node, contractName.concat(": node have no this task"));
+
         ITaskStorage.Status status = Storage().getStatus(tid);
         require(ITaskStorage.Status.Accepted == status, contractName.concat(": task status is not Accepted"));
+
         Storage().setAddFileTaskProgressByPercentage(tid, now, percentage);
     }
 }

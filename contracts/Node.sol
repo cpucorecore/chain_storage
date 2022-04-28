@@ -66,8 +66,17 @@ contract Node is Importable, ExternalStorable, INode {
 
     function setExt(address addr, string calldata ext) external {
         checkExist(addr);
-        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
+        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": node ext too long"));
         Storage().setExt(addr, ext);
+    }
+
+    function changeSpace(address addr, uint256 size) external {
+        require(size >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used"));
+        Storage().setStorageTotal(addr, size);
+    }
+
+    function getStorageInfo(address addr) external view returns (INodeStorage.StorageInfo memory) {
+        return Storage().getStorageInfo(addr);
     }
 
     function online(address addr) external {
@@ -80,7 +89,7 @@ contract Node is Importable, ExternalStorable, INode {
             contractName.concat(": wrong status"));
 
         INodeStorage.TasksProgress memory tasksProgress = Storage().getTasksProgress(addr);
-        require(tasksProgress.currentTime == tasksProgress.targetTime, contractName.concat("must finish all task"));
+        require(tasksProgress.currentTime == tasksProgress.targetTime, contractName.concat(": must finish all task"));
         Storage().setStatus(addr, INodeStorage.Status.Online);
         Storage().addOnlineNode(addr); // TODO duplicated with status?
     }
@@ -141,8 +150,10 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getNodeCids(addr, pageSize, pageNumber);
     }
 
-    function finishTask(uint256 tid) external {
+    function finishTask(address addr, uint256 tid) external {
         ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
+        require(addr == task.node, contractName.concat(": node have no this task"));
+
         if(ITaskStorage.Action.Add == task.action) {
             File().fileAdded(task.node, task.owner, task.cid);
             useStorage(task.node, task.size);
@@ -161,8 +172,10 @@ contract Node is Importable, ExternalStorable, INode {
         Task().finishTask(tid);
     }
 
-    function failTask(uint256 tid) external {
+    function failTask(address addr, uint256 tid) external {
         ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
+        require(addr == task.node, contractName.concat(": node have no this task"));
+
         Storage().setTaskFailCount(task.node, Storage().getTaskFailCount(task.node).add(1));
         Task().failTask(tid);
 
@@ -170,7 +183,7 @@ contract Node is Importable, ExternalStorable, INode {
             uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
             uint256 addFileFailedCount = Storage().getAddFileFailedCount(task.cid);
             if(addFileFailedCount >= maxAddFileFailedCount) {
-                User().failAddFile(task.owner, task.cid);
+                User().callbackFailAddFile(task.owner, task.cid);
                 return;
             }
             Storage().setAddFileFailedCount(task.cid, addFileFailedCount.add(1));
