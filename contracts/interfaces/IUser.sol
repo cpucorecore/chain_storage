@@ -29,4 +29,6 @@ interface IUser {
     function setFileDuration(address addr, string calldata cid, uint256 duration) external;
 
     function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+
+    function getTotalUserNumber() external view returns (uint256);
 }

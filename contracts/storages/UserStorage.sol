@@ -9,20 +9,28 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     mapping(address=>UserItem) private users;
     mapping(address=>mapping(bytes32=>FileItem)) files;
+    uint256 private toatalUserNumber;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
+    function exist(address addr) public returns (bool) {
+        return users[addr].exist;
+    }
+
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
+        require(!exist(addr), contractName.concat(": user exist"));
+
         EnumerableSet.Bytes32Set memory cidHashes;
         users[addr] = UserItem(StorageInfo(storageTotal, 0), cidHashes, 0, ext, true);
+
+        toatalUserNumber = toatalUserNumber.add(1);
     }
 
     function deleteUser(address addr) external {
+        require(exist(addr), contractName.concat(": user not exist"));
         delete users[addr];
-    }
 
-    function exist(address addr) public returns (bool) {
-        return users[addr].exist;
+        toatalUserNumber = toatalUserNumber.sub(1);
     }
 
     function getExt(address addr) external view returns (string memory) {
@@ -121,5 +129,9 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     function setInvalidAddFileCount(address addr, uint256 count) external {
         users[addr].invalidAddFileCount = count;
+    }
+
+    function getTotalUserNumber() external view returns (uint256) {
+
     }
 }

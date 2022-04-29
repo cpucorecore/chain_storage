@@ -17,6 +17,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     mapping(bytes32=>FileItem) private cidHash2fileItem;
+    uint256 private totalSize; // TODO: measure accurate
+    uint256 private toatalFileNumber;  // TODO: measure accurate
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -27,14 +29,23 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function newFile(string calldata cid, uint256 size) external {
         bytes32 cidHash = keccak256(bytes(cid));
+        require(!cidHash2fileItem[cidHash].exist, contractName.concat(": file exist"));
 
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
         cidHash2fileItem[cidHash] = FileItem(cid, size, owners, nodes, true);
+
+        totalSize = totalSize.add(size);
+        toatalFileNumber = toatalFileNumber.add(1);
     }
 
     function deleteFile(string calldata cid) external {
         bytes32 cidHash = keccak256(bytes(cid));
+        require(cidHash2fileItem[cidHash].exist, contractName.concat(": file not exist"));
+
+        totalSize = totalSize.sub(cidHash2fileItem[cidHash].size);
+        toatalFileNumber = toatalFileNumber.sub(1);
+
         delete cidHash2fileItem[cidHash];
     }
 
@@ -132,5 +143,13 @@ contract FileStorage is ExternalStorage, IFileStorage {
             result[i] = nodes.at(start+i);
         }
         return (result, page);
+    }
+
+    function getTotalSize() external view returns (uint256) {
+        return totalSize;
+    }
+
+    function getTotalFileNumber() external view returns (uint256) {
+        return toatalFileNumber;
     }
 }

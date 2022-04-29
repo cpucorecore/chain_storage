@@ -3,7 +3,7 @@ const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 
-contract('File exist', accounts => {
+contract.skip('File exist', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
     let nodeSpace = 1024*1024*1024*1024;

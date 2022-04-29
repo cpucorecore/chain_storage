@@ -101,4 +101,7 @@ interface INodeStorage {
 
     function getAddFileFailedCount(string calldata cid) external view returns (uint256);
     function setAddFileFailedCount(string calldata cid, uint256 count) external;
+
+    function getTotalNodeNumber() external view returns (uint256);
+    function getTotalOnlineNodeNumber() external view returns (uint256);
 }

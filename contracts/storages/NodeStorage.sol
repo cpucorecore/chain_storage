@@ -26,6 +26,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     }
 
     function newNode(address addr, uint256 totalSpace, string calldata ext) external {
+        require(!nodes[addr].exist, contractName.concat(": node exist"));
+
         nodes[addr] = NodeItem(Status.Registered,
             ServiceInfo(0, 0, 0, 0, 0, 0, 0),
             StorageSpaceInfo(totalSpace, 0),
@@ -35,6 +37,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     }
 
     function deleteNode(address addr) public {
+        require(nodes[addr].exist, contractName.concat(": node not exist"));
+
         delete nodes[addr];
         delete node2cidHashs[addr];
         nodeAddrs.remove(addr);
@@ -224,5 +228,13 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function setAddFileFailedCount(string calldata cid, uint256 count) external {
         cid2addFileFailedCount[cid] = count;
+    }
+
+    function getTotalNodeNumber() external view returns (uint256) {
+        return nodeAddrs.length();
+    }
+
+    function getTotalOnlineNodeNumber() external view returns (uint256) {
+        return onlineNodeAddrs.length();
     }
 }

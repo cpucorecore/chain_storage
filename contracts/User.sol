@@ -137,6 +137,10 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getCids(addr, pageSize, pageNumber);
     }
 
+    function getTotalUserNumber() external view returns (uint256) {
+        return Storage().getTotalUserNumber();
+    }
+
     /////////////////////// private functions ///////////////////////
     function useStorage(address node, uint256 size) private {
         IUserStorage.StorageInfo memory storageInfo = Storage().getStorageInfo(node);

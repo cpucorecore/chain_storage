@@ -24,4 +24,7 @@ contract IFileStorage {
     function deleteNode(string calldata cid, address node) external;
     function getNodes(string calldata cid) external view returns (address[] memory);
     function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+
+    function getTotalSize() external view returns (uint256);
+    function getTotalFileNumber() external view returns (uint256);
 }

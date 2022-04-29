@@ -95,7 +95,7 @@ contract Node is Importable, ExternalStorable, INode {
         require(nodeMaxTid == maxFinishedTid, contractName.concat(": must finish all task"));
 
         Storage().setStatus(addr, INodeStorage.Status.Online);
-        Storage().addOnlineNode(addr);
+        Storage().addOnlineNode(addr); // TODO check dedup
     }
 
     function maintain(address addr) external {
@@ -233,6 +233,14 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getNodeCids(addr, pageSize, pageNumber);
     }
 
+    function getTotalNodeNumber() external view returns (uint256) {
+        return Storage().getTotalNodeNumber();
+    }
+
+    function getTotalOnlineNodeNumber() external view returns (uint256) {
+        return Storage().getTotalOnlineNodeNumber();
+    }
+
     //////////////////////// private functions ////////////////////////
     function offline(address addr) private {
         checkExist(addr);
@@ -240,7 +248,7 @@ contract Node is Importable, ExternalStorable, INode {
         INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, INodeStorage.Status.Offline);
-        Storage().deleteOnlineNode(addr);
+        Storage().deleteOnlineNode(addr);  // TODO check exist
         uint256 offlineCount = Storage().getOfflineCount(addr);
         Storage().setOfflineCount(addr, offlineCount.add(1));
     }

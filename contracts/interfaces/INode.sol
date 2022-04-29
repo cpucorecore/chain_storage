@@ -34,4 +34,7 @@ interface INode {
 
     function getNodeCids(address addr) external view returns (string[] memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+
+    function getTotalNodeNumber() external view returns (uint256);
+    function getTotalOnlineNodeNumber() external view returns (uint256);
 }

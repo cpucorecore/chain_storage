@@ -1,7 +1,7 @@
 const FileStorage = artifacts.require("FileStorage");
 const IFileStorage = artifacts.require("IFileStorage");
 
-contract('FileStorage', accounts => {
+contract.skip('FileStorage', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
 

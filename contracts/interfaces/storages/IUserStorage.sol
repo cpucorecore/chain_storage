@@ -28,9 +28,9 @@ interface IUserStorage {
         bool exist;
     }
 
+    function exist(address addr) external returns (bool);
     function newUser(address addr, uint256 storageTotal, string calldata ext) external;
     function deleteUser(address addr) external;
-    function exist(address addr) external returns (bool);
 
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
@@ -60,4 +60,6 @@ interface IUserStorage {
 
     function getInvalidAddFileCount(address addr) external view returns (uint256);
     function setInvalidAddFileCount(address addr, uint256 count) external;
+
+    function getTotalUserNumber() external view returns (uint256);
 }
