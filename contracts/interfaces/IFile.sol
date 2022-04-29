@@ -5,14 +5,15 @@ import "../lib/Paging.sol";
 import "./storages/IFileStorage.sol";
 
 interface IFile {
-    function addFile(string calldata cid, uint256 size, address owner) external;
-    function deleteFile(string calldata cid, address owner) external;
     function exist(string calldata cid) external view returns (bool);
 
-    function getStatus(string calldata cid) external view returns (IFileStorage.Status);
+    function addFile(string calldata cid, uint256 size, address owner) external;
+    function addFileCallback(address node, address owner, string calldata cid) external;
+
+    function deleteFile(string calldata cid, address owner) external;
+    function deleteFileCallback(address node, address owner, string calldata cid) external;
+
     function getSize(string calldata cid) external view returns (uint256);
-    function fileAdded(address node, address owner, string calldata cid) external;
-    function fileDeleted(address node, address owner, string calldata cid) external;
 
     function ownerExist(string calldata cid, address owner) external view returns (bool);
     function getOwners(string calldata cid) external view returns (address[] memory);

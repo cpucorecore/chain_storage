@@ -35,36 +35,6 @@ contract('FileStorage', accounts => {
         assert.equal(actualSize, 0, "size should be 0");
     });
 
-    it('getStatus', async () => {
-        const fileStorageInstance = await FileStorage.deployed();
-
-        let status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 0, "wrong status");
-
-        await fileStorageInstance.newFile(cid, size);
-        status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 1, "wrong status");
-
-        await fileStorageInstance.deleteFile(cid);
-        status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 0, "wrong status");
-    });
-
-    it('setStatus', async () => {
-        const fileStorageInstance = await FileStorage.deployed();
-
-        let status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 0, "wrong status");
-
-        await fileStorageInstance.setStatus(cid, 2);
-        status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 2, "wrong status");
-
-        await fileStorageInstance.deleteFile(cid);
-        status = await fileStorageInstance.getStatus.call(cid);
-        assert.equal(status, 0, "wrong status");
-    });
-
     it('owner test', async () => {
         const fileStorageInstance = await FileStorage.deployed();
 

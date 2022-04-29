@@ -38,37 +38,26 @@ contract('File exist', accounts => {
         await nodeInstance.online(node2);
     })
 
-    it('exist/status', async () => {
+    it('exist', async () => {
         let exist;
-        let status;
 
         exist = await fileInstance.exist.call(cid);
-        status = await fileInstance.getStatus.call(cid);
         assert.equal(exist, false);
-        assert.equal(status, 0); // status=Default
 
         await fileInstance.addFile(cid, size, tom);
         exist = await fileInstance.exist.call(cid);
-        status = await fileInstance.getStatus.call(cid);
         assert.equal(exist, true);
-        assert.equal(status, 1); // status=Adding
 
         await fileInstance.addFile(cid, size, bob);
         exist = await fileInstance.exist.call(cid);
-        status = await fileInstance.getStatus.call(cid);
         assert.equal(exist, true);
-        assert.equal(status, 1); // status=Adding
 
         await fileInstance.deleteFile(cid, tom);
         exist = await fileInstance.exist.call(cid);
-        status = await fileInstance.getStatus.call(cid);
         assert.equal(exist, true);
-        assert.equal(status, 1); // status=Adding
 
         await fileInstance.deleteFile(cid, bob);
         exist = await fileInstance.exist.call(cid);
-        status = await fileInstance.getStatus.call(cid);
-        assert.equal(exist, true);
-        assert.equal(status, 3); // status=Deleting
+        assert.equal(exist, false);
     })
 });

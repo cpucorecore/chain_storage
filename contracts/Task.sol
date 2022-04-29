@@ -32,6 +32,10 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getCurrentTid();
     }
 
+    function getNodeMaxTid(address addr) external view returns (uint256) {
+        return Storage().getNodeMaxTid(addr);
+    }
+
     function getTaskItem(uint256 tid) external view returns (ITaskStorage.TaskItem memory) {
         return Storage().getTaskItem(tid);
     }

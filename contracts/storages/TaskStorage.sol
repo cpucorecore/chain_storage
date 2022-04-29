@@ -9,8 +9,13 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     mapping(uint256=>TaskItem) private tid2taskItem;
     mapping(uint256=>StatusInfo) private tid2statusInfo;
     mapping(uint256=>AddFileTaskProgress) private tid2addFileTaskProgress;
+    mapping(address=>uint256) private node2nodeTargetTid;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
+
+    function exist(uint256 tid) external view returns (bool) {
+        return tid2taskItem[tid].exist && tid2statusInfo[tid].exist;
+    }
 
     function newTask(
         address owner,
@@ -29,15 +34,17 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
             tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
         }
 
-        return tid;
-    }
+        node2nodeTargetTid[node] = tid;
 
-    function exist(uint256 tid) external view returns (bool) {
-        return tid2taskItem[tid].exist && tid2statusInfo[tid].exist;
+        return tid;
     }
 
     function getCurrentTid() external view returns (uint256) {
         return tid;
+    }
+
+    function getNodeMaxTid(address addr) external view returns (uint256) {
+        return node2nodeTargetTid[addr];
     }
 
     function getTaskItem(uint256 tid) external view returns (TaskItem memory) {

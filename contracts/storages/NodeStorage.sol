@@ -21,14 +21,15 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
+    function exist(address addr) external view returns (bool) {
+        return nodes[addr].exist;
+    }
+
     function newNode(address addr, uint256 totalSpace, string calldata ext) external {
         nodes[addr] = NodeItem(Status.Registered,
-            ServiceInfo(0, 0, 0, 0, 0, 0),
-            StorageInfo(totalSpace, 0),
-            TasksProgress(0, 0), ext, true);
-
-//        EnumerableSet.Bytes32Set memory cidHashs;
-//        node2cidHashs[addr] = cidHashs;
+            ServiceInfo(0, 0, 0, 0, 0, 0, 0),
+            StorageSpaceInfo(totalSpace, 0),
+            0, ext, true);
 
         nodeAddrs.add(addr);
     }
@@ -38,10 +39,6 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         delete node2cidHashs[addr];
         nodeAddrs.remove(addr);
         onlineNodeAddrs.remove(addr);
-    }
-
-    function exist(address addr) external view returns (bool) {
-        return nodes[addr].exist;
     }
 
     function getNode(address addr) external view returns (NodeItem memory) {
@@ -64,12 +61,16 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo;
     }
 
-    function getStorageInfo(address addr) public view returns (StorageInfo memory) {
+    function getStorageSpaceInfo(address addr) public view returns (StorageSpaceInfo memory) {
         return nodes[addr].storageInfo;
     }
 
-    function getTasksProgress(address addr) external view returns (TasksProgress memory) {
-        return nodes[addr].tasksProgress;
+    function getMaxFinishedTid(address addr) external view returns (uint256) {
+        return nodes[addr].maxFinishedTid;
+    }
+
+    function setMaxFinishedTid(address addr, uint256 tid) external {
+        nodes[addr].maxFinishedTid = tid;
     }
 
     function getStatus(address addr) external view returns (Status) {
@@ -96,20 +97,28 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].serviceInfo.offlineCount = value;
     }
 
-    function getTaskFinishCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskFinishCount;
+    function getTaskAddFileFinishCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskAddFileFinishCount;
     }
 
-    function setTaskFinishCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskFinishCount = value;
+    function setTaskAddFileFinishCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskAddFileFinishCount = value;
     }
 
-    function getTaskFailCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskFailCount;
+    function getTaskAddFileFailCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskAddFileFailCount;
     }
 
-    function setTaskFailCount(address addr, uint256 value) external {
-        nodes[addr].serviceInfo.taskFailCount = value;
+    function setTaskAddFileFailCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskAddFileFailCount = value;
+    }
+
+    function getTaskDeleteFileFinishCount(address addr) external view returns (uint256) {
+        return nodes[addr].serviceInfo.taskDeleteFileFinishCount;
+    }
+
+    function setTaskDeleteFileFinishCount(address addr, uint256 value) external {
+        nodes[addr].serviceInfo.taskDeleteFileFinishCount = value;
     }
 
     function getTaskAcceptTimeoutCount(address addr) external view returns (uint256) {
@@ -149,22 +158,6 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].storageInfo.used = value;
     }
 
-    function getTasksProgressCurrentTime(address addr) external view returns (uint256) {
-        return nodes[addr].tasksProgress.currentTime;
-    }
-
-    function setTasksProgressCurrentTime(address addr, uint256 value) external {
-        nodes[addr].tasksProgress.currentTime = value;
-    }
-
-    function getTasksProgressTargetTime(address addr) external view returns (uint256) {
-        return nodes[addr].tasksProgress.targetTime;
-    }
-
-    function getTasksProgressTargetTime(address addr, uint256 value) external {
-        nodes[addr].tasksProgress.targetTime = value;
-    }
-
     function getExt(address addr) external view returns (string memory) {
         return nodes[addr].ext;
     }
@@ -199,6 +192,10 @@ contract NodeStorage is ExternalStorage, INodeStorage {
             result[i] = onlineNodeAddrs.at(start+i);
         }
         return (result, page);
+    }
+
+    function getNodeCidsNumber(address addr) external view returns (uint256) {
+        return node2cidHashs[addr].length();
     }
 
     function getNodeCids(address addr) external view returns (string[] memory) {

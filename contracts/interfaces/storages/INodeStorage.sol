@@ -19,34 +19,30 @@ interface INodeStorage {
     struct ServiceInfo {
         uint256 maintainCount;
         uint256 offlineCount;
-        uint256 taskFinishCount;
-        uint256 taskFailCount;
+        uint256 taskAddFileFinishCount;
+        uint256 taskAddFileFailCount;
+        uint256 taskDeleteFileFinishCount;
         uint256 taskAcceptTimeoutCount;
         uint256 taskTimeoutCount;
     }
 
-    struct StorageInfo {
+    struct StorageSpaceInfo {
         uint256 total;
         uint256 used;
-    }
-
-    struct TasksProgress {
-        uint256 currentTime;
-        uint256 targetTime;
     }
 
     struct NodeItem {
         Status status;
         ServiceInfo serviceInfo;
-        StorageInfo storageInfo;
-        TasksProgress tasksProgress;
+        StorageSpaceInfo storageInfo;
+        uint256 maxFinishedTid;
         string ext;
         bool exist;
     }
 
+    function exist(address addr) external view returns (bool);
     function newNode(address addr, uint256 totalSpace, string calldata ext) external;
     function deleteNode(address addr) external;
-    function exist(address addr) external view returns (bool);
     function getNode(address addr) external view returns (NodeItem memory);
 
     function isNodeOnline(address addr) external view returns (bool);
@@ -54,8 +50,10 @@ interface INodeStorage {
     function deleteOnlineNode(address addr) external;
 
     function getServiceInfo(address addr) external view returns (ServiceInfo memory);
-    function getStorageInfo(address addr) external view returns (StorageInfo memory);
-    function getTasksProgress(address addr) external view returns (TasksProgress memory);
+    function getStorageSpaceInfo(address addr) external view returns (StorageSpaceInfo memory);
+
+    function getMaxFinishedTid(address addr) external view returns (uint256);
+    function setMaxFinishedTid(address addr, uint256 tid) external;
 
     function getStatus(address addr) external view returns (Status);
     function setStatus(address addr, Status status) external;
@@ -66,11 +64,14 @@ interface INodeStorage {
     function getOfflineCount(address addr) external view returns (uint256);
     function setOfflineCount(address addr, uint256 value) external;
 
-    function getTaskFinishCount(address addr) external view returns (uint256);
-    function setTaskFinishCount(address addr, uint256 value) external;
+    function getTaskAddFileFinishCount(address addr) external view returns (uint256);
+    function setTaskAddFileFinishCount(address addr, uint256 value) external;
 
-    function getTaskFailCount(address addr) external view returns (uint256);
-    function setTaskFailCount(address addr, uint256 value) external;
+    function getTaskAddFileFailCount(address addr) external view returns (uint256);
+    function setTaskAddFileFailCount(address addr, uint256 value) external;
+
+    function getTaskDeleteFileFinishCount(address addr) external view returns (uint256);
+    function setTaskDeleteFileFinishCount(address addr, uint256 value) external;
 
     function getTaskAcceptTimeoutCount(address addr) external view returns (uint256);
     function setTaskAcceptTimeoutCount(address addr, uint256 value) external;
@@ -85,11 +86,6 @@ interface INodeStorage {
     function getStorageUsed(address addr) external view returns (uint256);
     function setStorageUsed(address addr, uint256 value) external;
 
-    function getTasksProgressCurrentTime(address addr) external view returns (uint256);
-    function setTasksProgressCurrentTime(address addr, uint256 value) external;
-    function getTasksProgressTargetTime(address addr) external view returns (uint256);
-    function getTasksProgressTargetTime(address addr, uint256 value) external;
-
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
 
@@ -99,6 +95,7 @@ interface INodeStorage {
     function getAllOnlineNodeAddresses() external view returns (address[] memory);
     function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
 
+    function getNodeCidsNumber(address addr) external view returns (uint256);
     function getNodeCids(address addr) external view returns (string[] memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
 

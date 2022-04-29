@@ -35,83 +35,62 @@ contract File is Importable, ExternalStorable, IFile {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function addFile(string calldata cid, uint256 size, address owner) external {
-        require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
-
-        if(Storage().exist(cid)) {
-            if(IFileStorage.Status.Deleting == Storage().getStatus(cid)) {
-                Storage().setStatus(cid, IFileStorage.Status.Adding);
-                Node().addFile(owner, cid, size);
-            }
-            if(!Storage().ownerExist(cid, owner)) {
-                Storage().addOwner(cid, owner);
-            }
-        } else {
-            Storage().newFile(cid, size);
-            Storage().addOwner(cid, owner);
-            Node().addFile(owner, cid, size);
-        }
-    }
-
-    function deleteFile(string calldata cid, address owner) external {
-        require(IFileStorage.Status.Deleting != Storage().getStatus(cid), contractName.concat(": should not be happen: file status is Deleting"));
-        require(Storage().ownerExist(cid, owner), contractName.concat(": should not be happen: owner not exist"));
-
-        Storage().deleteOwner(cid, owner);
-        if(Storage().ownerEmpty(cid)) {
-            Storage().setStatus(cid, IFileStorage.Status.Deleting);
-            address[] memory nodes = Storage().getNodes(cid);
-            for(uint i=0; i<nodes.length; i++) {
-                Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], Storage().getSize(cid));
-            }
-        }
-    }
-
     function exist(string calldata cid) external view returns (bool) {
         return Storage().exist(cid);
     }
 
-    function getStatus(string calldata cid) external view returns (IFileStorage.Status) {
-        return Storage().getStatus(cid);
+    function addFile(string calldata cid, uint256 size, address owner) external {
+        if(!Storage().exist(cid)) {
+            Storage().newFile(cid, size);
+            Node().addFile(owner, cid, size);
+        }
+
+        if(!Storage().ownerExist(cid, owner)) {
+            Storage().addOwner(cid, owner);
+        }
     }
 
-    function getSize(string calldata cid) external view returns (uint256) {
-        return Storage().getSize(cid);
-    }
-
-    function fileAdded(address node, address owner, string calldata cid) external {
-        IFileStorage.Status status = Storage().getStatus(cid);
-        if(IFileStorage.Status.Deleting == status) {
-            if(nodeExist(cid, node)) {
-                Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+    function addFileCallback(address node, address owner, string calldata cid) external {
+        if(Storage().exist(cid)) {
+            if(!nodeExist(cid, node)) {
+                Storage().addNode(cid, node);
             }
         } else {
-            if(IFileStorage.Status.Adding == status) {
-                Storage().setStatus(cid, IFileStorage.Status.Added);
-            }
+            Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+        }
+    }
 
-            if(!Storage().nodeExist(cid, node)) {
-                Storage().addNode(cid, node);
-                if(Storage().ownerExist(cid, owner)) {
-                    User().callbackFinishAddFile(owner, node, cid);
+    function deleteFile(string calldata cid, address owner) external {
+        if(Storage().ownerExist(cid, owner)) {
+            Storage().deleteOwner(cid, owner);
+        }
+
+        if(Storage().ownerEmpty(cid)) {
+            if(Storage().nodeEmpty(cid)) {
+                Storage().deleteFile(cid);
+            } else {
+                address[] memory nodes = Storage().getNodes(cid);
+                for(uint i=0; i<nodes.length; i++) {
+                    Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], Storage().getSize(cid));
                 }
             }
         }
     }
 
-    function fileDeleted(address node, address owner, string calldata cid) external {
-        if(!Storage().nodeExist(cid, node)) {
-            return;
+    function deleteFileCallback(address node, address owner, string calldata cid) external {
+        if(Storage().nodeExist(cid, node)) {
+            Storage().deleteNode(cid, node);
         }
-        Storage().deleteNode(cid, node);
 
         if(Storage().nodeEmpty(cid)) {
-            IFileStorage.Status status = Storage().getStatus(cid);
-            if(IFileStorage.Status.Deleting == status) {
+            if(Storage().ownerEmpty(cid)) {
                 Storage().deleteFile(cid);
             }
-            User().callbackFinishDeleteFile(owner, node, cid);
         }
+    }
+
+    function getSize(string calldata cid) external view returns (uint256) {
+        return Storage().getSize(cid);
     }
 
     function ownerExist(string memory cid, address owner) public view returns (bool) {
