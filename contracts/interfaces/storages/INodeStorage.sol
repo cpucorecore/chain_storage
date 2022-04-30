@@ -12,8 +12,7 @@ interface INodeStorage {
         Registered,
         Online,
         Maintain,
-        Offline,
-        DeRegistered
+        Offline
     }
 
     struct ServiceInfo {

@@ -64,7 +64,16 @@ contract Node is Importable, ExternalStorable, INode {
     function deRegister(address addr) external {
         checkExist(addr);
         require(0 == Storage().getNodeCidsNumber(addr), contractName.concat(": files not empty"));
+        INodeStorage.Status status = Storage().getStatus(addr);
+        require(INodeStorage.Status.Registered == status ||
+                INodeStorage.Status.Maintain == status,
+            contractName.concat(": can do deRegister only in [Registered/Maintain] status"));
+
         Storage().deleteNode(addr);
+    }
+
+    function getStatus(address addr) external view returns (INodeStorage.Status) {
+        return Storage().getStatus(addr);
     }
 
     function getExt(address addr) external view returns (string memory) {
@@ -101,7 +110,9 @@ contract Node is Importable, ExternalStorable, INode {
         require(nodeMaxTid == maxFinishedTid, contractName.concat(": must finish all task"));
 
         Storage().setStatus(addr, INodeStorage.Status.Online);
-        Storage().addOnlineNode(addr); // TODO check dedup
+        if(!Storage().isNodeOnline(addr)) {
+            Storage().addOnlineNode(addr);
+        }
     }
 
     function maintain(address addr) external {
@@ -113,22 +124,10 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setStatus(addr, INodeStorage.Status.Maintain);
         uint256 maintainCount = Storage().getMaintainCount(addr);
         Storage().setMaintainCount(addr, maintainCount.add(1));
-    }
 
-    function getAllNodeAddresses() external view returns (address[] memory) {
-        return Storage().getAllNodeAddresses();
-    }
-
-    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
-        return Storage().getAllNodeAddresses(pageSize, pageNumber);
-    }
-
-    function getAllOnlineNodeAddresses() external view returns (address[] memory) {
-        return Storage().getAllOnlineNodeAddresses();
-    }
-
-    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
-        return Storage().getAllOnlineNodeAddresses(pageSize, pageNumber);
+        if(Storage().isNodeOnline(addr)) {
+            Storage().deleteOnlineNode(addr);
+        }
     }
 
     function addFile(address owner, string calldata cid, uint256 size) external {
@@ -230,6 +229,10 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
+    function getNodeCidsNumber(address addr) external view returns (uint256) {
+        return Storage().getNodeCidsNumber(addr);
+    }
+
     function getNodeCids(address addr) external view returns (string[] memory) {
         return Storage().getNodeCids(addr);
     }
@@ -246,6 +249,22 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getTotalOnlineNodeNumber();
     }
 
+    function getAllNodeAddresses() external view returns (address[] memory) {
+        return Storage().getAllNodeAddresses();
+    }
+
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getAllNodeAddresses(pageSize, pageNumber);
+    }
+
+    function getAllOnlineNodeAddresses() external view returns (address[] memory) {
+        return Storage().getAllOnlineNodeAddresses();
+    }
+
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+        return Storage().getAllOnlineNodeAddresses(pageSize, pageNumber);
+    }
+
     //////////////////////// private functions ////////////////////////
     function offline(address addr) private {
         checkExist(addr);
@@ -253,7 +272,9 @@ contract Node is Importable, ExternalStorable, INode {
         INodeStorage.Status status = Storage().getStatus(addr);
         require(INodeStorage.Status.Online == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, INodeStorage.Status.Offline);
-        Storage().deleteOnlineNode(addr);  // TODO check exist
+        if(Storage().isNodeOnline(addr)) {
+            Storage().deleteOnlineNode(addr);
+        }
         uint256 offlineCount = Storage().getOfflineCount(addr);
         Storage().setOfflineCount(addr, offlineCount.add(1));
     }

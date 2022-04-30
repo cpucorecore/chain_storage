@@ -1,5 +1,6 @@
-const NodeStorage = artifacts.require("NodeStorage");
 const common = require('./common');
+
+const NodeStorage = artifacts.require("NodeStorage");
 
 contract.skip('NodeStorage', accounts => {
     it('newNode', async () => {

@@ -1,3 +1,5 @@
+const common = require('./common');
+
 const Setting = artifacts.require("Setting");
 const Node = artifacts.require("Node");
 const File = artifacts.require("File");
@@ -27,8 +29,8 @@ contract.skip('File owners', accounts => {
         fileInstance = await File.deployed();
         taskInstance = await Task.deployed();
 
-        await settingInstance.setReplica(2);
-        await settingInstance.setMaxNodeExtLength(1024);
+        await settingInstance.setReplica(common.replica);
+        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
         await settingInstance.setInitSpace(initSpace);
 
         await nodeInstance.register(node1, nodeSpace, nodeExt);
