@@ -3,9 +3,9 @@ const IFileStorage = artifacts.require("IFileStorage");
 
 contract.skip('FileStorage', accounts => {
     let size = 10000;
-    let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
 
     it('exist', async () => {
+        let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
         const fileStorageInstance = await FileStorage.deployed();
 
         let exist = await fileStorageInstance.exist.call(cid);
@@ -21,6 +21,7 @@ contract.skip('FileStorage', accounts => {
     });
 
     it('getSize', async () => {
+        let cid = 'QmWAJk3wmp8jqTWp2dQ3NRdoBjnmvupdL2GiBqt69FFk2H';
         const fileStorageInstance = await FileStorage.deployed();
 
         let actualSize = await fileStorageInstance.getSize.call(cid);
@@ -36,6 +37,7 @@ contract.skip('FileStorage', accounts => {
     });
 
     it('owner test', async () => {
+        let cid = 'QmUgU1m8wtsiyfXnKJn6yMP66zph5X716GZqjqYrZWsLjf';
         const fileStorageInstance = await FileStorage.deployed();
 
         await fileStorageInstance.newFile(cid, size);
@@ -84,6 +86,7 @@ contract.skip('FileStorage', accounts => {
     });
 
     it('node test', async () => {
+        let cid = 'QmRnCyTbu47hdg173ja4j8xUoEZ5MjRHT6yqDMSqtqXHhF';
         const fileStorageInstance = await FileStorage.deployed();
 
         await fileStorageInstance.newFile(cid, size);

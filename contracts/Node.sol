@@ -9,6 +9,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IUser.sol";
+import "./interfaces/IHistory.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     using SafeMath for uint256;
@@ -19,7 +20,8 @@ contract Node is Importable, ExternalStorable, INode {
             CONTRACT_SETTING,
             CONTRACT_FILE,
             CONTRACT_USER,
-            CONTRACT_TASK
+            CONTRACT_TASK,
+            CONTRACT_HISTORY
         ];
     }
 
@@ -41,6 +43,10 @@ contract Node is Importable, ExternalStorable, INode {
 
     function User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
+    }
+
+    function History() private view returns (IHistory) {
+        return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
     function exist(address addr) external view returns (bool) {
@@ -157,11 +163,13 @@ contract Node is Importable, ExternalStorable, INode {
                 Storage().setAddFileFailedCount(task.cid, 0);
             }
 
+            History().addNodeAction(addr, tid, IHistory.ActionType.Add, keccak256(bytes(task.cid)));
             Storage().setTaskAddFileFinishCount(task.node, Storage().getTaskAddFileFinishCount(task.node).add(1));
         } else if(ITaskStorage.Action.Delete == task.action) {
             File().deleteFileCallback(task.node, task.owner, task.cid);
             freeStorage(task.node, task.size);
             Storage().setTaskDeleteFileFinishCount(task.node, Storage().getTaskDeleteFileFinishCount(task.node).add(1));
+            History().addNodeAction(addr, tid, IHistory.ActionType.Delete, keccak256(bytes(task.cid)));
         }
 
         updateFinishedTid(addr, tid);

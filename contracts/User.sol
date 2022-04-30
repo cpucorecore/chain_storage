@@ -7,6 +7,7 @@ import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
+import "./interfaces/IHistory.sol";
 
 contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
@@ -19,7 +20,8 @@ contract User is Importable, ExternalStorable, IUser {
         setContractName(CONTRACT_USER);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_FILE
+            CONTRACT_FILE,
+            CONTRACT_HISTORY
         ];
     }
 
@@ -33,6 +35,10 @@ contract User is Importable, ExternalStorable, IUser {
 
     function File() private view returns (IFile) {
         return IFile(requireAddress(CONTRACT_FILE));
+    }
+
+    function History() private view returns (IHistory) {
+        return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
     function exist(address addr) public returns (bool) {
@@ -78,6 +84,7 @@ contract User is Importable, ExternalStorable, IUser {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
 
+        History().addUserAction(addr, IHistory.ActionType.Add, keccak256(bytes(cid)));
         File().addFile(cid, size, addr);
         Storage().addFile(addr, cid, duration, ext, now);
     }
@@ -102,6 +109,7 @@ contract User is Importable, ExternalStorable, IUser {
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
+        History().addUserAction(addr, IHistory.ActionType.Delete, keccak256(bytes(cid)));
         Storage().deleteFile(addr, cid);
         File().deleteFile(cid, addr);
     }
