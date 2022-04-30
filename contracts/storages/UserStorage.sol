@@ -132,6 +132,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
     }
 
     function getTotalUserNumber() external view returns (uint256) {
-
+        return toatalUserNumber;
     }
 }
