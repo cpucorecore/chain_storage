@@ -3,7 +3,7 @@ const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 
-contract.skip('File fileAdded', accounts => {
+contract('File fileAdded', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
     let nodeSpace = 1024*1024*1024*1024;
@@ -42,6 +42,7 @@ contract.skip('File fileAdded', accounts => {
         let nodeExist;
         let nodeCids;
         let taskCount;
+        let nodes;
 
         await fileInstance.addFile(cid, size, tom);
         await fileInstance.addFile(cid, size, bob);
@@ -54,6 +55,8 @@ contract.skip('File fileAdded', accounts => {
         assert.lengthOf(nodeCids, 0);
         nodeCids = await nodeInstance.getNodeCids.call(node2);
         assert.lengthOf(nodeCids, 0);
+        nodes = await fileInstance.getNodes.call(cid);
+        assert.lengthOf(nodes, 0);
 
         taskCount = await taskInstance.getCurrentTid.call();
         assert.equal(taskCount, 2);
@@ -62,7 +65,13 @@ contract.skip('File fileAdded', accounts => {
         await taskInstance.acceptTask(node2, 2);
 
         await nodeInstance.finishTask(node1, 1);
+        nodes = await fileInstance.getNodes.call(cid);
+        assert.lengthOf(nodes, 1);
+        console.log(nodes);
         await nodeInstance.finishTask(node2, 2);
+        nodes = await fileInstance.getNodes.call(cid);
+        assert.lengthOf(nodes, 2);
+        console.log(nodes);
 
         nodeExist = await fileInstance.nodeExist.call(cid, node1);
         assert.equal(nodeExist, true);
@@ -101,6 +110,11 @@ contract.skip('File fileAdded', accounts => {
         await taskInstance.acceptTask(node2, 4);
 
         await nodeInstance.finishTask(node1, 3);
+        let fileExist = await fileInstance.exist(cid);
+        assert.equal(fileExist, true);
+        nodes = await fileInstance.getNodes.call(cid);
+        assert.lengthOf(nodes, 1);
+        console.log(nodes);
         await nodeInstance.finishTask(node2, 4);
 
         nodeExist = await fileInstance.nodeExist.call(cid, node1);
@@ -109,7 +123,14 @@ contract.skip('File fileAdded', accounts => {
         assert.equal(nodeExist, false);
         nodeCids = await nodeInstance.getNodeCids.call(node1);
         assert.lengthOf(nodeCids, 0);
+
         nodeCids = await nodeInstance.getNodeCids.call(node2);
         assert.lengthOf(nodeCids, 0);
+
+        nodes = await fileInstance.getNodes.call(cid);
+        assert.lengthOf(nodes, 0);
+
+        fileExist = await fileInstance.exist(cid);
+        assert.equal(fileExist, false);
     })
 });
