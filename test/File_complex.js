@@ -3,7 +3,7 @@ const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 
-contract.skip('File fileAdded', accounts => {
+contract('File', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
     let nodeSpace = 1024*1024*1024*1024;
@@ -38,24 +38,6 @@ contract.skip('File fileAdded', accounts => {
         await nodeInstance.online(node2);
     })
 
-    it('fileAdded', async () => {
-        let nodeExist;
-        let nodeCids;
-        let taskCount;
-
-        let receipt = await fileInstance.addFile(cid, size, tom);
-        console.log('addFile receipt:' + receipt);
-
-        nodeExist = await fileInstance.nodeExist.call(cid, node1);
-        assert.equal(nodeExist, false);
-        nodeExist = await fileInstance.nodeExist.call(cid, node2);
-        assert.equal(nodeExist, false);
-        nodeCids = await nodeInstance.getNodeCids.call(node1);
-        assert.lengthOf(nodeCids, 0);
-        nodeCids = await nodeInstance.getNodeCids.call(node2);
-        assert.lengthOf(nodeCids, 0);
-
-        taskCount = await taskInstance.getCurrentTid.call();
-        assert.equal(taskCount, 2);
+    it.skip('mock random time of [fileAdded/fileDeleted]', async () => {
     })
 });

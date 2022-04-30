@@ -95,6 +95,9 @@ interface INodeStorage {
     function getAllOnlineNodeAddresses() external view returns (address[] memory);
     function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
 
+    function cidExist(address addr, string calldata cid) external view returns (bool);
+    function addNodeCid(address addr, string calldata cid) external;
+    function removeNodeCid(address addr, string calldata cid) external;
     function getNodeCidsNumber(address addr) external view returns (uint256);
     function getNodeCids(address addr) external view returns (string[] memory);
     function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);

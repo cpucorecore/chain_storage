@@ -157,19 +157,16 @@ contract Node is Importable, ExternalStorable, INode {
         if(ITaskStorage.Action.Add == task.action) {
             File().addFileCallback(task.node, task.owner, task.cid);
             useStorage(task.node, task.size);
-
-            uint256 addFileFailedCount = Storage().getAddFileFailedCount(task.cid);
-            if(addFileFailedCount > 0) {
-                Storage().setAddFileFailedCount(task.cid, 0);
-            }
-
             History().addNodeAction(addr, tid, IHistory.ActionType.Add, keccak256(bytes(task.cid)));
             Storage().setTaskAddFileFinishCount(task.node, Storage().getTaskAddFileFinishCount(task.node).add(1));
+            resetAddFileFailedCount(task.cid);
+            addNodeCid(addr, task.cid);
         } else if(ITaskStorage.Action.Delete == task.action) {
             File().deleteFileCallback(task.node, task.owner, task.cid);
             freeStorage(task.node, task.size);
             Storage().setTaskDeleteFileFinishCount(task.node, Storage().getTaskDeleteFileFinishCount(task.node).add(1));
             History().addNodeAction(addr, tid, IHistory.ActionType.Delete, keccak256(bytes(task.cid)));
+            removeNodeCid(addr, task.cid);
         }
 
         updateFinishedTid(addr, tid);
@@ -293,5 +290,24 @@ contract Node is Importable, ExternalStorable, INode {
         INodeStorage.StorageSpaceInfo memory storageSpaceInfo = Storage().getStorageSpaceInfo(node);
         require(size > 0 && size <= storageSpaceInfo.used, contractName.concat("free size can not big than used size"));
         Storage().setStorageUsed(node, storageSpaceInfo.used.sub(size));
+    }
+
+    function resetAddFileFailedCount(string memory cid) private {
+        uint256 addFileFailedCount = Storage().getAddFileFailedCount(cid);
+        if(addFileFailedCount > 0) {
+            Storage().setAddFileFailedCount(cid, 0);
+        }
+    }
+
+    function addNodeCid(address addr, string memory cid) private {
+        if(!Storage().cidExist(addr, cid)) {
+            Storage().addNodeCid(addr, cid);
+        }
+    }
+
+    function removeNodeCid(address addr, string memory cid) private {
+        if(Storage().cidExist(addr, cid)) {
+            Storage().removeNodeCid(addr, cid);
+        }
     }
 }

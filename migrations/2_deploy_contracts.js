@@ -4,6 +4,7 @@ const {checkUndefined} = require('./util');
 
 
 const Resolver = artifacts.require("Resolver");
+const History = artifacts.require("History");
 
 const Setting = artifacts.require("Setting");
 const SettingStorage = artifacts.require("SettingStorage");
@@ -25,11 +26,23 @@ module.exports = function(deployer) {
             return deployer.deploy(Resolver);
         })
 
-        //Setting and SettingStorage
+        // History
         .then(resolver => {
             checkUndefined('resolver', resolver);
             contracts.resolver = resolver;
             contractAddrs.resolver = resolver.address;
+            return deployer.deploy(History, contractAddrs.resolver);
+        })
+        .then(history => {
+            checkUndefined('history', history);
+            contracts.history = history;
+            contractAddrs.history = history.address;
+            return contracts.resolver.setAddress(Web3Utils.fromAscii('History'), contracts.history.address);
+        })
+
+        //Setting and SettingStorage
+        .then(receipt => {
+            console.log('resolver.setAddress(History) receipts: ', receipt);
             return deployer.deploy(Setting);
         })
         .then(setting => {
