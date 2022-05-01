@@ -2,7 +2,7 @@ const common = require('./common');
 
 const UserStorage = artifacts.require("UserStorage");
 
-contract('UserStorage', accounts => {
+contract.skip('UserStorage', accounts => {
     let userStorageInstance;
 
     before(async() => {

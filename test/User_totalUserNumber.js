@@ -6,7 +6,7 @@ const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 const User = artifacts.require("User");
 
-contract('User_totalUserNumber', accounts => {
+contract.skip('User_totalUserNumber', accounts => {
     let settingInstance;
     let nodeInstance;
     let fileInstance;

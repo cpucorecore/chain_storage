@@ -39,7 +39,7 @@ contract History is Importable, IHistory {
         user2cidHash2userActionIndex[addr][cidHash].push(index);
     }
 
-    function getUserHistory(uint256 pageSize, uint256 pageNumber) external view returns(UserAction[] memory, Paging.Page memory) {
+    function getUserHistory(uint256 pageSize, uint256 pageNumber) external view returns (UserAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(userActions.length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         UserAction[] memory result = new UserAction[](page.pageRecords);
@@ -49,7 +49,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getUserHistoryByUser(address addr, uint256 pageSize, uint256 pageNumber) external view returns(UserAction[] memory, Paging.Page memory) {
+    function getUserHistoryByUser(address addr, uint256 pageSize, uint256 pageNumber) external view returns (UserAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(user2userActionIndexs[addr].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         UserAction[] memory result = new UserAction[](page.pageRecords);
@@ -59,7 +59,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getUserHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(UserAction[] memory, Paging.Page memory) {
+    function getUserHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (UserAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(cidHash2userActionIndexs[cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         UserAction[] memory result = new UserAction[](page.pageRecords);
@@ -69,7 +69,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getUserHistoryByUserAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(UserAction[] memory, Paging.Page memory) {
+    function getUserHistoryByUserAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (UserAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(user2cidHash2userActionIndex[addr][cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         UserAction[] memory result = new UserAction[](page.pageRecords);
@@ -86,7 +86,7 @@ contract History is Importable, IHistory {
         node2cidHash2nodeActionIndex[addr][cidHash].push(index);
     }
 
-    function getNodeHistory(uint256 pageSize, uint256 pageNumber) external view returns(NodeAction[] memory, Paging.Page memory) {
+    function getNodeHistory(uint256 pageSize, uint256 pageNumber) external view returns (NodeAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(nodeActions.length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         NodeAction[] memory result = new NodeAction[](page.pageRecords);
@@ -96,7 +96,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getNodeHistoryByNode(address addr, uint256 pageSize, uint256 pageNumber) external view returns(NodeAction[] memory, Paging.Page memory) {
+    function getNodeHistoryByNode(address addr, uint256 pageSize, uint256 pageNumber) external view returns (NodeAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(node2nodeActionIndexs[addr].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         NodeAction[] memory result = new NodeAction[](page.pageRecords);
@@ -106,7 +106,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getNodeHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(NodeAction[] memory, Paging.Page memory) {
+    function getNodeHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (NodeAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(cidHash2nodeActionIndexs[cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         NodeAction[] memory result = new NodeAction[](page.pageRecords);
@@ -116,7 +116,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getNodeHistoryByNodeAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(NodeAction[] memory, Paging.Page memory) {
+    function getNodeHistoryByNodeAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (NodeAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(node2cidHash2nodeActionIndex[addr][cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         NodeAction[] memory result = new NodeAction[](page.pageRecords);
@@ -133,7 +133,7 @@ contract History is Importable, IHistory {
         monitor2cidHash2monitorActionIndex[addr][cidHash].push(index);
     }
 
-    function getMonitorHistory(uint256 pageSize, uint256 pageNumber) external view returns(MonitorAction[] memory, Paging.Page memory) {
+    function getMonitorHistory(uint256 pageSize, uint256 pageNumber) external view returns (MonitorAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(monitorActions.length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         MonitorAction[] memory result = new MonitorAction[](page.pageRecords);
@@ -143,7 +143,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getMonitorHistoryByMonitor(address addr, uint256 pageSize, uint256 pageNumber) external view returns(MonitorAction[] memory, Paging.Page memory) {
+    function getMonitorHistoryByMonitor(address addr, uint256 pageSize, uint256 pageNumber) external view returns (MonitorAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(monitor2monitorActionIndexs[addr].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         MonitorAction[] memory result = new MonitorAction[](page.pageRecords);
@@ -153,7 +153,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getMonitorHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(MonitorAction[] memory, Paging.Page memory) {
+    function getMonitorHistoryByCidHash(bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (MonitorAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(cidHash2monitorActionIndexs[cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         MonitorAction[] memory result = new MonitorAction[](page.pageRecords);
@@ -163,7 +163,7 @@ contract History is Importable, IHistory {
         return (result, page);
     }
 
-    function getMonitorHistoryByMonitorAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns(MonitorAction[] memory, Paging.Page memory) {
+    function getMonitorHistoryByMonitorAndCidHash(address addr, bytes32 cidHash, uint256 pageSize, uint256 pageNumber) external view returns (MonitorAction[] memory, Paging.Page memory) {
         Paging.Page memory page = Paging.getPage(monitor2cidHash2monitorActionIndex[addr][cidHash].length, pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         MonitorAction[] memory result = new MonitorAction[](page.pageRecords);
