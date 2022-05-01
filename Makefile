@@ -3,3 +3,6 @@ all:
 
 clean:
 	rm -rf build
+
+test:
+	truffle test

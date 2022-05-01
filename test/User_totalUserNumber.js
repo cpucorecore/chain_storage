@@ -6,7 +6,7 @@ const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 const User = artifacts.require("User");
 
-contract('User', accounts => {
+contract('User_totalUserNumber', accounts => {
     let settingInstance;
     let nodeInstance;
     let fileInstance;
@@ -35,7 +35,7 @@ contract('User', accounts => {
         await nodeInstance.online(node2);
     })
 
-    it('exist', async () => {
+    it('getTotalUserNumber', async () => {
         const user1 = accounts[0];
         const user2 = accounts[1];
         const user3 = accounts[2];
