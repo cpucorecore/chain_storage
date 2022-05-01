@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0-rc.0) (utils/structs/EnumerableSet.sol)
 
-pragma solidity ^0.5.17;
+pragma solidity ^0.5.2;
 
 /**
  * @dev Library for managing

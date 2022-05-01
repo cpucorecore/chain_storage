@@ -5,7 +5,7 @@ const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 
-contract.skip('File owners', accounts => {
+contract('File owners', accounts => {
     let size = 10000;
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
     let nodeSpace = 1024*1024*1024*1024;

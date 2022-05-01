@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity ^0.5.2;
 
 library Arrays {
     function push(bytes32[] storage array, bytes32 element) internal {

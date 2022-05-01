@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity ^0.5.2;
 
 import '../lib/Strings.sol';
 import './Constants.sol';

@@ -2,7 +2,7 @@ const common = require('./common');
 
 const NodeStorage = artifacts.require("NodeStorage");
 
-contract.skip('NodeStorage', accounts => {
+contract('NodeStorage', accounts => {
     it('newNode', async () => {
         const node1 = accounts[0];
         let exist;

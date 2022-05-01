@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity ^0.5.2;
 
 import './ExternalStorage.sol';
 import '../interfaces/storages/ISettingStorage.sol';

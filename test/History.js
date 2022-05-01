@@ -1,7 +1,7 @@
 const common = require("./common");
 const History = artifacts.require("History");
 
-contract.skip('History', accounts => {
+contract('History', accounts => {
     let historyInstance;
 
     const cidHashes = [

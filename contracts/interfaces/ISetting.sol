@@ -1,4 +1,4 @@
-pragma solidity ^0.5.17;
+pragma solidity ^0.5.2;
 
 interface ISetting {
     function getReplica() external view returns (uint256);

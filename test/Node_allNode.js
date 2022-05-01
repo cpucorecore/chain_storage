@@ -5,7 +5,7 @@ const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
 
-contract.skip('Node', accounts => {
+contract('Node', accounts => {
     let settingInstance;
     let nodeInstance;
     let fileInstance;

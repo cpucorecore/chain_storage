@@ -1,6 +1,6 @@
 const FileStorage = artifacts.require("FileStorage");
 
-contract.skip('FileStorage', accounts => {
+contract('FileStorage', accounts => {
     let size = 10000;
 
     it('exist', async () => {
