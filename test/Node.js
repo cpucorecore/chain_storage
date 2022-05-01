@@ -62,7 +62,7 @@ contract.skip('Node', accounts => {
         assert.equal(status, 0);
     })
 
-    it('status2', async () => {
+    it.skip('status2', async () => {
         const node = accounts[1];
         let status;
 
