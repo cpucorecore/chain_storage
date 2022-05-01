@@ -12,9 +12,9 @@ import "./interfaces/IHistory.sol";
 contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
 
-    event FileAdded(address indexed owner, string indexed cid); // for User Client
-    event FileAddFailed(address indexed owner, string indexed cid); // for User Client
-    event FileDeleted(address indexed owner, string indexed cid); // for User Client
+    event FileAdded(address indexed owner, string cid); // for User Client
+    event FileAddFailed(address indexed owner, string cid); // for User Client
+    event FileDeleted(address indexed owner, string cid); // for User Client
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_USER);
@@ -73,8 +73,12 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().setStorageTotal(addr, size);
     }
 
-    function getStorageInfo(address addr) external view returns (IUserStorage.StorageInfo memory) {
-        return Storage().getStorageInfo(addr);
+    function getStorageUsed(address addr) external view returns (uint256) {
+        return Storage().getStorageUsed(addr);
+    }
+
+    function getStorageTotal(address addr) external view returns (uint256) {
+        return Storage().getStorageTotal(addr);
     }
 
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
@@ -141,7 +145,7 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().setFileDuration(addr, cid, duration);
     }
 
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, Paging.Page memory) {
+    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, bool) {
         return Storage().getCids(addr, pageSize, pageNumber);
     }
 
@@ -151,14 +155,16 @@ contract User is Importable, ExternalStorable, IUser {
 
     /////////////////////// private functions ///////////////////////
     function useStorage(address node, uint256 size) private {
-        IUserStorage.StorageInfo memory storageInfo = Storage().getStorageInfo(node);
-        require(size > 0 && storageInfo.used.add(size) <= storageInfo.total, contractName.concat(": space not enough"));
-        Storage().setStorageUsed(node, storageInfo.used.add(size));
+        uint256 used = Storage().getStorageUsed(node);
+        uint256 total = Storage().getStorageTotal(node);
+        require(size > 0 && used.add(size) <= total, contractName.concat(": space not enough"));
+        Storage().setStorageUsed(node, used.add(size));
     }
 
     function freeStorage(address node, uint256 size) private {
-        IUserStorage.StorageInfo memory storageInfo = Storage().getStorageInfo(node);
-        require(size > 0 && size <= storageInfo.used, contractName.concat("free size can not big than used size"));
-        Storage().setStorageUsed(node, storageInfo.used.sub(size));
+        uint256 used = Storage().getStorageUsed(node);
+        uint256 total = Storage().getStorageTotal(node);
+        require(size > 0 && size <= used, contractName.concat("free size can not big than used size"));
+        Storage().setStorageUsed(node, used.sub(size));
     }
 }

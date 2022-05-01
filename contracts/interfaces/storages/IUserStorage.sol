@@ -42,8 +42,6 @@ interface IUserStorage {
     function getStorageUsed(address addr) external view returns (uint256);
     function setStorageUsed(address addr, uint256 size) external;
 
-    function getStorageInfo(address addr) external view returns (StorageInfo memory);
-
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external;
     function deleteFile(address addr, string calldata cid) external;
     function fileExist(address addr, string calldata cid) external view returns (bool);
@@ -55,7 +53,7 @@ interface IUserStorage {
     function setFileDuration(address addr, string calldata cid, uint256 duration) external;
 
     function getFileNumber(address addr) external view returns (uint256);
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, bool);
     function getFileItem(address addr, string calldata cid) external view returns (FileItem memory);
 
     function getInvalidAddFileCount(address addr) external view returns (uint256);

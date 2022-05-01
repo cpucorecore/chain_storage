@@ -73,24 +73,28 @@ contract('User', accounts => {
         const user = accounts[1];
         const newSpace = common.initSpace*2;
 
-        let storageInfo;
+        let storageUsed;
+        let storageTotal;
 
-        storageInfo = await userInstance.getStorageInfo.call(user);
-        assert.equal(storageInfo.total, 0);
+        storageTotal = await userInstance.getStorageTotal.call(user);
+        assert.equal(storageTotal, 0);
 
         await userInstance.register(user, common.userExt);
-        storageInfo = await userInstance.getStorageInfo.call(user);
-        assert.equal(storageInfo.total, common.initSpace);
-        assert.equal(storageInfo.used, 0);
+        storageUsed = await userInstance.getStorageUsed.call(user);
+        storageTotal = await userInstance.getStorageTotal.call(user);
+        assert.equal(storageTotal, common.initSpace);
+        assert.equal(storageUsed, 0);
 
         await userInstance.changeSpace(user, newSpace);
-        storageInfo = await userInstance.getStorageInfo.call(user);
-        assert.equal(storageInfo.total, newSpace);
-        assert.equal(storageInfo.used, 0);
+        storageUsed = await userInstance.getStorageUsed.call(user);
+        storageTotal = await userInstance.getStorageTotal.call(user);
+        assert.equal(storageTotal, newSpace);
+        assert.equal(storageUsed, 0);
 
         await userInstance.deRegister(user);
-        storageInfo = await userInstance.getStorageInfo.call(user);
-        assert.equal(storageInfo.total, 0);
-        assert.equal(storageInfo.used, 0);
+        storageUsed = await userInstance.getStorageUsed.call(user);
+        storageTotal = await userInstance.getStorageTotal.call(user);
+        assert.equal(storageTotal, 0);
+        assert.equal(storageUsed, 0);
     })
 });

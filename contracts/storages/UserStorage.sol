@@ -62,10 +62,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
         users[addr].storageInfo.used = size;
     }
 
-    function getStorageInfo(address addr) external view returns (StorageInfo memory) {
-        return users[addr].storageInfo;
-    }
-
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
         bytes32 cidHash = keccak256(bytes(cid));
         files[addr][cidHash] = FileItem(cid, createTime, duration, ext, true);
@@ -107,7 +103,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].cidHashes.length();
     }
 
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
+    function getCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, bool) {
         EnumerableSet.Bytes32Set storage userCidHashes = users[addr].cidHashes;
         Paging.Page memory page = Paging.getPage(userCidHashes.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
@@ -115,7 +111,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = files[addr][userCidHashes.at(start+i)].cid;
         }
-        return (result, page);
+        return (result, page.totalPages == page.pageNumber);
     }
 
     function getFileItem(address addr, string calldata cid) external view returns (FileItem memory) {
