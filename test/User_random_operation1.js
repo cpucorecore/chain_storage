@@ -70,7 +70,7 @@ contract('User_random_operation1', accounts => {
     node1.finishAddFile-->
     node2.finishAddFile-->
     node3.finishAddFile-->
-    node4.finishAddFile--
+    node4.finishAddFile-->
     user1.deleteFile(cid1)-->
     node1.finishDeleteFile-->
     node2.finishDeleteFile-->
@@ -84,6 +84,13 @@ contract('User_random_operation1', accounts => {
      */
 
     it('random operations1', async () => {
+        /*
+        user1.addFile(cid1)-->
+        node1.finishAddFile-->
+        node2.finishAddFile-->
+        node3.finishAddFile-->
+        node4.finishAddFile-->
+         */
         await userInstance.addFile(tom, cids[0], fileSize, fileDuration, fileExt);
 
         await taskInstance.acceptTask(node1, 1);
@@ -213,6 +220,246 @@ contract('User_random_operation1', accounts => {
 
         nodeCids = await nodeInstance.getNodeCids.call(node1);
         console.log(nodeCids);
+        nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
+        console.log(nodeCids);
+
+        nodeNumber = await nodeInstance.getTotalNodeNumber.call();
+        assert.equal(nodeNumber, 4);
+
+        onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
+        assert.equal(onlineNodeNumber, 4);
+
+        /*
+        user1.deleteFile(cid1)-->
+        node1.finishDeleteFile-->
+        node2.finishDeleteFile-->
+        node3.finishDeleteFile-->
+        node4.finishDeleteFile-->
+         */
+        await userInstance.deleteFile(tom, cids[0]);
+        await taskInstance.acceptTask(node1, 5);
+        await taskInstance.acceptTask(node2, 6);
+        await taskInstance.acceptTask(node3, 7);
+        await taskInstance.acceptTask(node4, 8);
+        await nodeInstance.finishTask(node1, 5);
+        await nodeInstance.finishTask(node2, 6);
+        await nodeInstance.finishTask(node3, 7);
+        await nodeInstance.finishTask(node4, 8);
+
+        // check Task
+        currentTid = await taskInstance.getCurrentTid.call();
+        assert.equal(currentTid, 8);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node1);
+        assert.equal(nodeMaxTid, 5);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node2);
+        assert.equal(nodeMaxTid, 6);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node3);
+        assert.equal(nodeMaxTid, 7);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
+        assert.equal(nodeMaxTid, 8);
+        task = await taskInstance.getTaskItem.call(5);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(6);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(7);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(8);
+        console.log(task);
+        createTime = await taskInstance.getCreateTime.call(5);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(6);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(7);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(8);
+        console.log(createTime.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(5);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(6);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(7);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(8);
+        console.log(createBlock.toString());
+        taskStatus = await taskInstance.getStatusInfo.call(5);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(6);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(7);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(8);
+        console.log(taskStatus);
+
+        // check File
+        fileExist = await fileInstance.exist.call(cids[0]);
+        assert.equal(fileExist, false);
+        _fileSize = await fileInstance.getSize.call(cids[0]);
+        assert.equal(_fileSize, 0);
+        ownerExist = await fileInstance.ownerExist.call(cids[0], tom);
+        assert.equal(ownerExist, false);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node1);
+        assert.equal(nodeExist, false);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node2);
+        assert.equal(nodeExist, false);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node3);
+        assert.equal(nodeExist, false);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node4);
+        assert.equal(nodeExist, false);
+        owners = await fileInstance.getOwners.call(cids[0]);
+        assert.lengthOf(owners, 0);
+        nodes = await fileInstance.getNodes.call(cids[0]);
+        assert.lengthOf(nodes, 0);
+        totalFileNumber = await fileInstance.getTotalFileNumber.call();
+        assert.equal(totalFileNumber, 0);
+        totalSize = await fileInstance.getTotalSize.call();
+        assert.equal(totalSize, 0);
+
+        // check User
+        _fileExt = await userInstance.getFileExt.call(tom, cids[0]);
+        assert.equal(_fileExt, '');
+        _fileDuration = await userInstance.getFileDuration.call(tom, cids[0]);
+        assert.equal(_fileDuration, 0);
+        _cids = await userInstance.getCids.call(tom, 50, 1);
+        console.log(_cids);
+        userNumber = await userInstance.getTotalUserNumber.call();
+        assert.equal(userNumber, 2);
+
+        // check Node
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node1);
+        assert.equal(nodeCidsNumber, 0);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node2);
+        assert.equal(nodeCidsNumber, 0);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node3);
+        assert.equal(nodeCidsNumber, 0);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node4);
+        assert.equal(nodeCidsNumber, 0);
+
+        nodeCids = await nodeInstance.getNodeCids.call(node1);
+        console.log(nodeCids);
+        assert.lengthOf(nodeCids, 0);
+        nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
+        console.log(nodeCids);
+
+        nodeNumber = await nodeInstance.getTotalNodeNumber.call();
+        assert.equal(nodeNumber, 4);
+
+        onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
+        assert.equal(onlineNodeNumber, 4);
+
+        /*
+        user2.addFile(cid1)-->
+        node1.finishAddFile-->
+        node2.finishAddFile-->
+        node3.finishAddFile-->
+        node4.finishAddFile
+         */
+        await userInstance.addFile(bob, cids[0], fileSize, fileDuration, fileExt);
+        await taskInstance.acceptTask(node1, 9);
+        await taskInstance.acceptTask(node2, 10);
+        await taskInstance.acceptTask(node3, 11);
+        await taskInstance.acceptTask(node4, 12);
+        await nodeInstance.finishTask(node1, 9);
+        await nodeInstance.finishTask(node2, 10);
+        await nodeInstance.finishTask(node3, 11);
+        await nodeInstance.finishTask(node4, 12);
+
+        // check Task
+        currentTid = await taskInstance.getCurrentTid.call();
+        assert.equal(currentTid, 12);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node1);
+        assert.equal(nodeMaxTid, 9);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node2);
+        assert.equal(nodeMaxTid, 10);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node3);
+        assert.equal(nodeMaxTid, 11);
+        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
+        assert.equal(nodeMaxTid, 12);
+        task = await taskInstance.getTaskItem.call(9);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(10);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(11);
+        console.log(task);
+        task = await taskInstance.getTaskItem.call(12);
+        console.log(task);
+        createTime = await taskInstance.getCreateTime.call(9);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(10);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(11);
+        console.log(createTime.toString());
+        createTime = await taskInstance.getCreateTime.call(12);
+        console.log(createTime.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(9);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(10);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(11);
+        console.log(createBlock.toString());
+        createBlock = await taskInstance.getCreateBlockNumber.call(12);
+        console.log(createBlock.toString());
+        taskStatus = await taskInstance.getStatusInfo.call(9);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(10);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(11);
+        console.log(taskStatus);
+        taskStatus = await taskInstance.getStatusInfo.call(12);
+        console.log(taskStatus);
+
+        // check File
+        fileExist = await fileInstance.exist.call(cids[0]);
+        assert.equal(fileExist, true);
+        _fileSize = await fileInstance.getSize.call(cids[0]);
+        assert.equal(_fileSize, fileSize);
+        ownerExist = await fileInstance.ownerExist.call(cids[0], tom);
+        assert.equal(ownerExist, false);
+        ownerExist = await fileInstance.ownerExist.call(cids[0], bob);
+        assert.equal(ownerExist, true);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node1);
+        assert.equal(nodeExist, true);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node2);
+        assert.equal(nodeExist, true);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node3);
+        assert.equal(nodeExist, true);
+        nodeExist = await fileInstance.nodeExist.call(cids[0], node4);
+        assert.equal(nodeExist, true);
+        owners = await fileInstance.getOwners.call(cids[0]);
+        assert.lengthOf(owners, 1);
+        nodes = await fileInstance.getNodes.call(cids[0]);
+        assert.lengthOf(nodes, 4);
+        totalFileNumber = await fileInstance.getTotalFileNumber.call();
+        assert.equal(totalFileNumber, 1);
+        totalSize = await fileInstance.getTotalSize.call();
+        assert.equal(totalSize, fileSize);
+
+        // check User
+        _fileExt = await userInstance.getFileExt.call(tom, cids[0]);
+        assert.equal(_fileExt, '');
+        _fileExt = await userInstance.getFileExt.call(bob, cids[0]);
+        assert.equal(_fileExt, fileExt);
+        _fileDuration = await userInstance.getFileDuration.call(tom, cids[0]);
+        assert.equal(_fileDuration, 0);
+        _fileDuration = await userInstance.getFileDuration.call(bob, cids[0]);
+        assert.equal(_fileDuration, fileDuration);
+        _cids = await userInstance.getCids.call(tom, 50, 1);
+        console.log(_cids);
+        userNumber = await userInstance.getTotalUserNumber.call();
+        assert.equal(userNumber, 2);
+
+        // check Node
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node1);
+        assert.equal(nodeCidsNumber, 1);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node2);
+        assert.equal(nodeCidsNumber, 1);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node3);
+        assert.equal(nodeCidsNumber, 1);
+        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node4);
+        assert.equal(nodeCidsNumber, 1);
+
+        nodeCids = await nodeInstance.getNodeCids.call(node1);
+        console.log(nodeCids);
+        assert.lengthOf(nodeCids, 1);
         nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
         console.log(nodeCids);
 
