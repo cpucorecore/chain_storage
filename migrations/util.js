@@ -3,7 +3,7 @@ function checkUndefined(objName, obj) {
         console.log(objName+': undefined');
         process.exit(-1);
     } else {
-        console.log(obj.address);
+        console.log(objName+':'+obj.address);
     }
 }
 

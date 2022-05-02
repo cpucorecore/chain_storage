@@ -35,17 +35,21 @@ contract Task is Importable, ExternalStorable, ITask {
     }
 
     function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
-        uint256 tid = Storage().newTask(owner, action, cid, size, node, block.number, now);
+        uint256 tid = Storage().newTask(owner, action, cid, size, node);
         emit TaskIssued(node, tid);
         return tid;
     }
 
-    function getOwner(uint256 tid) external view returns (address) {
-        return Storage().getOwner(tid);
+    function getTask(uint256 tid) external view returns (address, ITaskStorage.Action, address, uint256, string memory) {
+        return Storage().getTask(tid);
     }
 
     function getAction(uint256 tid) external view returns (ITaskStorage.Action) {
         return Storage().getAction(tid);
+    }
+
+    function getOwner(uint256 tid) external view returns (address) {
+        return Storage().getOwner(tid);
     }
 
     function getNode(uint256 tid) external view returns (address) {
@@ -60,12 +64,16 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getCid(tid);
     }
 
-    function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
-        return Storage().getCreateBlockNumber(tid);
+    function getTaskState(uint256 tid) external view returns (ITaskStorage.Status, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        return Storage().getTaskState(tid);
     }
 
     function getStatus(uint256 tid) external view returns (ITaskStorage.Status) {
         return Storage().getStatus(tid);
+    }
+
+    function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
+        return Storage().getCreateBlockNumber(tid);
     }
 
     function getCreateTime(uint256 tid) external view returns (uint256) {

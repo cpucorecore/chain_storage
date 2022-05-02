@@ -150,23 +150,26 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function finishTask(address addr, uint256 tid) external {
-        address node = Task().getNode(tid);
+        address owner;
+        ITaskStorage.Action action;
+        address node;
+        uint256 size;
+        string memory cid;
+
+        (owner, action, node, size, cid) = Task().getTask(tid);
+
         require(addr == node, contractName.concat(": node have no this task"));
 
-        address owner = Task().getOwner(tid);
-        string memory cid = Task().getCid(tid);
-        uint256 size = Task().getSize(tid);
-        ITaskStorage.Action action = Task().getAction(tid);
         if(ITaskStorage.Action.Add == action) {
             File().addFileCallback(node, owner, cid);
-            useStorage(node, size);
+            Storage().useStorage(node, size);
             History().addNodeAction(addr, tid, IHistory.ActionType.Add, keccak256(bytes(cid)));
             Storage().setTaskAddFileFinishCount(node, Storage().getTaskAddFileFinishCount(node).add(1));
             resetAddFileFailedCount(cid);
             addNodeCid(addr, cid);
         } else if(ITaskStorage.Action.Delete == action) {
             File().deleteFileCallback(node, owner, cid);
-            freeStorage(node, size);
+            Storage().freeStorage(node, size);
             Storage().setTaskDeleteFileFinishCount(node, Storage().getTaskDeleteFileFinishCount(node).add(1));
             History().addNodeAction(addr, tid, IHistory.ActionType.Delete, keccak256(bytes(cid)));
             removeNodeCid(addr, cid);
@@ -320,17 +323,7 @@ contract Node is Importable, ExternalStorable, INode {
         require(Storage().exist(addr), contractName.concat(": node not exist"));
     }
 
-    function useStorage(address node, uint256 size) private {
-        INodeStorage.StorageSpaceInfo memory storageSpaceInfo = Storage().getStorageSpaceInfo(node);
-        require(size > 0 && storageSpaceInfo.used.add(size) <= storageSpaceInfo.total, contractName.concat(": space not enough"));
-        Storage().setStorageUsed(node, storageSpaceInfo.used.add(size));
-    }
 
-    function freeStorage(address node, uint256 size) private {
-        INodeStorage.StorageSpaceInfo memory storageSpaceInfo = Storage().getStorageSpaceInfo(node);
-        require(size > 0 && size <= storageSpaceInfo.used, contractName.concat("free size can not big than used size"));
-        Storage().setStorageUsed(node, storageSpaceInfo.used.sub(size));
-    }
 
     function resetAddFileFailedCount(string memory cid) private {
         uint256 addFileFailedCount = Storage().getAddFileFailedCount(cid);

@@ -158,8 +158,14 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].storageInfo.used;
     }
 
-    function setStorageUsed(address addr, uint256 value) external {
-        nodes[addr].storageInfo.used = value;
+    function useStorage(address addr, uint256 size) external {
+        require(nodes[addr].storageInfo.used.add(size) <= nodes[addr].storageInfo.total, contractName.concat(": space not enough"));
+        nodes[addr].storageInfo.used = nodes[addr].storageInfo.used.add(size);
+    }
+
+    function freeStorage(address addr, uint256 size) external {
+        require(size <= nodes[addr].storageInfo.used, contractName.concat("free size can not big than used size"));
+        nodes[addr].storageInfo.used = nodes[addr].storageInfo.used.sub(size);
     }
 
     function getExt(address addr) external view returns (string memory) {
