@@ -16,7 +16,6 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         setContractName(CONTRACT_MONITOR);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_FILE,
             CONTRACT_USER,
             CONTRACT_TASK
         ];
@@ -73,47 +72,64 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().deleteOnlineMonitor(addr);
     }
 
-    function checkTask(address addr, uint256 tid) external {
+    function checkTask(address addr, uint256 tid) external returns (bool) {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
-        IMonitorStorage.Status status = Storage().getStatus(addr);
-        require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status, must online"));
+        require(IMonitorStorage.Status.Online == Storage().getStatus(addr), contractName.concat(": wrong status, must online"));
 
-        ITaskStorage.TaskItem memory task = Task().getTaskItem(tid);
-        require(task.exist, contractName.concat(": task not exist"));
-        ITaskStorage.StatusInfo memory taskStatus = Task().getStatusInfo(tid);
-        uint256 timeoutAcceptSeconds = Setting().getTaskAcceptTimeoutSeconds();
+        if(Task().isOver(tid)) return false;
 
-        if(ITaskStorage.Status.Created == taskStatus.status) {
-            if(taskStatus.createTime.add(timeoutAcceptSeconds) > now) {
-                reportTaskAcceptTimeout(task.node, tid);
+        bool shouldContinueCheck = true;
+        require(Task().exist(tid), contractName.concat(": task not exist"));
+
+        address node = Task().getNode(tid);
+        ITaskStorage.Status status = Task().getStatus(tid);
+        if(ITaskStorage.Status.Created == status) {
+            uint256 createTime = Task().getCreateTime(tid);
+            uint256 acceptTimeout = Setting().getTaskAcceptTimeoutSeconds();
+            if(createTime.add(acceptTimeout) > now) {
+                reportTaskAcceptTimeout(node, tid);
+                shouldContinueCheck = false;
                 saveCurrentTid(addr, tid);
             }
-        } else if(ITaskStorage.Status.Accepted == taskStatus.status) {
-            if(ITaskStorage.Action.Add == task.action) {
-                uint256 addFileProgressTimeout = Setting().getAddFileProgressTimeoutSeconds();
-                uint256 addFileTaskTimeout = Setting().getAddFileTaskTimeoutSeconds();
-                if(taskStatus.acceptTime.add(addFileTaskTimeout) > now) {
-                    reportTaskTimeout(task.node, tid);
+        } else if(ITaskStorage.Status.Accepted == status) {
+            uint256 acceptTime = Task().getAcceptTime(tid);
+            ITaskStorage.Action action = Task().getAction(tid);
+
+            if(ITaskStorage.Action.Add == action) {
+                uint256 addFileTimeout = Setting().getAddFileTaskTimeoutSeconds();
+                if(acceptTime.add(addFileTimeout) > now) {
+                    reportTaskTimeout(node, tid);
+                    shouldContinueCheck = false;
                     saveCurrentTid(addr, tid);
-                } else {
-                    ITaskStorage.AddFileTaskProgress memory taskProgress = Task().getAddFileTaskProgress(tid);
-                    if(taskProgress.time.add(addFileProgressTimeout) > now) {
-                        reportTaskTimeout(task.node, tid);
-                        saveCurrentTid(addr, tid);
-                    } else if(taskProgress.currentSize == taskProgress.lastSize) {
-                        reportTaskTimeout(task.node, tid);
-                        saveCurrentTid(addr, tid);
-                    }
+                }
+
+                uint256 addFileProgressTimeout = Setting().getAddFileProgressTimeoutSeconds();
+                uint256 progressTime;
+                uint256 progressLastSize;
+                uint256 progressCurrentSize;
+                uint256 dropValue;
+                (progressTime, progressLastSize, progressCurrentSize, dropValue, dropValue, dropValue) = Task().getAddFileTaskProgress(tid);
+                if(progressTime.add(addFileProgressTimeout) > now) {
+                    reportTaskTimeout(node, tid);
+                    shouldContinueCheck = false;
+                    saveCurrentTid(addr, tid);
+                }
+                if(progressLastSize == progressCurrentSize) {
+                    reportTaskTimeout(node, tid);
+                    shouldContinueCheck = false;
+                    saveCurrentTid(addr, tid);
                 }
             } else { // Action.Delete
-                uint256 deleteFileTaskTimeout = Setting().getDeleteFileTaskTimeoutSeconds();
-                if(taskStatus.acceptTime.add(deleteFileTaskTimeout) > now) {
-                    reportTaskTimeout(task.node, tid);
+                uint256 deleteFileTimeout = Setting().getDeleteFileTaskTimeoutSeconds();
+                if(acceptTime.add(deleteFileTimeout) > now) {
+                    reportTaskTimeout(node, tid);
+                    shouldContinueCheck = false;
                     saveCurrentTid(addr, tid);
                 }
             }
-        } else {
         }
+
+        return shouldContinueCheck;
     }
 
     function loadCurrentTid(address addr) external returns (uint256) {
@@ -135,7 +151,6 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().setCurrentTid(addr, tid);
     }
 
-    //////////////////// private functions ////////////////////
     function reportTaskAcceptTimeout(address addr, uint256 tid) private {
         Storage().addReport(addr, tid, IMonitorStorage.ReportType.AcceptTimeout, now);
         Node().taskAcceptTimeout(tid);

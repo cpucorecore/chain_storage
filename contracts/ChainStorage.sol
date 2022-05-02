@@ -121,8 +121,8 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         Monitor().maintain(msg.sender);
     }
 
-    function monitorCheckTask(uint256 tid) external onlyInitialized notPaused {
-        Monitor().checkTask(msg.sender, tid);
+    function monitorCheckTask(uint256 tid) external onlyInitialized notPaused returns (bool) {
+        return Monitor().checkTask(msg.sender, tid);
     }
 
     function monitorResetCurrentTid(uint256 tid) external onlyInitialized notPaused {

@@ -21,6 +21,6 @@ interface IChainStorage {
     function monitorRegister(string calldata ext) external;
     function monitorOnline() external;
     function monitorMaintain() external;
-    function monitorCheckTask(uint256 tid) external;
+    function monitorCheckTask(uint256 tid) external returns (bool);
     function monitorResetCurrentTid(uint256 tid) external;
 }

@@ -11,7 +11,7 @@ interface IMonitor {
     function online(address addr) external;
     function maintain(address addr) external;
 
-    function checkTask(address addr, uint256 tid) external;
+    function checkTask(address addr, uint256 tid) external returns (bool);
     function loadCurrentTid(address addr) external returns (uint256);
     function resetCurrentTid(address addr, uint256 tid) external;
 }

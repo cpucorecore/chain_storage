@@ -9,12 +9,31 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     mapping(uint256=>TaskItem) private tid2taskItem;
     mapping(uint256=>StatusInfo) private tid2statusInfo;
     mapping(uint256=>AddFileTaskProgress) private tid2addFileTaskProgress;
-    mapping(address=>uint256) private node2nodeTargetTid;
+    mapping(address=>uint256) private node2nodeMaxTid;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function exist(uint256 tid) external view returns (bool) {
         return tid2taskItem[tid].exist && tid2statusInfo[tid].exist;
+    }
+
+    function getCurrentTid() external view returns (uint256) {
+        return tid;
+    }
+
+    function getNodeMaxTid(address addr) external view returns (uint256) {
+        return node2nodeMaxTid[addr];
+    }
+
+    function isOver(uint256 tid) external view returns (bool) {
+        bool over = false;
+
+        if(Action.Add == tid2taskItem[tid].action) {
+            over = !(Status.Created == tid2statusInfo[tid].status || Status.Accepted == tid2statusInfo[tid].status);
+        } else {
+            over = (Status.Finished == tid2statusInfo[tid].status);
+        }
+        return over;
     }
 
     function newTask(
@@ -34,25 +53,29 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
             tid2addFileTaskProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
         }
 
-        node2nodeTargetTid[node] = tid;
+        node2nodeMaxTid[node] = tid;
 
         return tid;
     }
 
-    function getCurrentTid() external view returns (uint256) {
-        return tid;
-    }
-
-    function getNodeMaxTid(address addr) external view returns (uint256) {
-        return node2nodeTargetTid[addr];
-    }
-
-    function getTaskItem(uint256 tid) external view returns (TaskItem memory) {
-        return tid2taskItem[tid];
+    function getOwner(uint256 tid) external view returns (address) {
+        return tid2taskItem[tid].owner;
     }
 
     function getAction(uint256 tid) external view returns (Action) {
         return tid2taskItem[tid].action;
+    }
+
+    function getNode(uint256 tid) external view returns (address) {
+        return tid2taskItem[tid].node;
+    }
+
+    function getSize(uint256 tid) external view returns (uint256) {
+        return tid2taskItem[tid].size;
+    }
+
+    function getCid(uint256 tid) external view returns (string memory) {
+        return tid2taskItem[tid].cid;
     }
 
     function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
@@ -65,6 +88,26 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     function getCreateTime(uint256 tid) external view returns (uint256) {
         return tid2statusInfo[tid].createTime;
+    }
+
+    function getAcceptTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].acceptTime;
+    }
+
+    function getAcceptTimeoutTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].acceptTimeoutTime;
+    }
+
+    function getFinishTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].finishTime;
+    }
+
+    function getFailTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].failTime;
+    }
+
+    function getTimeoutTime(uint256 tid) external view returns (uint256) {
+        return tid2statusInfo[tid].timeoutTime;
     }
 
     function getStatusAndTime(uint256 tid) external view returns (Status, uint256) {
@@ -86,10 +129,6 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return (status, time);
     }
 
-    function getStatusInfo(uint256 tid) external view returns (StatusInfo memory) {
-        return tid2statusInfo[tid];
-    }
-
     function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) external {
         tid2statusInfo[tid].status = status;
         if(ITaskStorage.Status.Accepted == status) {
@@ -105,8 +144,9 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         }
     }
 
-    function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory) {
-        return tid2addFileTaskProgress[tid];
+    function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
+        AddFileTaskProgress storage progress = tid2addFileTaskProgress[tid];
+        return (progress.time, progress.lastSize, progress.currentSize, progress.size, progress.lastPercentage, progress.currentPercentage);
     }
 
     function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external {

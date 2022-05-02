@@ -48,6 +48,10 @@ interface ITaskStorage {
     }
 
     function exist(uint256 tid) external view returns (bool);
+    function getCurrentTid() external view returns (uint256);
+    function getNodeMaxTid(address addr) external view returns (uint256);
+    function isOver(uint256 tid) external view returns (bool);
+
     function newTask(
         address owner,
         Action action,
@@ -58,21 +62,27 @@ interface ITaskStorage {
         uint256 createTime
     ) external returns (uint256);
 
-    function getCurrentTid() external view returns (uint256);
-
-    function getNodeMaxTid(address addr) external view returns (uint256);
-
-    function getTaskItem(uint256 tid) external view returns (TaskItem memory);
+    // TaskItem query
+    function getOwner(uint256 tid) external view returns (address);
     function getAction(uint256 tid) external view returns (Action);
+    function getNode(uint256 tid) external view returns (address);
+    function getSize(uint256 tid) external view returns (uint256);
+    function getCid(uint256 tid) external view returns (string memory);
     function getCreateBlockNumber(uint256 tid) external view returns (uint256);
 
+    // Task Status
     function getStatus(uint256 tid) external view returns (Status);
     function getCreateTime(uint256 tid) external view returns (uint256);
+    function getAcceptTime(uint256 tid) external view returns (uint256);
+    function getAcceptTimeoutTime(uint256 tid) external view returns (uint256);
+    function getFinishTime(uint256 tid) external view returns (uint256);
+    function getFailTime(uint256 tid) external view returns (uint256);
+    function getTimeoutTime(uint256 tid) external view returns (uint256);
     function getStatusAndTime(uint256 tid) external view returns (Status, uint256);
-    function getStatusInfo(uint256 tid) external view returns (StatusInfo memory);
     function setStatusAndTime(uint256 tid, Status status, uint256 time) external;
 
-    function getAddFileTaskProgress(uint256 tid) external view returns (AddFileTaskProgress memory);
+    // Task Progress
+    function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
     function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external;
     function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 percentage) external;
 }
