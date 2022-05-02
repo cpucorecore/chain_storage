@@ -96,7 +96,7 @@ contract User is Importable, ExternalStorable, IUser {
     function callbackFinishAddFile(address owner, address node, string calldata cid) external {
         if(!File().ownerExist(cid, owner)) {
             uint256 size = File().getSize(cid);
-            useStorage(owner, size);
+            useUserStorage(owner, size);
             emit FileAdded(owner, cid);
         }
     }
@@ -120,7 +120,7 @@ contract User is Importable, ExternalStorable, IUser {
 
     function callbackFinishDeleteFile(address owner, address node, string calldata cid) external {
         uint256 size = File().getSize(cid);
-        freeStorage(owner, size);
+        freeUserStorage(owner, size);
         emit FileDeleted(owner, cid);
     }
 
@@ -153,18 +153,17 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getTotalUserNumber();
     }
 
-    /////////////////////// private functions ///////////////////////
-    function useStorage(address node, uint256 size) private {
-        uint256 used = Storage().getStorageUsed(node);
-        uint256 total = Storage().getStorageTotal(node);
+    function useUserStorage(address user, uint256 size) private {
+        uint256 used = Storage().getStorageUsed(user);
+        uint256 total = Storage().getStorageTotal(user);
         require(size > 0 && used.add(size) <= total, contractName.concat(": space not enough"));
-        Storage().setStorageUsed(node, used.add(size));
+        Storage().setStorageUsed(user, used.add(size));
     }
 
-    function freeStorage(address node, uint256 size) private {
-        uint256 used = Storage().getStorageUsed(node);
-        uint256 total = Storage().getStorageTotal(node);
+    function freeUserStorage(address user, uint256 size) private {
+        uint256 used = Storage().getStorageUsed(user);
+        uint256 total = Storage().getStorageTotal(user);
         require(size > 0 && size <= used, contractName.concat("free size can not big than used size"));
-        Storage().setStorageUsed(node, used.sub(size));
+        Storage().setStorageUsed(user, used.sub(size));
     }
 }
