@@ -115,9 +115,10 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return (result, page.totalPages == page.pageNumber);
     }
 
-    function getFileItem(address addr, string calldata cid) external view returns (FileItem memory) {
+    function getFileItem(address addr, string calldata cid) external view returns (string memory, uint256, uint256, string memory) { // (cid, createTime, duration, ext)
         bytes32 cidHash = keccak256(bytes(cid));
-        return files[addr][cidHash];
+        FileItem storage file = files[addr][cidHash];
+        return (file.cid, file.createTime, file.duration, file.ext);
     }
 
     function getInvalidAddFileCount(address addr) external view returns (uint256) {
