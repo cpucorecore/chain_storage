@@ -92,7 +92,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setStorageTotal(addr, space);
     }
 
-    function getStorageSpaceInfo(address addr) external view returns (INodeStorage.StorageSpaceInfo memory) {
+    function getStorageSpaceInfo(address addr) external view returns (uint256, uint256) { // (used, total)
         return Storage().getStorageSpaceInfo(addr);
     }
 
@@ -259,7 +259,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getNodeCids(addr);
     }
 
-    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory) {
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, bool) {
         return Storage().getNodeCids(addr, pageSize, pageNumber);
     }
 
@@ -275,7 +275,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getAllNodeAddresses();
     }
 
-    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         return Storage().getAllNodeAddresses(pageSize, pageNumber);
     }
 
@@ -283,7 +283,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getAllOnlineNodeAddresses();
     }
 
-    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         return Storage().getAllOnlineNodeAddresses(pageSize, pageNumber);
     }
 
@@ -303,8 +303,8 @@ contract Node is Importable, ExternalStorable, INode {
 
     function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
         address[] memory onlineNodeAddresses;
-        Paging.Page memory page;
-        (onlineNodeAddresses, page) = Storage().getAllOnlineNodeAddresses(50, 1);
+        bool finish;
+        (onlineNodeAddresses, finish) = Storage().getAllOnlineNodeAddresses(50, 1);
 
         if(onlineNodeAddresses.length <= count) {
             return onlineNodeAddresses;

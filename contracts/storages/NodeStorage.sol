@@ -45,10 +45,6 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         onlineNodeAddrs.remove(addr);
     }
 
-    function getNode(address addr) external view returns (NodeItem memory) {
-        return nodes[addr];
-    }
-
     function isNodeOnline(address addr) external view returns (bool) {
         return onlineNodeAddrs.contains(addr);
     }
@@ -65,8 +61,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo;
     }
 
-    function getStorageSpaceInfo(address addr) public view returns (StorageSpaceInfo memory) {
-        return nodes[addr].storageInfo;
+    function getStorageSpaceInfo(address addr) public view returns (uint256, uint256) { // (used, total)
+        return (nodes[addr].storageInfo.used, nodes[addr].storageInfo.total);
     }
 
     function getMaxFinishedTid(address addr) external view returns (uint256) {
@@ -180,28 +176,28 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodeAddrs.values();
     }
 
-    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, bool) {
         Paging.Page memory page = Paging.getPage(nodeAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = nodeAddrs.at(start+i);
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
     function getAllOnlineNodeAddresses() public view returns (address[] memory) {
         return onlineNodeAddrs.values();
     }
 
-    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, Paging.Page memory) {
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) public view returns (address[] memory, bool) {
         Paging.Page memory page = Paging.getPage(onlineNodeAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = onlineNodeAddrs.at(start+i);
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
     function cidExist(address addr, string calldata cid) external view returns (bool) {
@@ -234,7 +230,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return result;
     }
 
-    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, Paging.Page memory) {
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, bool) {
         EnumerableSet.Bytes32Set storage cidHashs = node2cidHashes[addr];
         Paging.Page memory page = Paging.getPage(cidHashs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
@@ -242,7 +238,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = cidHash2cid[cidHashs.at(start+i)];
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
     function getAddFileFailedCount(string calldata cid) external view returns (uint256) {

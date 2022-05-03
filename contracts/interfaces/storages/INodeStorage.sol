@@ -42,14 +42,13 @@ interface INodeStorage {
     function exist(address addr) external view returns (bool);
     function newNode(address addr, uint256 totalSpace, string calldata ext) external;
     function deleteNode(address addr) external;
-    function getNode(address addr) external view returns (NodeItem memory);
 
     function isNodeOnline(address addr) external view returns (bool);
     function addOnlineNode(address addr) external;
     function deleteOnlineNode(address addr) external;
 
     function getServiceInfo(address addr) external view returns (ServiceInfo memory);
-    function getStorageSpaceInfo(address addr) external view returns (StorageSpaceInfo memory);
+    function getStorageSpaceInfo(address addr) external view returns (uint256, uint256); // (used, total)
 
     function getMaxFinishedTid(address addr) external view returns (uint256);
     function setMaxFinishedTid(address addr, uint256 tid) external;
@@ -90,17 +89,17 @@ interface INodeStorage {
     function setExt(address addr, string calldata ext) external;
 
     function getAllNodeAddresses() external view returns (address[] memory);
-    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function getAllOnlineNodeAddresses() external view returns (address[] memory);
-    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function cidExist(address addr, string calldata cid) external view returns (bool);
     function addNodeCid(address addr, string calldata cid) external;
     function removeNodeCid(address addr, string calldata cid) external;
     function getNodeCidsNumber(address addr) external view returns (uint256);
     function getNodeCids(address addr) external view returns (string[] memory);
-    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, bool);
 
     function getAddFileFailedCount(string calldata cid) external view returns (uint256);
     function setAddFileFailedCount(string calldata cid, uint256 count) external;

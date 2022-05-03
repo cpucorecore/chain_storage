@@ -111,17 +111,17 @@ contract('Node', accounts => {
         let storageSpaceInfo;
 
         storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
-        assert.equal(storageSpaceInfo.total, 0);
-        assert.equal(storageSpaceInfo.used, 0);
+        assert.equal(storageSpaceInfo[1], 0);
+        assert.equal(storageSpaceInfo[0], 0);
 
         await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
         storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
-        assert.equal(storageSpaceInfo.total, common.nodeTotalSpace);
-        assert.equal(storageSpaceInfo.used, 0);
+        assert.equal(storageSpaceInfo[1], common.nodeTotalSpace);
+        assert.equal(storageSpaceInfo[0], 0);
 
         await nodeInstance.deRegister(node);
         storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
-        assert.equal(storageSpaceInfo.total, 0);
-        assert.equal(storageSpaceInfo.used, 0);
+        assert.equal(storageSpaceInfo[1], 0);
+        assert.equal(storageSpaceInfo[0], 0);
     });
 });

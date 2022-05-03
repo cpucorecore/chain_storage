@@ -34,8 +34,8 @@ contract('NodeStorage', accounts => {
         assert.equal(isOnline, false);
 
         spaceInfo = await nodeStorageInstance.getStorageSpaceInfo.call(node1);
-        assert.equal(spaceInfo.total, common.nodeTotalSpace);
-        assert.equal(spaceInfo.used, 0);
+        assert.equal(spaceInfo[1], common.nodeTotalSpace);
+        assert.equal(spaceInfo[0], 0);
 
         ext = await nodeStorageInstance.getExt.call(node1);
         console.log(ext);

@@ -15,7 +15,7 @@ interface INode {
     function setExt(address addr, string calldata ext) external;
 
     function changeSpace(address addr, uint256 space) external;
-    function getStorageSpaceInfo(address addr) external view returns (INodeStorage.StorageSpaceInfo memory);
+    function getStorageSpaceInfo(address addr) external view returns (uint256, uint256); // (used, total)
 
     function online(address addr) external;
     function maintain(address addr) external;
@@ -30,14 +30,14 @@ interface INode {
 
     function getNodeCidsNumber(address addr) external view returns (uint256);
     function getNodeCids(address addr) external view returns (string[] memory);
-    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, Paging.Page memory);
+    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, bool);
 
     function getTotalNodeNumber() external view returns (uint256);
     function getTotalOnlineNodeNumber() external view returns (uint256);
 
     function getAllNodeAddresses() external view returns (address[] memory);
-    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getAllNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function getAllOnlineNodeAddresses() external view returns (address[] memory);
-    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getAllOnlineNodeAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 }
