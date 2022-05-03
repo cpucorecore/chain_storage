@@ -1,10 +1,10 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/storages/IMonitorStorage.sol";
-import "../lib/EnumerableSet.sol";
-import "./ExternalStorage.sol";
-import "../lib/Paging.sol";
+import "./storages/ExternalStorage.sol";
+import "./interfaces/storages/IMonitorStorage.sol";
+import "./lib/EnumerableSet.sol";
+import "./lib/Paging.sol";
 
 contract MonitorStorage is ExternalStorage, IMonitorStorage {
     using EnumerableSet for EnumerableSet.AddressSet;

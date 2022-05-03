@@ -1,9 +1,10 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import './ExternalStorage.sol';
-import '../interfaces/storages/IFileStorage.sol';
-import "../lib/EnumerableSet.sol";
+import "./storages/ExternalStorage.sol";
+import './interfaces/storages/IFileStorage.sol';
+import "./lib/EnumerableSet.sol";
+import "./lib/Paging.sol";
 
 contract FileStorage is ExternalStorage, IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;

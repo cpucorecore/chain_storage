@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
-import './ExternalStorage.sol';
-import '../interfaces/storages/ISettingStorage.sol';
+import "./storages/ExternalStorage.sol";
+import "./interfaces/storages/ISettingStorage.sol";
 
 contract SettingStorage is ExternalStorage, ISettingStorage {
     mapping(bytes32 => mapping(bytes32 => uint256)) private _storage;

@@ -1,8 +1,8 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../interfaces/storages/ITaskStorage.sol";
-import "./ExternalStorage.sol";
+import "./storages/ExternalStorage.sol";
+import "./interfaces/storages/ITaskStorage.sol";
 
 contract TaskStorage is ExternalStorage, ITaskStorage {
     uint256 private tid;

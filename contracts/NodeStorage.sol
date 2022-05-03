@@ -1,10 +1,10 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "./ExternalStorage.sol";
-import "../interfaces/storages/INodeStorage.sol";
-import "../lib/EnumerableSet.sol";
-import "../lib/Paging.sol";
+import "./storages/ExternalStorage.sol";
+import "./interfaces/storages/INodeStorage.sol";
+import "./lib/EnumerableSet.sol";
+import "./lib/Paging.sol";
 
 contract NodeStorage is ExternalStorage, INodeStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;

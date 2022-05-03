@@ -1,8 +1,9 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "./ExternalStorage.sol";
-import "../interfaces/storages/IUserStorage.sol";
+import "./storages/ExternalStorage.sol";
+import "./interfaces/storages/IUserStorage.sol";
+import "./lib/EnumerableSet.sol";
 
 contract UserStorage is ExternalStorage, IUserStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;

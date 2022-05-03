@@ -81,7 +81,7 @@ contract('Node', accounts => {
         assert.equal(status, 1);
     })
 
-    it.skip('ext tests', async () => {
+    it('ext tests', async () => {
         const node = accounts[2];
         const newExt = 'newExt';
         let ext;
