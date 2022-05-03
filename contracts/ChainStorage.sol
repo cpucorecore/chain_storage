@@ -63,12 +63,12 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         User().setExt(msg.sender, ext);
     }
 
-    function userSetFileExt(address addr, string calldata cid, string calldata ext) external {
-        User().setFileExt(addr, cid, ext);
+    function userSetFileExt(string calldata cid, string calldata ext) external {
+        User().setFileExt(msg.sender, cid, ext);
     }
 
-    function userSetFileDuration(address addr, string calldata cid, uint256 duration) external {
-        User().setFileDuration(addr, cid, duration);
+    function userSetFileDuration(string calldata cid, uint256 duration) external {
+        User().setFileDuration(msg.sender, cid, duration);
     }
 
     function changeUserSpace(address addr, uint256 space) external onlyInitialized notPaused {

@@ -14,7 +14,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function exist(address addr) public returns (bool) {
+    function exist(address addr) public view returns (bool) {
         return users[addr].exist;
     }
 

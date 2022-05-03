@@ -5,7 +5,7 @@ import "../lib/Paging.sol";
 import "./storages/IUserStorage.sol";
 
 interface IUser {
-    function exist(address addr) external returns (bool);
+    function exist(address addr) external view returns (bool);
     function register(address addr, string calldata ext) external;
     function deRegister(address addr) external;
 

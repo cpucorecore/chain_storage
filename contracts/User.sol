@@ -41,7 +41,7 @@ contract User is Importable, ExternalStorable, IUser {
         return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
-    function exist(address addr) public returns (bool) {
+    function exist(address addr) external view returns (bool) {
         return Storage().exist(addr);
     }
 

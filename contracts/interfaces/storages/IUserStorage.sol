@@ -28,7 +28,7 @@ interface IUserStorage {
         bool exist;
     }
 
-    function exist(address addr) external returns (bool);
+    function exist(address addr) external view returns (bool);
     function newUser(address addr, uint256 storageTotal, string calldata ext) external;
     function deleteUser(address addr) external;
 
