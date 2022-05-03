@@ -146,9 +146,10 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function resetCurrentTid(address addr, uint256 tid) external {
         uint256 firstOnlineTid = Storage().getFirstOnlineTid(addr);
         if(tid<firstOnlineTid) {
-            tid = firstOnlineTid;
+            Storage().setCurrentTid(addr, firstOnlineTid);
+        } else {
+            Storage().setCurrentTid(addr, tid);
         }
-        Storage().setCurrentTid(addr, tid);
     }
 
     function reportTaskAcceptTimeout(address addr, uint256 tid) private {
