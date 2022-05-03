@@ -216,7 +216,7 @@ contract('NodeStorage', accounts => {
         assert.equal(freeSpace, newTotalSpace);
         assert.equal(used, 0);
 
-        await nodeStorageInstance.setStorageUsed(node7, usedSpace);
+        await nodeStorageInstance.useStorage(node7, usedSpace);
         totalSpace = await nodeStorageInstance.getStorageTotal.call(node7);
         freeSpace = await nodeStorageInstance.getStorageFree.call(node7);
         used = await nodeStorageInstance.getStorageUsed.call(node7);

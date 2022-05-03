@@ -120,14 +120,6 @@ contract('User_random_operation1', accounts => {
         assert.equal(nodeMaxTid, 3);
         nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 4);
-        task = await taskInstance.getTaskItem.call(1);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(2);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(3);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(4);
-        console.log(task);
         createTime = await taskInstance.getCreateTime.call(1);
         console.log(createTime.toString());
         createTime = await taskInstance.getCreateTime.call(2);
@@ -144,14 +136,6 @@ contract('User_random_operation1', accounts => {
         console.log(createBlock.toString());
         createBlock = await taskInstance.getCreateBlockNumber.call(4);
         console.log(createBlock.toString());
-        taskStatus = await taskInstance.getStatusInfo.call(1);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(2);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(3);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(4);
-        console.log(taskStatus);
 
         // check File
         let fileExist;
@@ -257,14 +241,6 @@ contract('User_random_operation1', accounts => {
         assert.equal(nodeMaxTid, 7);
         nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 8);
-        task = await taskInstance.getTaskItem.call(5);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(6);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(7);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(8);
-        console.log(task);
         createTime = await taskInstance.getCreateTime.call(5);
         console.log(createTime.toString());
         createTime = await taskInstance.getCreateTime.call(6);
@@ -281,14 +257,6 @@ contract('User_random_operation1', accounts => {
         console.log(createBlock.toString());
         createBlock = await taskInstance.getCreateBlockNumber.call(8);
         console.log(createBlock.toString());
-        taskStatus = await taskInstance.getStatusInfo.call(5);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(6);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(7);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(8);
-        console.log(taskStatus);
 
         // check File
         fileExist = await fileInstance.exist.call(cids[0]);
@@ -374,14 +342,6 @@ contract('User_random_operation1', accounts => {
         assert.equal(nodeMaxTid, 11);
         nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 12);
-        task = await taskInstance.getTaskItem.call(9);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(10);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(11);
-        console.log(task);
-        task = await taskInstance.getTaskItem.call(12);
-        console.log(task);
         createTime = await taskInstance.getCreateTime.call(9);
         console.log(createTime.toString());
         createTime = await taskInstance.getCreateTime.call(10);
@@ -398,14 +358,6 @@ contract('User_random_operation1', accounts => {
         console.log(createBlock.toString());
         createBlock = await taskInstance.getCreateBlockNumber.call(12);
         console.log(createBlock.toString());
-        taskStatus = await taskInstance.getStatusInfo.call(9);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(10);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(11);
-        console.log(taskStatus);
-        taskStatus = await taskInstance.getStatusInfo.call(12);
-        console.log(taskStatus);
 
         // check File
         fileExist = await fileInstance.exist.call(cids[0]);
