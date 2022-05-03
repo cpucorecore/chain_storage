@@ -16,14 +16,14 @@ contract IFileStorage {
     function addOwner(string calldata cid, address owner) external;
     function deleteOwner(string calldata cid, address owner) external;
     function getOwners(string calldata cid) external view returns (address[] memory);
-    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function nodeExist(string calldata cid, address node) external view returns (bool);
     function nodeEmpty(string calldata cid) external view returns (bool);
     function addNode(string calldata cid, address node) external;
     function deleteNode(string calldata cid, address node) external;
     function getNodes(string calldata cid) external view returns (address[] memory);
-    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function getTotalSize() external view returns (uint256);
     function getTotalFileNumber() external view returns (uint256);

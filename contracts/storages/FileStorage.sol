@@ -90,7 +90,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return result;
     }
 
-    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         bytes32 cidHash = keccak256(bytes(cid));
         EnumerableSet.AddressSet storage owners = cidHash2fileItem[cidHash].owners;
         Paging.Page memory page = Paging.getPage(owners.length(), pageSize, pageNumber);
@@ -99,7 +99,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = owners.at(start+i);
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
     function nodeExist(string calldata cid, address node) external view returns (bool) {
@@ -133,7 +133,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return result;
     }
 
-    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         bytes32 cidHash = keccak256(bytes(cid));
         EnumerableSet.AddressSet storage nodes = cidHash2fileItem[cidHash].nodes;
         Paging.Page memory page = Paging.getPage(nodes.length(), pageSize, pageNumber);
@@ -142,7 +142,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = nodes.at(start+i);
         }
-        return (result, page);
+        return (result, page.totalPages == page.pageNumber);
     }
 
     function getTotalSize() external view returns (uint256) {

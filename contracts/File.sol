@@ -101,7 +101,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().getOwners(cid);
     }
 
-    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         return Storage().getOwners(cid, pageSize, pageNumber);
     }
 
@@ -113,7 +113,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().getNodes(cid);
     }
 
-    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         return Storage().getNodes(cid, pageSize, pageNumber);
     }
 
