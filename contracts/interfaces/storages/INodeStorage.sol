@@ -47,7 +47,8 @@ interface INodeStorage {
     function addOnlineNode(address addr) external;
     function deleteOnlineNode(address addr) external;
 
-    function getServiceInfo(address addr) external view returns (ServiceInfo memory);
+    // (maintainCount, offlineCount, taskAddFileFinishCount, taskAddFileFailCount, taskDeleteFileFinishCount, taskAcceptTimeoutCount, taskTimeoutCount)
+    function getServiceInfo(address addr) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256);
     function getStorageSpaceInfo(address addr) external view returns (uint256, uint256); // (used, total)
 
     function getMaxFinishedTid(address addr) external view returns (uint256);

@@ -1,8 +1,6 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../../lib/Paging.sol";
-
 contract IFileStorage {
     function exist(string memory cid) public view returns (bool);
     function newFile(string calldata cid, uint256 size) external;

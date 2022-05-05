@@ -33,7 +33,8 @@ interface IMonitorStorage {
     function newMonitor(address addr, string calldata ext) external;
     function deleteMonitor(address addr) external;
     function exist(address addr) external view returns (bool);
-    function getMonitor(address addr) external view returns (MonitorItem memory);
+    // (status, firstOnlineTid, currentTid, ext)
+    function getMonitor(address addr) external view returns (Status, uint256, uint256, string memory);
 
     function getCurrentTid(address addr) external view returns (uint256);
     function setCurrentTid(address addr, uint256 tid) external;
@@ -47,9 +48,10 @@ interface IMonitorStorage {
     function addOnlineMonitor(address addr) external;
     function deleteOnlineMonitor(address addr) external;
 
-    function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
-    function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory);
+    function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
+    function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool);
 
     function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external;
-    function getReports(address addr, uint256 pageSize, uint256 pageNumber) external view returns (Report[] memory, Paging.Page memory);
+    function getReportNumber(address addr) external view returns (uint256);
+    function getReport(address addr, uint256 index) external view returns (uint256, ReportType, uint256); // (tid, reportType, timestamp)
 }

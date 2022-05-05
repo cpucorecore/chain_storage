@@ -17,6 +17,8 @@ const Node = artifacts.require("Node");
 const TaskStorage = artifacts.require("TaskStorage");
 const Task = artifacts.require("Task");
 
+const ChainStorage = artifacts.require("ChainStorage");
+
 module.exports = function(deployer) {
     let contracts = {};
     let contractAddrs = {};
@@ -150,9 +152,20 @@ module.exports = function(deployer) {
             return contracts.resolver.setAddress(Web3Utils.fromAscii('Task'), contracts.task.address);
         })
 
-        // refreshCache
         .then(receipt => {
             console.log('resolver.setAddress(Task) receipts: ', receipt);
+            return deployer.deploy(ChainStorage);
+        })
+
+        // refreshCache
+        .then(chainStorage => {
+            checkUndefined('chainStorage', chainStorage);
+            contracts.chainStorage = chainStorage;
+            contractAddrs.chainStorage = chainStorage.address;
+            return contracts.chainStorage.initialize(contracts.resolver.address);
+        })
+        .then(receipt => {
+            console.log('chainStorage.initialize receipt: ', receipt);
             return contracts.file.refreshCache();
         })
         .then(receipt => {
@@ -167,10 +180,14 @@ module.exports = function(deployer) {
             console.log('node.refreshCache receipt: ', receipt);
             return contracts.task.refreshCache();
         })
+        .then(receipt => {
+            console.log('task.refreshCache receipt: ', receipt);
+            return contracts.chainStorage.refreshCache();
+        })
 
         // save contract addresses
         .then(receipt => {
-            console.log('task.refreshCache receipt: ', receipt);
+            console.log('chainStorage.refreshCache receipt: ', receipt);
             console.log("contracts deployment finished\n\n");
             const addrs = JSON.stringify(contractAddrs, null, '\t');
             fs.writeFile('contractAddrs.json', addrs, (err) => {
@@ -178,6 +195,7 @@ module.exports = function(deployer) {
                     throw err;
                 }
                 console.log("contractAddrs saved");
+                console.log(Web3Utils.fromAscii('XXXTask'));
             });
         });
 };

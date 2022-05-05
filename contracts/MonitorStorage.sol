@@ -32,8 +32,9 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].exist;
     }
 
-    function getMonitor(address addr) external view returns (MonitorItem memory) {
-        return monitors[addr];
+    function getMonitor(address addr) external view returns (Status, uint256, uint256, string memory) {
+        MonitorItem storage monitor = monitors[addr];
+        return (monitor.status, monitor.firstOnlineTid, monitor.currentTid, monitor.ext);
     }
 
     function getCurrentTid(address addr) external view returns (uint256) {
@@ -68,38 +69,37 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         onlineMonitorAddrs.remove(addr);
     }
 
-    function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         Paging.Page memory page = Paging.getPage(monitorAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = monitorAddrs.at(start+i);
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
-    function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, Paging.Page memory) {
+    function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
         Paging.Page memory page = Paging.getPage(onlineMonitorAddrs.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = onlineMonitorAddrs.at(start+i);
         }
-        return (result, page);
+        return (result, page.pageNumber == page.totalPages);
     }
 
     function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external {
-        monitor2rid[addr] = monitor2rid[addr].add(1);
-        monitor2reports[addr].push(Report(tid, reportType, timestamp));
+        uint256 index = monitor2reports[addr].push(Report(tid, reportType, timestamp));
+        monitor2rid[addr] = index;
     }
 
-    function getReports(address addr, uint256 pageSize, uint256 pageNumber) external view returns (Report[] memory, Paging.Page memory) {
-        Paging.Page memory page = Paging.getPage(monitor2rid[addr], pageSize, pageNumber);
-        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
-        Report[] memory result = new Report[](page.pageRecords);
-        for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = monitor2reports[addr][start+i];
-        }
-        return (result, page);
+    function getReportNumber(address addr) external view returns (uint256) {
+        return monitor2rid[addr];
+    }
+
+    function getReport(address addr, uint256 index) external view returns (uint256, ReportType, uint256) {
+        Report storage report = monitor2reports[addr][index];
+        return (report.tid, report.reportType, report.timestamp);
     }
 }

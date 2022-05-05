@@ -57,8 +57,16 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         onlineNodeAddrs.remove(addr);
     }
 
-    function getServiceInfo(address addr) public view returns (ServiceInfo memory) {
-        return nodes[addr].serviceInfo;
+    function getServiceInfo(address addr) public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        ServiceInfo storage si = nodes[addr].serviceInfo;
+        // (maintainCount, offlineCount, taskAddFileFinishCount, taskAddFileFailCount, taskDeleteFileFinishCount, taskAcceptTimeoutCount, taskTimeoutCount)
+        return (si.maintainCount,
+                si.offlineCount,
+                si.taskAddFileFinishCount,
+                si.taskAddFileFailCount,
+                si.taskDeleteFileFinishCount,
+                si.taskAcceptTimeoutCount,
+                si.taskTimeoutCount);
     }
 
     function getStorageSpaceInfo(address addr) public view returns (uint256, uint256) { // (used, total)

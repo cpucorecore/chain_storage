@@ -40,14 +40,15 @@ contract('NodeStorage', accounts => {
         ext = await nodeStorageInstance.getExt.call(node1);
         console.log(ext);
 
+        // (maintainCount, offlineCount, taskAddFileFinishCount, taskAddFileFailCount, taskDeleteFileFinishCount, taskAcceptTimeoutCount, taskTimeoutCount)
         serviceInfo = await nodeStorageInstance.getServiceInfo.call(node1);
-        assert.equal(serviceInfo.maintainCount, 0);
-        assert.equal(serviceInfo.offlineCount, 0);
-        assert.equal(serviceInfo.taskAddFileFinishCount, 0);
-        assert.equal(serviceInfo.taskAddFileFailCount, 0);
-        assert.equal(serviceInfo.taskDeleteFileFinishCount, 0);
-        assert.equal(serviceInfo.taskAcceptTimeoutCount, 0);
-        assert.equal(serviceInfo.taskTimeoutCount, 0);
+        assert.equal(serviceInfo[0], 0);
+        assert.equal(serviceInfo[1], 0);
+        assert.equal(serviceInfo[2], 0);
+        assert.equal(serviceInfo[3], 0);
+        assert.equal(serviceInfo[4], 0);
+        assert.equal(serviceInfo[5], 0);
+        assert.equal(serviceInfo[6], 0);
 
         freeSpace = await nodeStorageInstance.getStorageFree.call(node1);
         assert.equal(freeSpace, common.nodeTotalSpace);
