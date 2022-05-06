@@ -49,6 +49,10 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().deleteMonitor(addr);
     }
 
+    function exist(address addr) external view returns (bool) {
+        return Storage().exist(addr);
+    }
+
     function online(address addr) external {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         IMonitorStorage.Status status = Storage().getStatus(addr);
@@ -132,7 +136,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return shouldContinueCheck;
     }
 
-    function loadCurrentTid(address addr) external returns (uint256) {
+    function loadCurrentTid(address addr) external view returns (uint256) {
         return Storage().getCurrentTid(addr);
     }
 
