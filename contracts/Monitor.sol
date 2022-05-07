@@ -89,7 +89,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         ITaskStorage.Status status = Task().getStatus(tid);
         if(ITaskStorage.Status.Created == status) {
             uint256 createTime = Task().getCreateTime(tid);
-            uint256 acceptTimeout = Setting().getTaskAcceptTimeoutSeconds();
+            uint256 acceptTimeout = Setting().getTaskAcceptTimeout();
             if(createTime.add(acceptTimeout) > now) {
                 reportTaskAcceptTimeout(node, tid);
                 shouldContinueCheck = false;
@@ -100,14 +100,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
             ITaskStorage.Action action = Task().getAction(tid);
 
             if(ITaskStorage.Action.Add == action) {
-                uint256 addFileTimeout = Setting().getAddFileTaskTimeoutSeconds();
+                uint256 addFileTimeout = Setting().getAddFileTaskTimeout();
                 if(acceptTime.add(addFileTimeout) > now) {
                     reportTaskTimeout(node, tid);
                     shouldContinueCheck = false;
                     saveCurrentTid(addr, tid);
                 }
 
-                uint256 addFileProgressTimeout = Setting().getAddFileProgressTimeoutSeconds();
+                uint256 addFileProgressTimeout = Setting().getAddFileProgressTimeout();
                 uint256 progressTime;
                 uint256 progressLastSize;
                 uint256 progressCurrentSize;
@@ -124,7 +124,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
                     saveCurrentTid(addr, tid);
                 }
             } else { // Action.Delete
-                uint256 deleteFileTimeout = Setting().getDeleteFileTaskTimeoutSeconds();
+                uint256 deleteFileTimeout = Setting().getDeleteFileTaskTimeout();
                 if(acceptTime.add(deleteFileTimeout) > now) {
                     reportTaskTimeout(node, tid);
                     shouldContinueCheck = false;
