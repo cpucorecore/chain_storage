@@ -91,12 +91,12 @@ contract User is Importable, ExternalStorable, IUser {
         History().addUserAction(addr, IHistory.ActionType.Add, keccak256(bytes(cid)));
         File().addFile(cid, size, addr);
         Storage().addFile(addr, cid, duration, ext, now);
+        useStorage(addr, size);
     }
 
     function callbackFinishAddFile(address owner, address node, string calldata cid) external {
         if(!File().ownerExist(cid, owner)) {
             uint256 size = File().getSize(cid);
-            useStorage(owner, size);
             emit FileAdded(owner, cid);
         }
     }
@@ -115,12 +115,13 @@ contract User is Importable, ExternalStorable, IUser {
 
         History().addUserAction(addr, IHistory.ActionType.Delete, keccak256(bytes(cid)));
         Storage().deleteFile(addr, cid);
+        uint256 size = File().getSize(cid);
+        freeStorage(addr, size);
         File().deleteFile(cid, addr);
     }
 
     function callbackFinishDeleteFile(address owner, address node, string calldata cid) external {
         uint256 size = File().getSize(cid);
-        freeStorage(owner, size);
         emit FileDeleted(owner, cid);
     }
 
@@ -154,17 +155,17 @@ contract User is Importable, ExternalStorable, IUser {
     }
 
     /////////////////////// private functions ///////////////////////
-    function useStorage(address node, uint256 size) private {
-        uint256 used = Storage().getStorageUsed(node);
-        uint256 total = Storage().getStorageTotal(node);
+    function useStorage(address addr, uint256 size) private {
+        uint256 used = Storage().getStorageUsed(addr);
+        uint256 total = Storage().getStorageTotal(addr);
         require(size > 0 && used.add(size) <= total, contractName.concat(": space not enough"));
-        Storage().setStorageUsed(node, used.add(size));
+        Storage().setStorageUsed(addr, used.add(size));
     }
 
-    function freeStorage(address node, uint256 size) private {
-        uint256 used = Storage().getStorageUsed(node);
-        uint256 total = Storage().getStorageTotal(node);
+    function freeStorage(address addr, uint256 size) private {
+        uint256 used = Storage().getStorageUsed(addr);
+        uint256 total = Storage().getStorageTotal(addr);
         require(size > 0 && size <= used, contractName.concat("free size can not big than used size"));
-        Storage().setStorageUsed(node, used.sub(size));
+        Storage().setStorageUsed(addr, used.sub(size));
     }
 }

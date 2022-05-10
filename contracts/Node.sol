@@ -323,8 +323,6 @@ contract Node is Importable, ExternalStorable, INode {
         require(Storage().exist(addr), contractName.concat(": node not exist"));
     }
 
-
-
     function resetAddFileFailedCount(string memory cid) private {
         uint256 addFileFailedCount = Storage().getAddFileFailedCount(cid);
         if(addFileFailedCount > 0) {
