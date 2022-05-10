@@ -28,7 +28,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cidHash2fileItem[cidHash].exist;
     }
 
-    function newFile(string calldata cid, uint256 size) external {
+    function newFile(string calldata cid, uint256 size) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         require(!cidHash2fileItem[cidHash].exist, contractName.concat(": file exist"));
 
@@ -40,7 +40,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         toatalFileNumber = toatalFileNumber.add(1);
     }
 
-    function deleteFile(string calldata cid) external {
+    function deleteFile(string calldata cid) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         require(cidHash2fileItem[cidHash].exist, contractName.concat(": file not exist"));
 
@@ -55,7 +55,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cidHash2fileItem[cidHash].size;
     }
 
-    function setSize(string calldata cid, uint256 size) external {
+    function setSize(string calldata cid, uint256 size) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].size = size;
     }
@@ -70,12 +70,12 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return 0 == cidHash2fileItem[cidHash].owners.length();
     }
 
-    function addOwner(string calldata cid, address owner) external {
+    function addOwner(string calldata cid, address owner) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].owners.add(owner);
     }
 
-    function deleteOwner(string calldata cid, address owner) external {
+    function deleteOwner(string calldata cid, address owner) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].owners.remove(owner);
     }
@@ -113,12 +113,12 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return 0 == cidHash2fileItem[cidHash].nodes.length();
     }
 
-    function addNode(string calldata cid, address node) external {
+    function addNode(string calldata cid, address node) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].nodes.add(node);
     }
 
-    function deleteNode(string calldata cid, address node) external {
+    function deleteNode(string calldata cid, address node) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].nodes.remove(node);
     }

@@ -18,7 +18,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].exist;
     }
 
-    function newUser(address addr, uint256 storageTotal, string calldata ext) external {
+    function newUser(address addr, uint256 storageTotal, string calldata ext) external onlyManager(managerName) {
         require(!exist(addr), contractName.concat(": user exist"));
 
         EnumerableSet.Bytes32Set memory cidHashes;
@@ -27,7 +27,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         toatalUserNumber = toatalUserNumber.add(1);
     }
 
-    function deleteUser(address addr) external {
+    function deleteUser(address addr) external onlyManager(managerName) {
         require(exist(addr), contractName.concat(": user not exist"));
         delete users[addr];
 
@@ -38,7 +38,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].ext;
     }
 
-    function setExt(address addr, string calldata ext) external {
+    function setExt(address addr, string calldata ext) external onlyManager(managerName) {
         users[addr].ext = ext;
     }
 
@@ -51,7 +51,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].storageInfo.total;
     }
 
-    function setStorageTotal(address addr, uint256 size) external {
+    function setStorageTotal(address addr, uint256 size) external onlyManager(managerName) {
         users[addr].storageInfo.total = size;
     }
 
@@ -59,7 +59,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].storageInfo.used;
     }
 
-    function setStorageUsed(address addr, uint256 size) external {
+    function setStorageUsed(address addr, uint256 size) external onlyManager(managerName) {
         users[addr].storageInfo.used = size;
     }
 
@@ -69,7 +69,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         users[addr].cidHashes.add(cidHash);
     }
 
-    function deleteFile(address addr, string calldata cid) external {
+    function deleteFile(address addr, string calldata cid) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         users[addr].cidHashes.remove(cidHash);
         delete files[addr][cidHash];
@@ -85,7 +85,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return files[addr][cidHash].ext;
     }
 
-    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+    function setFileExt(address addr, string calldata cid, string calldata ext) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         files[addr][cidHash].ext = ext;
     }
@@ -95,7 +95,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return files[addr][cidHash].duration;
     }
 
-    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external onlyManager(managerName) {
         bytes32 cidHash = keccak256(bytes(cid));
         files[addr][cidHash].duration = duration;
     }
@@ -125,7 +125,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[addr].invalidAddFileCount;
     }
 
-    function setInvalidAddFileCount(address addr, uint256 count) external {
+    function setInvalidAddFileCount(address addr, uint256 count) external onlyManager(managerName) {
         users[addr].invalidAddFileCount = count;
     }
 

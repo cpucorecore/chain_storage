@@ -18,12 +18,12 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newMonitor(address addr, string calldata ext) external {
+    function newMonitor(address addr, string calldata ext) external onlyManager(managerName) {
         monitors[addr] = MonitorItem(Status.Registered, 0, 0, ext, true);
         monitorAddrs.add(addr);
     }
 
-    function deleteMonitor(address addr) external {
+    function deleteMonitor(address addr) external onlyManager(managerName) {
         delete monitors[addr];
         monitorAddrs.remove(addr);
     }
@@ -41,7 +41,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].currentTid;
     }
 
-    function setCurrentTid(address addr, uint256 tid) external {
+    function setCurrentTid(address addr, uint256 tid) external onlyManager(managerName) {
         monitors[addr].currentTid = tid;
     }
 
@@ -49,7 +49,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].firstOnlineTid;
     }
 
-    function setFirstOnlineTid(address addr, uint256 tid) external {
+    function setFirstOnlineTid(address addr, uint256 tid) external onlyManager(managerName) {
         monitors[addr].firstOnlineTid = tid;
     }
 
@@ -57,15 +57,15 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].status;
     }
 
-    function setStatus(address addr, Status status) external {
+    function setStatus(address addr, Status status) external onlyManager(managerName) {
         monitors[addr].status = status;
     }
 
-    function addOnlineMonitor(address addr) external {
+    function addOnlineMonitor(address addr) external onlyManager(managerName) {
         onlineMonitorAddrs.add(addr);
     }
 
-    function deleteOnlineMonitor(address addr) external {
+    function deleteOnlineMonitor(address addr) external onlyManager(managerName) {
         onlineMonitorAddrs.remove(addr);
     }
 
@@ -89,7 +89,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external {
+    function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external onlyManager(managerName) {
         uint256 index = monitor2reports[addr].push(Report(tid, reportType, timestamp));
         monitor2rid[addr] = index;
     }

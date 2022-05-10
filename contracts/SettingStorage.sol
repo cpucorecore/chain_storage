@@ -62,7 +62,7 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         return _storage[DEFAULT][key];
     }
 
-    function setAddress(bytes32 key, address value) external {
+    function setAddress(bytes32 key, address value) external onlyManager(managerName) {
         _addresses[key] = value;
     }
 

@@ -53,6 +53,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().exist(addr);
     }
 
+    // onlyAddress(CONTRACT_CHAIN_STORAGE)
     function register(address addr, uint256 space, string calldata ext) external {
         require(!Storage().exist(addr), contractName.concat(": node exist"));
         require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
