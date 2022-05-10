@@ -53,8 +53,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().exist(addr);
     }
 
-    // onlyAddress(CONTRACT_CHAIN_STORAGE)
-    function register(address addr, uint256 space, string calldata ext) external {
+    function register(address addr, uint256 space, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(!Storage().exist(addr), contractName.concat(": node exist"));
         require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
         require(space > 0, contractName.concat(": space must > 0"));
@@ -62,7 +61,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().newNode(addr, space, ext);
     }
 
-    function deRegister(address addr) external {
+    function deRegister(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkExist(addr);
         require(0 == Storage().getNodeCidsNumber(addr), contractName.concat(": files not empty"));
         INodeStorage.Status status = Storage().getStatus(addr);
@@ -73,6 +72,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().deleteNode(addr);
     }
 
+
     function getStatus(address addr) external view returns (INodeStorage.Status) {
         return Storage().getStatus(addr);
     }
@@ -81,13 +81,13 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getExt(addr);
     }
 
-    function setExt(address addr, string calldata ext) external {
+    function setExt(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkExist(addr);
         require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": node ext too long"));
         Storage().setExt(addr, ext);
     }
 
-    function changeSpace(address addr, uint256 space) external {
+    function changeSpace(address addr, uint256 space) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkExist(addr);
         require(space >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used"));
         Storage().setStorageTotal(addr, space);
@@ -97,7 +97,7 @@ contract Node is Importable, ExternalStorable, INode {
         return Storage().getStorageSpaceInfo(addr);
     }
 
-    function online(address addr) external {
+    function online(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkExist(addr);
 
         INodeStorage.Status status = Storage().getStatus(addr);
@@ -116,7 +116,7 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function maintain(address addr) external {
+    function maintain(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkExist(addr);
 
         INodeStorage.Status status = Storage().getStatus(addr);
@@ -131,7 +131,7 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function addFile(address owner, string calldata cid, uint256 size) external {
+    function addFile(address owner, string calldata cid, uint256 size) external onlyAddress(CONTRACT_FILE) {
         uint256 replica = Setting().getReplica();
         require(0 != replica, contractName.concat(": replica is 0"));
 
@@ -150,7 +150,7 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function finishTask(address addr, uint256 tid) external {
+    function finishTask(address addr, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         address owner;
         ITaskStorage.Action action;
         address node;
@@ -180,7 +180,7 @@ contract Node is Importable, ExternalStorable, INode {
         Task().finishTask(tid);
     }
 
-    function failTask(address addr, uint256 tid) external {
+    function failTask(address addr, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         address node = Task().getNode(tid);
         require(addr == node, contractName.concat(": node have no this task"));
 
@@ -208,6 +208,8 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function taskAcceptTimeout(uint256 tid) external { // TODO: monitor addr?
+        // TODO: Node should verify the taskAcceptTimeout Report by Monitor
+        // TODO: onlyMonitors
         address node = Task().getNode(tid);
         address owner = Task().getOwner(tid);
         string memory cid = Task().getCid(tid);
@@ -227,6 +229,8 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function taskTimeout(uint256 tid) external { // TODO: monitor addr?
+        // TODO: Node should verify the taskAcceptTimeout Report by Monitor
+        // TODO: onlyMonitors
         address node = Task().getNode(tid);
         address owner = Task().getOwner(tid);
         string memory cid = Task().getCid(tid);
