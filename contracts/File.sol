@@ -9,6 +9,7 @@ import "./interfaces/INode.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IUserFileHandler.sol";
+import "./interfaces/INodeFileHandler.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -17,6 +18,7 @@ contract File is Importable, ExternalStorable, IFile {
             CONTRACT_USER,
             CONTRACT_USER_FILE_HANDLER,
             CONTRACT_NODE,
+            CONTRACT_NODE_FILE_HANDLER,
             CONTRACT_TASK
         ];
     }
@@ -37,6 +39,10 @@ contract File is Importable, ExternalStorable, IFile {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
+    function NodeFileHandler() private view returns (INodeFileHandler) {
+        return INodeFileHandler(requireAddress(CONTRACT_NODE_FILE_HANDLER));
+    }
+
     function Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
     }
@@ -48,7 +54,7 @@ contract File is Importable, ExternalStorable, IFile {
     function addFile(string calldata cid, uint256 size, address owner) external onlyAddress(CONTRACT_USER) {
         if(!Storage().exist(cid)) {
             Storage().newFile(cid, size);
-            Node().addFile(owner, cid, size);
+            NodeFileHandler().addFile(owner, cid, size);
         }
 
         if(!Storage().ownerExist(cid, owner)) {

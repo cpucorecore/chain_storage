@@ -9,6 +9,8 @@ import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/IHistory.sol";
+import "./lib/SafeMath.sol";
+import "./interfaces/INodeFileHandler.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
@@ -33,6 +35,10 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function Node() private view returns (INode) {
         return INode(requireAddress(CONTRACT_NODE));
+    }
+
+    function NodeFileHandler() private view returns (INodeFileHandler) {
+        return INodeFileHandler(requireAddress(CONTRACT_NODE_FILE_HANDLER));
     }
 
     function Task() private view returns (ITask) {
@@ -159,14 +165,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().addReport(addr, tid, IMonitorStorage.ReportType.AcceptTimeout, now);
         string memory cid = Task().getCid(tid);
         History().addMonitorAction(addr, tid, IHistory.MonitorActionType.AcceptTimeout, keccak256(bytes(cid)));
-        Node().taskAcceptTimeout(tid);
+        NodeFileHandler().taskAcceptTimeout(addr, tid);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) public onlyAddress(CONTRACT_CHAIN_STORAGE) {
         Storage().addReport(addr, tid, IMonitorStorage.ReportType.Timeout, now);
         string memory cid = Task().getCid(tid);
         History().addMonitorAction(addr, tid, IHistory.MonitorActionType.Timeout, keccak256(bytes(cid)));
-        Node().taskTimeout(tid);
+        NodeFileHandler().taskTimeout(addr, tid);
     }
 
     function saveCurrentTid(address addr, uint256 tid) private {

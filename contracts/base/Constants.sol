@@ -10,6 +10,7 @@ contract Constants {
     bytes32 internal constant CONTRACT_USER = 'User';
     bytes32 internal constant CONTRACT_USER_FILE_HANDLER = 'UserFileHandler';
     bytes32 internal constant CONTRACT_NODE = 'Node';
+    bytes32 internal constant CONTRACT_NODE_FILE_HANDLER = 'NodeFileHandler';
     bytes32 internal constant CONTRACT_TASK = 'Task';
     bytes32 internal constant CONTRACT_MONITOR = 'Monitor';
 

@@ -17,7 +17,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
     event FileDeleted(address indexed owner, string cid); // for User Client
 
     constructor(IResolver _resolver) public Importable(_resolver) {
-        setContractName(CONTRACT_USER);
+        setContractName(CONTRACT_USER_FILE_HANDLER);
         imports = [
         CONTRACT_SETTING,
         CONTRACT_FILE,

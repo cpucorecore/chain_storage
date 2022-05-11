@@ -41,11 +41,14 @@ async function main() {
   const UserStorage = await ethers.getContractFactory("UserStorage");
   const userStorage = await UserStorage.deploy(user.address);
 
-  // const Node = await ethers.getContractFactory("Node");
-  // const node = await Node.deploy(resolver.address);
-  //
-  // const NodeStorage = await ethers.getContractFactory("NodeStorage");
-  // const nodeStorage = await NodeStorage.deploy(node.address);
+  const Node = await ethers.getContractFactory("Node");
+  const node = await Node.deploy(resolver.address);
+
+  const NodeFileHandler = await ethers.getContractFactory("NodeFileHandler");
+  const nodeFileHandler = await NodeFileHandler.deploy(resolver.address);
+
+  const NodeStorage = await ethers.getContractFactory("NodeStorage");
+  const nodeStorage = await NodeStorage.deploy(node.address);
 
   await resolver.deployed();
   await setting.deployed();

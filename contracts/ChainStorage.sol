@@ -9,6 +9,7 @@ import "./interfaces/IMonitor.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/IUserFileHandler.sol";
+import "./interfaces/INodeFileHandler.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
@@ -42,6 +43,10 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
     function Node() private view returns (INode) {
         return INode(requireAddress(CONTRACT_NODE));
+    }
+
+    function NodeFileHandler() private view returns (INodeFileHandler) {
+        return INodeFileHandler(requireAddress(CONTRACT_NODE_FILE_HANDLER));
     }
 
     function Monitor() private view returns (IMonitor) {
@@ -101,11 +106,11 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     }
 
     function nodeFinishTask(uint256 tid) external onlyInitialized notPaused {
-        Node().finishTask(msg.sender, tid);
+        NodeFileHandler().finishTask(msg.sender, tid);
     }
 
     function nodeFailTask(uint256 tid) external onlyInitialized notPaused {
-        Node().failTask(msg.sender, tid);
+        NodeFileHandler().failTask(msg.sender, tid);
     }
 
     function changeNodeSpace(uint256 space) external onlyInitialized notPaused {
