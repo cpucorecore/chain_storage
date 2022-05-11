@@ -45,13 +45,13 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().exist(addr);
     }
 
-    function register(address addr, string calldata ext) external {
+    function register(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(!Storage().exist(addr), contractName.concat(": user exist"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": user ext too long"));
         Storage().newUser(addr, Setting().getInitSpace(), ext);
     }
 
-    function deRegister(address addr) public {
+    function deRegister(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(0 == Storage().getFileNumber(addr), contractName.concat(": files not empty"));
         Storage().deleteUser(addr);
@@ -61,13 +61,13 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getExt(addr);
     }
 
-    function setExt(address addr, string calldata ext) external {
+    function setExt(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": user ext too long"));
         Storage().setExt(addr, ext);
     }
 
-    function changeSpace(address addr, uint256 size) external {
+    function changeSpace(address addr, uint256 size) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(size >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used"));
         Storage().setStorageTotal(addr, size);
@@ -81,7 +81,7 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getStorageTotal(addr);
     }
 
-    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(size > 0, contractName.concat(": size must > 0"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": file ext too long"));
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
@@ -94,14 +94,14 @@ contract User is Importable, ExternalStorable, IUser {
         useStorage(addr, size);
     }
 
-    function callbackFinishAddFile(address owner, address node, string calldata cid) external {
+    function callbackFinishAddFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
         if(!File().ownerExist(cid, owner)) {
             uint256 size = File().getSize(cid);
             emit FileAdded(owner, cid);
         }
     }
 
-    function callbackFailAddFile(address owner, string calldata cid) external {
+    function callbackFailAddFile(address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
         if(!File().ownerExist(cid, owner)) {
             uint256 invalidAddFileCount = Storage().getInvalidAddFileCount(owner);
             Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
@@ -109,7 +109,7 @@ contract User is Importable, ExternalStorable, IUser {
         }
     }
 
-    function deleteFile(address addr, string memory cid) public {
+    function deleteFile(address addr, string calldata cid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
@@ -120,7 +120,7 @@ contract User is Importable, ExternalStorable, IUser {
         File().deleteFile(cid, addr);
     }
 
-    function callbackFinishDeleteFile(address owner, address node, string calldata cid) external {
+    function callbackFinishDeleteFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
         uint256 size = File().getSize(cid);
         emit FileDeleted(owner, cid);
     }
@@ -129,7 +129,7 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getFileExt(addr, cid);
     }
 
-    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+    function setFileExt(address addr, string calldata cid, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(Storage().fileExist(addr, cid), contractName.concat(": user have no the file"));
         require(bytes(ext).length <= Setting().getMaxFileExtLength(), contractName.concat(": file ext too long"));
@@ -140,7 +140,7 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getFileDuration(addr, cid);
     }
 
-    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(Storage().fileExist(addr, cid), contractName.concat(": user have no the file"));
         Storage().setFileDuration(addr, cid, duration);
@@ -154,7 +154,6 @@ contract User is Importable, ExternalStorable, IUser {
         return Storage().getTotalUserNumber();
     }
 
-    /////////////////////// private functions ///////////////////////
     function useStorage(address addr, uint256 size) private {
         uint256 used = Storage().getStorageUsed(addr);
         uint256 total = Storage().getStorageTotal(addr);
@@ -165,7 +164,7 @@ contract User is Importable, ExternalStorable, IUser {
     function freeStorage(address addr, uint256 size) private {
         uint256 used = Storage().getStorageUsed(addr);
         uint256 total = Storage().getStorageTotal(addr);
-        require(size > 0 && size <= used, contractName.concat("free size can not big than used size"));
+        require(size > 0 && size <= used, contractName.concat(": free size can not big than used size"));
         Storage().setStorageUsed(addr, used.sub(size));
     }
 }

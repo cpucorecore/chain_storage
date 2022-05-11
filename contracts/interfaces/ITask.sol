@@ -28,7 +28,7 @@ interface ITask {
     function getTimeoutTime(uint256 tid) external view returns (uint256);
 
     function getStatusAndTime(uint256 tid) external view returns (ITaskStorage.Status, uint256);
-    function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) external;
+//    function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) external;
 
     function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
 

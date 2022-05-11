@@ -71,8 +71,7 @@ contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
         User().setFileDuration(msg.sender, cid, duration);
     }
 
-    function changeUserSpace(address addr, uint256 space) external onlyInitialized notPaused {
-        require(msg.sender == Setting().getAdmin(), contractName.concat(": no auth")); // TODO check onlyOwner?
+    function changeUserSpace(address addr, uint256 space) external onlyInitialized notPaused onlyAddress(ACCOUNT_ADMIN) {
         User().changeSpace(addr, space);
     }
 

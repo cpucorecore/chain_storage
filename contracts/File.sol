@@ -19,7 +19,7 @@ contract File is Importable, ExternalStorable, IFile {
         ];
     }
 
-    function Storage() private view returns(IFileStorage) {
+    function Storage() private view returns (IFileStorage) {
         return IFileStorage(getStorage());
     }
 
@@ -39,7 +39,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
-    function addFile(string calldata cid, uint256 size, address owner) external {
+    function addFile(string calldata cid, uint256 size, address owner) external onlyAddress(CONTRACT_USER) {
         if(!Storage().exist(cid)) {
             Storage().newFile(cid, size);
             Node().addFile(owner, cid, size);
@@ -50,7 +50,7 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function addFileCallback(address node, address owner, string calldata cid) external {
+    function addFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
         User().callbackFinishAddFile(owner, node, cid);
         if(Storage().exist(cid)) {
             if(!nodeExist(cid, node)) {
@@ -61,7 +61,7 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function deleteFile(string calldata cid, address owner) external {
+    function deleteFile(string calldata cid, address owner) external onlyAddress(CONTRACT_USER) {
         if(Storage().ownerExist(cid, owner)) {
             Storage().deleteOwner(cid, owner);
         }
@@ -78,7 +78,7 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function deleteFileCallback(address node, address owner, string calldata cid) external {
+    function deleteFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
         User().callbackFinishDeleteFile(owner, node, cid);
         if(Storage().nodeExist(cid, node)) {
             Storage().deleteNode(cid, node);

@@ -143,13 +143,6 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function updateFinishedTid(address addr, uint256 newTid) private {
-        uint256 current = Storage().getMaxFinishedTid(addr);
-        if(newTid > current) {
-            Storage().setMaxFinishedTid(addr, newTid);
-        }
-    }
-
     function finishTask(address addr, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         address owner;
         ITaskStorage.Action action;
@@ -207,9 +200,8 @@ contract Node is Importable, ExternalStorable, INode {
         Task().failTask(tid);
     }
 
-    function taskAcceptTimeout(uint256 tid) external { // TODO: monitor addr?
+    function taskAcceptTimeout(address addr, uint256 tid) external onlyAddress(CONTRACT_MONITOR) {
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        // TODO: onlyMonitors
         address node = Task().getNode(tid);
         address owner = Task().getOwner(tid);
         string memory cid = Task().getCid(tid);
@@ -228,9 +220,8 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function taskTimeout(uint256 tid) external { // TODO: monitor addr?
+    function taskTimeout(address addr, uint256 tid) external onlyAddress(CONTRACT_MONITOR) {
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        // TODO: onlyMonitors
         address node = Task().getNode(tid);
         address owner = Task().getOwner(tid);
         string memory cid = Task().getCid(tid);
@@ -324,7 +315,7 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function checkExist(address addr) private {
+    function checkExist(address addr) private view {
         require(Storage().exist(addr), contractName.concat(": node not exist"));
     }
 
@@ -344,6 +335,13 @@ contract Node is Importable, ExternalStorable, INode {
     function removeNodeCid(address addr, string memory cid) private {
         if(Storage().cidExist(addr, cid)) {
             Storage().removeNodeCid(addr, cid);
+        }
+    }
+
+    function updateFinishedTid(address addr, uint256 newTid) private {
+        uint256 current = Storage().getMaxFinishedTid(addr);
+        if(newTid > current) {
+            Storage().setMaxFinishedTid(addr, newTid);
         }
     }
 }

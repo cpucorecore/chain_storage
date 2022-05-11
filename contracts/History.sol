@@ -32,7 +32,7 @@ contract History is Importable, IHistory {
         ];
     }
 
-    function addUserAction(address addr, ActionType actionType, bytes32 cidHash) external {
+    function addUserAction(address addr, ActionType actionType, bytes32 cidHash) external onlyAddress(CONTRACT_USER) {
         uint256 index = userActions.push(UserAction(now, addr, actionType, cidHash));
         user2userActionIndexes[addr].push(index);
         cidHash2userActionIndexes[cidHash].push(index);
@@ -79,7 +79,7 @@ contract History is Importable, IHistory {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addNodeAction(address addr, uint256 tid, ActionType actionType, bytes32 cidHash) external {
+    function addNodeAction(address addr, uint256 tid, ActionType actionType, bytes32 cidHash) external onlyAddress(CONTRACT_NODE) {
         uint256 index = nodeActions.push(NodeAction(now, addr, tid, actionType, cidHash));
         node2nodeActionIndexes[addr].push(index);
         cidHash2nodeActionIndexes[cidHash].push(index);
@@ -126,7 +126,7 @@ contract History is Importable, IHistory {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addMonitorAction(address addr, uint256 tid, MonitorActionType actionType, bytes32 cidHash) external {
+    function addMonitorAction(address addr, uint256 tid, MonitorActionType actionType, bytes32 cidHash) external onlyAddress(CONTRACT_MONITOR) {
         uint256 index = monitorActions.push(MonitorAction(now, addr, tid, actionType, cidHash));
         monitor2monitorActionIndexes[addr].push(index);
         cidHash2monitorActionIndexes[cidHash].push(index);

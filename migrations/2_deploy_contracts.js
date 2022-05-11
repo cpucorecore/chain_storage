@@ -19,12 +19,13 @@ const Task = artifacts.require("Task");
 
 const ChainStorage = artifacts.require("ChainStorage");
 
-module.exports = function(deployer) {
+module.exports = function(deployer, _, accounts) {
     let contracts = {};
     let contractAddrs = {};
+    const adminAccount = accounts[0];
 
     deployer
-        .then( () => {
+        .then(() => {
             return deployer.deploy(Resolver);
         })
 
@@ -45,6 +46,10 @@ module.exports = function(deployer) {
         //Setting and SettingStorage
         .then(receipt => {
             console.log('resolver.setAddress(History) receipts: ', receipt);
+            return contracts.resolver.setAddress(Web3Utils.fromAscii('Admin'), adminAccount);
+        })
+        .then(receipt => {
+            console.log('resolver.setAddress(Admin) receipts: ', receipt);
             return deployer.deploy(Setting);
         })
         .then(setting => {

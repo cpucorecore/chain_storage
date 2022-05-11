@@ -10,6 +10,8 @@ contract Task is Importable, ExternalStorable, ITask {
     event TaskIssued(address indexed node, uint256 indexed tid);
     event TaskStatusChanged(uint256 indexed tid, ITaskStorage.Status, uint256 timestamp);
 
+    bytes32[] private ISSUEABLE_CONTRACTS = [CONTRACT_NODE, CONTRACT_FILE];
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_TASK);
     }
@@ -34,7 +36,7 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().isOver(tid);
     }
 
-    function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
+    function issueTask(ITaskStorage.Action action, address owner, string calldata cid, address node, uint256 size) external containAddress(ISSUEABLE_CONTRACTS) returns (uint256) {
         uint256 tid = Storage().newTask(owner, action, cid, size, node);
         emit TaskIssued(node, tid);
         return tid;
@@ -104,7 +106,7 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getStatusAndTime(tid);
     }
 
-    function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) external {
+    function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) private {
         Storage().setStatusAndTime(tid, status, time);
     }
 
@@ -112,7 +114,7 @@ contract Task is Importable, ExternalStorable, ITask {
         return Storage().getAddFileTaskProgress(tid);
     }
 
-    function acceptTask(address node, uint256 tid) external {
+    function acceptTask(address node, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         checkTaskExist(tid);
 
         address taskNode = Storage().getNode(tid);
@@ -133,7 +135,7 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, ITaskStorage.Status.Accepted, now);
     }
 
-    function finishTask(uint256 tid) external { // TODO only Node()
+    function finishTask(uint256 tid) external onlyAddress(CONTRACT_NODE) {
         checkTaskExist(tid);
 
         ITaskStorage.Status status = Storage().getStatus(tid);
@@ -143,7 +145,7 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, ITaskStorage.Status.Finished, now);
     }
 
-    function failTask(uint256 tid) external { // TODO only Node()
+    function failTask(uint256 tid) external onlyAddress(CONTRACT_NODE) {
         checkTaskExist(tid);
 
         ITaskStorage.Action action = Storage().getAction(tid);
@@ -156,7 +158,7 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, ITaskStorage.Status.Failed, now);
     }
 
-    function acceptTaskTimeout(uint256 tid) external { // TODO only Monitor
+    function acceptTaskTimeout(uint256 tid) external onlyAddress(CONTRACT_NODE) {
         checkTaskExist(tid);
 
         ITaskStorage.Status status = Storage().getStatus(tid);
@@ -166,7 +168,7 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, ITaskStorage.Status.AcceptTimeout, now);
     }
 
-    function taskTimeout(uint256 tid) external { // TODO only Monitor
+    function taskTimeout(uint256 tid) external onlyAddress(CONTRACT_NODE) {
         checkTaskExist(tid);
 
         ITaskStorage.Status status = Storage().getStatus(tid);
@@ -176,7 +178,7 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, ITaskStorage.Status.Timeout, now);
     }
 
-    function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external { // TODO only Node
+    function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external onlyAddress(CONTRACT_NODE) { // TODO
         checkTaskExist(tid);
 
         address node = Storage().getNode(tid);
@@ -188,7 +190,7 @@ contract Task is Importable, ExternalStorable, ITask {
         Storage().setAddFileTaskProgressBySize(tid, now, size);
     }
 
-    function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external { // TODO only Node
+    function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external onlyAddress(CONTRACT_NODE) { // TODO
         checkTaskExist(tid);
 
         address node = Storage().getNode(tid);

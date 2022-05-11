@@ -8,6 +8,7 @@ import "./interfaces/storages/IMonitorStorage.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
+import "./interfaces/IHistory.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
@@ -17,7 +18,8 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         imports = [
             CONTRACT_SETTING,
             CONTRACT_USER,
-            CONTRACT_TASK
+            CONTRACT_TASK,
+            CONTRACT_HISTORY
         ];
     }
 
@@ -37,13 +39,17 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function register(address addr, string calldata ext) external {
+    function History() private view returns (IHistory) {
+        return IHistory(requireAddress(CONTRACT_HISTORY));
+    }
+
+    function register(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(false == Storage().exist(addr), contractName.concat(": monitor exist"));
         require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
         Storage().newMonitor(addr, ext);
     }
 
-    function deRegister(address addr) external {
+    function deRegister(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         require(IMonitorStorage.Status.Maintain == Storage().getStatus(addr), contractName.concat(": must maintain first"));
         Storage().deleteMonitor(addr);
@@ -53,7 +59,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return Storage().exist(addr);
     }
 
-    function online(address addr) external {
+    function online(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         IMonitorStorage.Status status = Storage().getStatus(addr);
         require(IMonitorStorage.Status.Registered == status ||
@@ -68,7 +74,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         }
     }
 
-    function maintain(address addr) external {
+    function maintain(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         IMonitorStorage.Status status = Storage().getStatus(addr);
         require(IMonitorStorage.Status.Online == status, contractName.concat(": wrong status"));
@@ -76,7 +82,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().deleteOnlineMonitor(addr);
     }
 
-    function checkTask(address addr, uint256 tid) external returns (bool) {
+    function checkTask(address addr, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) returns (bool) {
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
         require(IMonitorStorage.Status.Online == Storage().getStatus(addr), contractName.concat(": wrong status, must online"));
 
@@ -140,14 +146,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return Storage().getCurrentTid(addr);
     }
 
-    function saveCurrentTid(address addr, uint256 tid) private {
-        uint256 currentTid = Storage().getCurrentTid(addr);
-        if(tid > currentTid) {
-            Storage().setCurrentTid(addr, tid);
-        }
-    }
-
-    function resetCurrentTid(address addr, uint256 tid) external {
+    function resetCurrentTid(address addr, uint256 tid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         uint256 firstOnlineTid = Storage().getFirstOnlineTid(addr);
         if(tid<firstOnlineTid) {
             Storage().setCurrentTid(addr, firstOnlineTid);
@@ -156,13 +155,24 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         }
     }
 
-    function reportTaskAcceptTimeout(address addr, uint256 tid) private {
+    function reportTaskAcceptTimeout(address addr, uint256 tid) public onlyAddress(CONTRACT_CHAIN_STORAGE) {
         Storage().addReport(addr, tid, IMonitorStorage.ReportType.AcceptTimeout, now);
+        string memory cid = Task().getCid(tid);
+        History().addMonitorAction(addr, tid, IHistory.MonitorActionType.AcceptTimeout, keccak256(bytes(cid)));
         Node().taskAcceptTimeout(tid);
     }
 
-    function reportTaskTimeout(address addr, uint256 tid) private {
+    function reportTaskTimeout(address addr, uint256 tid) public onlyAddress(CONTRACT_CHAIN_STORAGE) {
         Storage().addReport(addr, tid, IMonitorStorage.ReportType.Timeout, now);
+        string memory cid = Task().getCid(tid);
+        History().addMonitorAction(addr, tid, IHistory.MonitorActionType.Timeout, keccak256(bytes(cid)));
         Node().taskTimeout(tid);
+    }
+
+    function saveCurrentTid(address addr, uint256 tid) private {
+        uint256 currentTid = Storage().getCurrentTid(addr);
+        if(tid > currentTid) {
+            Storage().setCurrentTid(addr, tid);
+        }
     }
 }

@@ -46,11 +46,14 @@ contract Setting is ExternalStorable, ISetting {
         Storage().setUint(INIT_SPACE, space);
     }
 
-    function getAdmin() external view returns (address) {
+    function getAdmin() public view returns (address) {
         return Storage().getAddress(ADMIN_ACCOUNT);
     }
 
     function setAdmin(address addr) external {
+        require(addr != address(0), "can not set address(0) as admin");
+        address oldAdmin = getAdmin();
+        require(oldAdmin == address(0) || msg.sender == oldAdmin || msg.sender == owner, "no auth");
         Storage().setAddress(ADMIN_ACCOUNT, addr);
     }
 

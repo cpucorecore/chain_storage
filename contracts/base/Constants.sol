@@ -11,4 +11,6 @@ contract Constants {
     bytes32 internal constant CONTRACT_NODE = 'Node';
     bytes32 internal constant CONTRACT_TASK = 'Task';
     bytes32 internal constant CONTRACT_MONITOR = 'Monitor';
+
+    bytes32 internal constant ACCOUNT_ADMIN = 'Admin';
 }
