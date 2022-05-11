@@ -10,6 +10,7 @@ import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IHistory.sol";
+import "./interfaces/IUserFileHandler.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     using SafeMath for uint256;
@@ -20,6 +21,7 @@ contract Node is Importable, ExternalStorable, INode {
             CONTRACT_SETTING,
             CONTRACT_FILE,
             CONTRACT_USER,
+            CONTRACT_USER_FILE_HANDLER,
             CONTRACT_TASK,
             CONTRACT_HISTORY
         ];
@@ -43,6 +45,10 @@ contract Node is Importable, ExternalStorable, INode {
 
     function User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
+    }
+
+    function UserFileHandler() private view returns (IUserFileHandler) {
+        return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
     }
 
     function History() private view returns (IHistory) {
@@ -189,7 +195,7 @@ contract Node is Importable, ExternalStorable, INode {
         uint256 addFileFailedCount = Storage().getAddFileFailedCount(cid).add(1);
         Storage().setAddFileFailedCount(cid, addFileFailedCount);
         if(addFileFailedCount >= maxAddFileFailedCount) {
-            User().callbackFailAddFile(owner, cid);
+            UserFileHandler().callbackFailAddFile(owner, cid);
             return;
         }
 

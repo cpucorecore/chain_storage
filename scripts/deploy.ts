@@ -35,6 +35,9 @@ async function main() {
   const User = await ethers.getContractFactory("User");
   const user = await User.deploy(resolver.address);
 
+  const UserFileHandler = await ethers.getContractFactory("UserFileHandler");
+  const userFileHandler = await UserFileHandler.deploy(resolver.address);
+
   const UserStorage = await ethers.getContractFactory("UserStorage");
   const userStorage = await UserStorage.deploy(user.address);
 
@@ -51,6 +54,7 @@ async function main() {
   await file.deployed();
   await fileStorage.deployed();
   await user.deployed();
+  await userFileHandler.deployed();
   await userStorage.deployed();
 
   console.log("Resolver deployed to:", resolver.address);
@@ -60,6 +64,7 @@ async function main() {
   console.log("File deployed to:", file.address);
   console.log("FileStorage deployed to:", fileStorage.address);
   console.log("User deployed to:", user.address);
+  console.log("UserFileHandler deployed to:", userFileHandler.address);
   console.log("UserStorage deployed to:", userStorage.address);
 }
 

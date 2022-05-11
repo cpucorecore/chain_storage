@@ -8,12 +8,14 @@ import "./interfaces/storages/IFileStorage.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/IUser.sol";
+import "./interfaces/IUserFileHandler.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
             CONTRACT_USER,
+            CONTRACT_USER_FILE_HANDLER,
             CONTRACT_NODE,
             CONTRACT_TASK
         ];
@@ -25,6 +27,10 @@ contract File is Importable, ExternalStorable, IFile {
 
     function User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
+    }
+
+    function UserFileHandler() private view returns (IUserFileHandler) {
+        return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
     }
 
     function Node() private view returns (INode) {
@@ -51,7 +57,7 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function addFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
-        User().callbackFinishAddFile(owner, node, cid);
+        UserFileHandler().callbackFinishAddFile(owner, node, cid);
         if(Storage().exist(cid)) {
             if(!nodeExist(cid, node)) {
                 Storage().addNode(cid, node);
@@ -79,7 +85,7 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function deleteFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
-        User().callbackFinishDeleteFile(owner, node, cid);
+        UserFileHandler().callbackFinishDeleteFile(owner, node, cid);
         if(Storage().nodeExist(cid, node)) {
             Storage().deleteNode(cid, node);
         }
