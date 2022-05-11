@@ -5,7 +5,7 @@ import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
 contract TaskStorage is ExternalStorage, ITaskStorage {
-    uint256 private tid;
+    uint256 private currentTid;
     mapping(uint256=>TaskItem) private tid2taskItem;
     mapping(uint256=>TaskState) private tid2taskState;
     mapping(uint256=>AddFileTaskProgress) private tid2addFileProgress;
@@ -18,7 +18,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     }
 
     function getCurrentTid() external view returns (uint256) {
-        return tid;
+        return currentTid;
     }
 
     function getNodeMaxTid(address addr) external view returns (uint256) {
@@ -43,17 +43,17 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         uint256 size,
         address node
     ) external onlyManager(managerName) returns (uint256) {
-        tid = tid.add(1);
+        currentTid = currentTid.add(1);
 
-        tid2taskItem[tid] = TaskItem(owner, action, node, size, cid, true);
-        tid2taskState[tid] = TaskState(ITaskStorage.Status.Created, block.number, now, 0, 0, 0, 0, 0, true);
+        tid2taskItem[currentTid] = TaskItem(owner, action, node, size, cid, true);
+        tid2taskState[currentTid] = TaskState(ITaskStorage.Status.Created, block.number, now, 0, 0, 0, 0, 0, true);
         if(ITaskStorage.Action.Add == action) {
-            tid2addFileProgress[tid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
+            tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
         }
 
-        node2nodeMaxTid[node] = tid;
+        node2nodeMaxTid[node] = currentTid;
 
-        return tid;
+        return currentTid;
     }
 
     function getTask(uint256 tid) external view returns (address, Action, address, uint256, string memory) {

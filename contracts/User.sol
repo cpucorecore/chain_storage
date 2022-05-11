@@ -96,7 +96,6 @@ contract User is Importable, ExternalStorable, IUser {
 
     function callbackFinishAddFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
         if(!File().ownerExist(cid, owner)) {
-            uint256 size = File().getSize(cid);
             emit FileAdded(owner, cid);
         }
     }
@@ -121,7 +120,6 @@ contract User is Importable, ExternalStorable, IUser {
     }
 
     function callbackFinishDeleteFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
-        uint256 size = File().getSize(cid);
         emit FileDeleted(owner, cid);
     }
 
@@ -163,7 +161,6 @@ contract User is Importable, ExternalStorable, IUser {
 
     function freeStorage(address addr, uint256 size) private {
         uint256 used = Storage().getStorageUsed(addr);
-        uint256 total = Storage().getStorageTotal(addr);
         require(size > 0 && size <= used, contractName.concat(": free size can not big than used size"));
         Storage().setStorageUsed(addr, used.sub(size));
     }

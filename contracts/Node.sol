@@ -297,7 +297,7 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().setOfflineCount(addr, offlineCount.add(1));
     }
 
-    function selectNodes(uint256 size, uint256 count) private returns (address[] memory) {
+    function selectNodes(uint256 size, uint256 count) private view returns (address[] memory) {
         address[] memory onlineNodeAddresses;
         bool finish;
         (onlineNodeAddresses, finish) = Storage().getAllOnlineNodeAddresses(50, 1);

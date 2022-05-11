@@ -202,7 +202,7 @@ contract Task is Importable, ExternalStorable, ITask {
         Storage().setAddFileTaskProgressByPercentage(tid, now, percentage);
     }
 
-    function checkTaskExist(uint256 tid) private {
+    function checkTaskExist(uint256 tid) private view {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
     }
 }
