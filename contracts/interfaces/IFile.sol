@@ -1,9 +1,6 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../lib/Paging.sol";
-import "./storages/IFileStorage.sol";
-
 interface IFile {
     function exist(string calldata cid) external view returns (bool);
 

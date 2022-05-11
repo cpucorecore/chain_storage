@@ -2,7 +2,6 @@ pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "../../lib/SafeMath.sol";
-import "../../lib/Paging.sol";
 
 interface INodeStorage {
     using SafeMath for uint256;

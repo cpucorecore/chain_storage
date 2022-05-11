@@ -3,8 +3,9 @@ pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
-import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/IUser.sol";
+import "./lib/SafeMath.sol";
+import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IHistory.sol";
@@ -25,7 +26,7 @@ contract User is Importable, ExternalStorable, IUser {
         ];
     }
 
-    function Storage() private view returns(IUserStorage) {
+    function Storage() private view returns (IUserStorage) {
         return IUserStorage(getStorage());
     }
 
@@ -41,10 +42,6 @@ contract User is Importable, ExternalStorable, IUser {
         return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
-    function exist(address addr) external view returns (bool) {
-        return Storage().exist(addr);
-    }
-
     function register(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(!Storage().exist(addr), contractName.concat(": user exist"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": user ext too long"));
@@ -57,10 +54,6 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().deleteUser(addr);
     }
 
-    function getExt(address addr) external view returns (string memory) {
-        return Storage().getExt(addr);
-    }
-
     function setExt(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": user ext too long"));
@@ -71,14 +64,6 @@ contract User is Importable, ExternalStorable, IUser {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(size >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used"));
         Storage().setStorageTotal(addr, size);
-    }
-
-    function getStorageUsed(address addr) external view returns (uint256) {
-        return Storage().getStorageUsed(addr);
-    }
-
-    function getStorageTotal(address addr) external view returns (uint256) {
-        return Storage().getStorageTotal(addr);
     }
 
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
@@ -123,10 +108,6 @@ contract User is Importable, ExternalStorable, IUser {
         emit FileDeleted(owner, cid);
     }
 
-    function getFileExt(address addr, string calldata cid) external view returns (string memory) {
-        return Storage().getFileExt(addr, cid);
-    }
-
     function setFileExt(address addr, string calldata cid, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(Storage().fileExist(addr, cid), contractName.concat(": user have no the file"));
@@ -134,22 +115,10 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().setFileExt(addr, cid, ext);
     }
 
-    function getFileDuration(address addr, string calldata cid) external view returns (uint256) {
-        return Storage().getFileDuration(addr, cid);
-    }
-
     function setFileDuration(address addr, string calldata cid, uint256 duration) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
         require(Storage().exist(addr), contractName.concat(": user not exist"));
         require(Storage().fileExist(addr, cid), contractName.concat(": user have no the file"));
         Storage().setFileDuration(addr, cid, duration);
-    }
-
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) external view returns(string[] memory, bool) {
-        return Storage().getCids(addr, pageSize, pageNumber);
-    }
-
-    function getTotalUserNumber() external view returns (uint256) {
-        return Storage().getTotalUserNumber();
     }
 
     function useStorage(address addr, uint256 size) private {

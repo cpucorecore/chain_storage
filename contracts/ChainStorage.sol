@@ -3,14 +3,13 @@ pragma solidity ^0.5.2;
 import "./base/Importable.sol";
 import "./base/Pausable.sol";
 import "./base/Proxyable.sol";
-import "./interfaces/IChainStorage.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/ITask.sol";
 
-contract ChainStorage is Proxyable, Pausable, Importable, IChainStorage {
+contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
 
     function initialize(IResolver _resolver) external onlyOwner {

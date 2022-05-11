@@ -1,33 +1,7 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "./INodeStorage.sol";
-import "../../lib/EnumerableSet.sol";
-
 interface IUserStorage {
-    using EnumerableSet for EnumerableSet.Bytes32Set;
-
-    struct FileItem {
-        string cid;
-        uint256 createTime;
-        uint256 duration;
-        string ext;
-        bool exist;
-    }
-
-    struct StorageInfo {
-        uint256 total;
-        uint256 used;
-    }
-
-    struct UserItem {
-        StorageInfo storageInfo;
-        EnumerableSet.Bytes32Set cidHashes;
-        uint256 invalidAddFileCount;
-        string ext;
-        bool exist;
-    }
-
     function exist(address addr) external view returns (bool);
     function newUser(address addr, uint256 storageTotal, string calldata ext) external;
     function deleteUser(address addr) external;

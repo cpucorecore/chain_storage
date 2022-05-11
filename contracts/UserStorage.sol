@@ -4,9 +4,31 @@ pragma experimental ABIEncoderV2;
 import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./lib/EnumerableSet.sol";
+import "./lib/Paging.sol";
 
 contract UserStorage is ExternalStorage, IUserStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
+
+    struct FileItem {
+        string cid;
+        uint256 createTime;
+        uint256 duration;
+        string ext;
+        bool exist;
+    }
+
+    struct StorageInfo {
+        uint256 total;
+        uint256 used;
+    }
+
+    struct UserItem {
+        StorageInfo storageInfo;
+        EnumerableSet.Bytes32Set cidHashes;
+        uint256 invalidAddFileCount;
+        string ext;
+        bool exist;
+    }
 
     mapping(address=>UserItem) private users;
     mapping(address=>mapping(bytes32=>FileItem)) files;

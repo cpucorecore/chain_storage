@@ -1,7 +1,6 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../lib/Paging.sol";
 import "./storages/INodeStorage.sol";
 
 interface INode {
