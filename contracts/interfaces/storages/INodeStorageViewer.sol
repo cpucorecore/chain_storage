@@ -7,7 +7,7 @@ interface INodeStorageViewer {
     function isNodeOnline(address addr) external view returns (bool);
 
     function getServiceInfo(address addr) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256);
-    function getStorageSpaceInfo(address addr) external view returns (uint256, uint256); // (used, total)
+    function getStorageInfo(address addr) external view returns (uint256, uint256); // (used, total)
 
     function getMaxFinishedTid(address addr) external view returns (uint256);
 
