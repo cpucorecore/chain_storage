@@ -1,11 +1,7 @@
 pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
-import "../../lib/SafeMath.sol";
-
 interface INodeStorage {
-    using SafeMath for uint256;
-
     enum Status {
         Default,
         Registered,
@@ -82,8 +78,6 @@ interface INodeStorage {
     function setStorageTotal(address addr, uint256 value) external;
 
     function getStorageUsed(address addr) external view returns (uint256);
-    function useStorage(address node, uint256 size) external;
-    function freeStorage(address node, uint256 size) external;
 
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;

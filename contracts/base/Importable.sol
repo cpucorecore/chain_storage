@@ -13,9 +13,8 @@ contract Importable is Ownable {
         resolver = _resolver;
     }
 
-    modifier onlyAddress(bytes32 name) {
+    function mustAddress(bytes32 name) public {
         require(msg.sender == _cache[name], contractName.concat(': caller is not the ', name));
-        _;
     }
 
     modifier containAddress(bytes32[] memory names) {
@@ -30,6 +29,19 @@ contract Importable is Ownable {
         }
         require(contain, contractName.concat(': caller is not in contains'));
         _;
+    }
+
+    function mustContainAddress(bytes32[] memory names) public {
+        require(names.length < 20, contractName.concat(': cannot have more than 20 items'));
+
+        bool contain = false;
+        for (uint256 i = 0; i < names.length; i++) {
+            if (msg.sender == _cache[names[i]]) {
+                contain = true;
+                break;
+            }
+        }
+        require(contain, contractName.concat(': caller is not in contains'));
     }
 
     modifier containAddressOrOwner(bytes32[] memory names) {

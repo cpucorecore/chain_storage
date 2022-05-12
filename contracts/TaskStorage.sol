@@ -28,17 +28,17 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
     function isOver(uint256 tid) external view returns (bool) {
         bool over = false;
 
-        if(Action.Add == tid2taskItem[tid].action) {
-            over = !(Status.Created == tid2taskState[tid].status || Status.Accepted == tid2taskState[tid].status);
+        if(Add == tid2taskItem[tid].action) {
+            over = !(TaskCreated == tid2taskState[tid].status || TaskAccepted == tid2taskState[tid].status);
         } else {
-            over = (Status.Finished == tid2taskState[tid].status);
+            over = (TaskFinished == tid2taskState[tid].status);
         }
         return over;
     }
 
     function newTask(
         address owner,
-        Action action,
+        uint8 action,
         string calldata cid,
         uint256 size,
         address node
@@ -46,8 +46,8 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         currentTid = currentTid.add(1);
 
         tid2taskItem[currentTid] = TaskItem(owner, action, node, size, cid, true);
-        tid2taskState[currentTid] = TaskState(ITaskStorage.Status.Created, block.number, now, 0, 0, 0, 0, 0, true);
-        if(ITaskStorage.Action.Add == action) {
+        tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0, true);
+        if(Add == action) {
             tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
         }
 
@@ -56,7 +56,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return currentTid;
     }
 
-    function getTask(uint256 tid) external view returns (address, Action, address, uint256, string memory) {
+    function getTask(uint256 tid) external view returns (address, uint8, address, uint256, string memory) {
         TaskItem storage task = tid2taskItem[tid];
         return (task.owner, task.action, task.node, task.size, task.cid);
     }
@@ -65,7 +65,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid].owner;
     }
 
-    function getAction(uint256 tid) external view returns (Action) {
+    function getAction(uint256 tid) external view returns (uint8) {
         return tid2taskItem[tid].action;
     }
 
@@ -81,7 +81,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid].cid;
     }
 
-    function getTaskState(uint256 tid) external view returns (Status, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function getTaskState(uint256 tid) external view returns (uint8, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         TaskState storage state = tid2taskState[tid];
         return (state.status,
                 state.createBlockNumber,
@@ -93,7 +93,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
                 state.timeoutTime);
     }
 
-    function getStatus(uint256 tid) external view returns (Status) {
+    function getStatus(uint256 tid) external view returns (uint8) {
         return tid2taskState[tid].status;
     }
 
@@ -125,36 +125,36 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskState[tid].timeoutTime;
     }
 
-    function getStatusAndTime(uint256 tid) external view returns (Status, uint256) {
+    function getStatusAndTime(uint256 tid) external view returns (uint8, uint256) {
         uint256 time = 0;
-        Status status = tid2taskState[tid].status;
-        if(ITaskStorage.Status.Created == status) {
+        uint8 status = tid2taskState[tid].status;
+        if(TaskCreated == status) {
             time = tid2taskState[tid].createTime;
-        } else if(ITaskStorage.Status.Accepted == status) {
+        } else if(TaskAccepted == status) {
             time = tid2taskState[tid].acceptTime;
-        } else if(ITaskStorage.Status.AcceptTimeout == status) {
+        } else if(TaskAcceptTimeout == status) {
             time = tid2taskState[tid].acceptTimeoutTime;
-        } else if(ITaskStorage.Status.Finished == status) {
+        } else if(TaskFinished == status) {
             time = tid2taskState[tid].finishTime;
-        } else if(ITaskStorage.Status.Failed == status) {
+        } else if(TaskFailed == status) {
             time = tid2taskState[tid].failTime;
-        } else if(ITaskStorage.Status.Timeout == status) {
+        } else if(TaskTimeout == status) {
             time = tid2taskState[tid].timeoutTime;
         }
         return (status, time);
     }
 
-    function setStatusAndTime(uint256 tid, ITaskStorage.Status status, uint256 time) external onlyManager(managerName) {
+    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external onlyManager(managerName) {
         tid2taskState[tid].status = status;
-        if(ITaskStorage.Status.Accepted == status) {
+        if(TaskAccepted == status) {
             tid2taskState[tid].acceptTime = time;
-        } else if(ITaskStorage.Status.AcceptTimeout == status) {
+        } else if(TaskAcceptTimeout == status) {
             tid2taskState[tid].acceptTimeoutTime = time;
-        } else if(ITaskStorage.Status.Finished == status) {
+        } else if(TaskFinished == status) {
             tid2taskState[tid].finishTime = time;
-        } else if(ITaskStorage.Status.Failed == status) {
+        } else if(TaskFailed == status) {
             tid2taskState[tid].failTime = time;
-        } else if(ITaskStorage.Status.Timeout == status) {
+        } else if(TaskTimeout == status) {
             tid2taskState[tid].timeoutTime = time;
         }
     }

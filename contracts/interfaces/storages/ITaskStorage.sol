@@ -1,24 +1,9 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 interface ITaskStorage {
-    enum Status {
-        Created,
-        Accepted,
-        AcceptTimeout,
-        Finished,
-        Failed,
-        Timeout
-    }
-
-    enum Action {
-        Add,
-        Delete
-    }
-
     struct TaskItem {
         address owner;
-        Action action;
+        uint8 action;
         address node;
         uint256 size;
         string cid;
@@ -26,7 +11,7 @@ interface ITaskStorage {
     }
 
     struct TaskState {
-        Status status;
+        uint8 status;
         uint256 createBlockNumber;
         uint256 createTime;
         uint256 acceptTime;
@@ -54,21 +39,21 @@ interface ITaskStorage {
 
     function newTask(
         address owner,
-        Action action,
+        uint8 action,
         string calldata cid,
         uint256 size,
         address node
     ) external returns (uint256);
 
-    function getTask(uint256 tid) external view returns (address, Action, address, uint256, string memory);
+    function getTask(uint256 tid) external view returns (address, uint8, address, uint256, string memory);
     function getOwner(uint256 tid) external view returns (address);
-    function getAction(uint256 tid) external view returns (Action);
+    function getAction(uint256 tid) external view returns (uint8);
     function getNode(uint256 tid) external view returns (address);
     function getSize(uint256 tid) external view returns (uint256);
     function getCid(uint256 tid) external view returns (string memory);
 
-    function getTaskState(uint256 tid) external view returns (Status, uint256, uint256, uint256, uint256, uint256, uint256, uint256);
-    function getStatus(uint256 tid) external view returns (Status);
+    function getTaskState(uint256 tid) external view returns (uint8, uint256, uint256, uint256, uint256, uint256, uint256, uint256);
+    function getStatus(uint256 tid) external view returns (uint8);
     function getCreateBlockNumber(uint256 tid) external view returns (uint256);
     function getCreateTime(uint256 tid) external view returns (uint256);
     function getAcceptTime(uint256 tid) external view returns (uint256);
@@ -77,8 +62,8 @@ interface ITaskStorage {
     function getFailTime(uint256 tid) external view returns (uint256);
     function getTimeoutTime(uint256 tid) external view returns (uint256);
 
-    function getStatusAndTime(uint256 tid) external view returns (Status, uint256);
-    function setStatusAndTime(uint256 tid, Status status, uint256 time) external;
+    function getStatusAndTime(uint256 tid) external view returns (uint8, uint256);
+    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external;
 
     function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
     function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external;

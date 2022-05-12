@@ -7,9 +7,8 @@ contract Pausable is Ownable {
 
     event PauseChanged(bool indexed previousValue, bool indexed newValue);
 
-    modifier notPaused() {
+    function mustNotPaused() public {
         require(!paused, contractName.concat(': paused'));
-        _;
     }
 
     constructor() internal {

@@ -5,8 +5,9 @@ import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/storages/INodeStorage.sol";
-import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
+import "./lib/SafeMath.sol";
+import "./interfaces/storages/ITaskStorage.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     using SafeMath for uint256;
@@ -15,7 +16,7 @@ contract Node is Importable, ExternalStorable, INode {
         setContractName(CONTRACT_NODE);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_TASK
+            CONTRACT_TASK_STORAGE
         ];
     }
 
@@ -27,11 +28,12 @@ contract Node is Importable, ExternalStorable, INode {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
-    function Task() private view returns (ITask) {
-        return ITask(requireAddress(CONTRACT_TASK));
+    function TaskStorage() private view returns (ITaskStorage) {
+        return ITaskStorage(requireAddress(CONTRACT_TASK_STORAGE));
     }
 
-    function register(address addr, uint256 space, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function register(address addr, uint256 space, string calldata ext) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         require(!Storage().exist(addr), contractName.concat(": node exist"));
         require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": ext too long"));
         require(space > 0, contractName.concat(": space must > 0"));
@@ -39,7 +41,8 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().newNode(addr, space, ext);
     }
 
-    function deRegister(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function deRegister(address addr) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
         require(0 == Storage().getNodeCidsNumber(addr), contractName.concat(": files not empty"));
         INodeStorage.Status status = Storage().getStatus(addr);
@@ -50,19 +53,22 @@ contract Node is Importable, ExternalStorable, INode {
         Storage().deleteNode(addr);
     }
 
-    function setExt(address addr, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function setExt(address addr, string calldata ext) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
         require(bytes(ext).length <= Setting().getMaxNodeExtLength(), contractName.concat(": node ext too long"));
         Storage().setExt(addr, ext);
     }
 
-    function changeSpace(address addr, uint256 space) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function changeSpace(address addr, uint256 space) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
         require(space >= Storage().getStorageUsed(addr), contractName.concat(": can not little than storage used"));
         Storage().setStorageTotal(addr, space);
     }
 
-    function online(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function online(address addr) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
 
         INodeStorage.Status status = Storage().getStatus(addr);
@@ -72,7 +78,7 @@ contract Node is Importable, ExternalStorable, INode {
             contractName.concat(": wrong status"));
 
         uint256 maxFinishedTid = Storage().getMaxFinishedTid(addr);
-        uint256 nodeMaxTid = Task().getNodeMaxTid(addr);
+        uint256 nodeMaxTid = TaskStorage().getNodeMaxTid(addr);
         require(nodeMaxTid == maxFinishedTid, contractName.concat(": must finish all task"));
 
         Storage().setStatus(addr, INodeStorage.Status.Online);
@@ -81,7 +87,8 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function maintain(address addr) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function maintain(address addr) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
 
         INodeStorage.Status status = Storage().getStatus(addr);

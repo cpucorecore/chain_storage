@@ -50,6 +50,12 @@ async function main() {
   const NodeStorage = await ethers.getContractFactory("NodeStorage");
   const nodeStorage = await NodeStorage.deploy(node.address);
 
+  const Task = await ethers.getContractFactory("Task");
+  const task = await Task.deploy(resolver.address);
+
+  const TaskStorage = await ethers.getContractFactory("TaskStorage");
+  const taskStorage = await TaskStorage.deploy(task.address);
+
   await resolver.deployed();
   await setting.deployed();
   await settingStorage.deployed();
@@ -59,6 +65,8 @@ async function main() {
   await user.deployed();
   await userFileHandler.deployed();
   await userStorage.deployed();
+  await nodeFileHandler.deployed();
+  await nodeStorage.deployed();
 
   console.log("Resolver deployed to:", resolver.address);
   console.log("Setting deployed to:", setting.address);
@@ -68,7 +76,8 @@ async function main() {
   console.log("FileStorage deployed to:", fileStorage.address);
   console.log("User deployed to:", user.address);
   console.log("UserFileHandler deployed to:", userFileHandler.address);
-  console.log("UserStorage deployed to:", userStorage.address);
+  console.log("NodeFileHandler deployed to:", nodeFileHandler.address);
+  console.log("NodeStorage deployed to:", nodeStorage.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

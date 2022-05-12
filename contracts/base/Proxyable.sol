@@ -5,9 +5,8 @@ import './Ownable.sol';
 contract Proxyable is Ownable {
     bool private _initialized;
 
-    modifier onlyInitialized() {
+    function mustInitialized() public {
         require(_initialized, contractName.concat(': contract uninitialized'));
-        _;
     }
 
     function setInitialized() internal {

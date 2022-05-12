@@ -36,7 +36,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodeAddrs.add(node);
     }
 
-    function deleteNode(address addr) public onlyManager(managerName) {
+    function deleteNode(address addr) external onlyManager(managerName) {
         require(nodes[addr].exist, contractName.concat(": node not exist"));
 
         delete nodes[addr];
@@ -160,16 +160,6 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function getStorageUsed(address addr) external view returns (uint256) {
         return nodes[addr].storageInfo.used;
-    }
-
-    function useStorage(address addr, uint256 size) external onlyManager(managerName) {
-        require(nodes[addr].storageInfo.used.add(size) <= nodes[addr].storageInfo.total, contractName.concat(": space not enough"));
-        nodes[addr].storageInfo.used = nodes[addr].storageInfo.used.add(size);
-    }
-
-    function freeStorage(address addr, uint256 size) external onlyManager(managerName) {
-        require(size <= nodes[addr].storageInfo.used, contractName.concat("free size can not big than used size"));
-        nodes[addr].storageInfo.used = nodes[addr].storageInfo.used.sub(size);
     }
 
     function getExt(address addr) external view returns (string memory) {

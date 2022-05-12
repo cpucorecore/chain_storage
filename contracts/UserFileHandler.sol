@@ -41,7 +41,8 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
-    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         require(size > 0, contractName.concat(": size must > 0"));
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), contractName.concat(": file ext too long"));
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
@@ -54,13 +55,15 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         useStorage(addr, size);
     }
 
-    function callbackFinishAddFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
+    function callbackFinishAddFile(address owner, address node, string calldata cid) external {
+        mustAddress(CONTRACT_FILE);
         if(!File().ownerExist(cid, owner)) {
             emit FileAdded(owner, cid);
         }
     }
 
-    function callbackFailAddFile(address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
+    function callbackFailAddFile(address owner, string calldata cid) external {
+        mustAddress(CONTRACT_NODE);
         if(!File().ownerExist(cid, owner)) {
             uint256 invalidAddFileCount = Storage().getInvalidAddFileCount(owner);
             Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
@@ -68,7 +71,8 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         }
     }
 
-    function deleteFile(address addr, string calldata cid) external onlyAddress(CONTRACT_CHAIN_STORAGE) {
+    function deleteFile(address addr, string calldata cid) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
@@ -79,7 +83,8 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         File().deleteFile(cid, addr);
     }
 
-    function callbackFinishDeleteFile(address owner, address node, string calldata cid) external onlyAddress(CONTRACT_FILE) {
+    function callbackFinishDeleteFile(address owner, address node, string calldata cid) external {
+        mustAddress(CONTRACT_FILE);
         emit FileDeleted(owner, cid);
     }
 

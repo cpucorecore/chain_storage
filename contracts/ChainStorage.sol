@@ -1,15 +1,14 @@
 pragma solidity ^0.5.2;
 
-import "./base/Importable.sol";
-import "./base/Pausable.sol";
 import "./base/Proxyable.sol";
+import "./base/Pausable.sol";
+import "./base/Importable.sol";
 import "./interfaces/IUser.sol";
-import "./interfaces/INode.sol";
-import "./interfaces/IMonitor.sol";
-import "./interfaces/ISetting.sol";
-import "./interfaces/ITask.sol";
 import "./interfaces/IUserFileHandler.sol";
+import "./interfaces/INode.sol";
 import "./interfaces/INodeFileHandler.sol";
+import "./interfaces/IMonitor.sol";
+import "./interfaces/ITask.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
@@ -27,10 +26,6 @@ contract ChainStorage is Proxyable, Pausable, Importable {
             CONTRACT_TASK,
             CONTRACT_MONITOR
         ];
-    }
-
-    function Setting() private view returns (ISetting) {
-        return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
     function User() private view returns (IUser) {
@@ -57,84 +52,115 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function userRegister(string calldata ext) external onlyInitialized notPaused {
+    function userRegister(string calldata ext) external {
+        mustInitialized();
+        mustNotPaused();
         User().register(msg.sender, ext);
     }
 
-    function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external onlyInitialized notPaused {
+    function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+        mustInitialized();
+        mustNotPaused();
         UserFileHandler().addFile(msg.sender, cid, size, duration, ext);
     }
 
-    function userDeleteFile(string calldata cid) external onlyInitialized notPaused {
+    function userDeleteFile(string calldata cid) external {
+        mustInitialized();
+        mustNotPaused();
         UserFileHandler().deleteFile(msg.sender, cid);
     }
 
-    function userSetExt(string calldata ext) external onlyInitialized notPaused {
+    function userSetExt(string calldata ext) external {
+        mustInitialized();
+        mustNotPaused();
         User().setExt(msg.sender, ext);
     }
 
     function userSetFileExt(string calldata cid, string calldata ext) external {
+        mustInitialized();
         User().setFileExt(msg.sender, cid, ext);
     }
 
     function userSetFileDuration(string calldata cid, uint256 duration) external {
+        mustInitialized();
         User().setFileDuration(msg.sender, cid, duration);
     }
 
-    function changeUserSpace(address addr, uint256 space) external onlyInitialized notPaused onlyAddress(ACCOUNT_ADMIN) {
+    function changeUserSpace(address addr, uint256 space) external {
+        mustInitialized();
+        mustNotPaused();
+        mustAddress(ACCOUNT_ADMIN);
         User().changeSpace(addr, space);
     }
 
-    function nodeRegister(uint256 space, string calldata ext) external onlyInitialized notPaused {
+    function nodeRegister(uint256 space, string calldata ext) external {
+        mustInitialized();
+        mustNotPaused();
         Node().register(msg.sender, space, ext);
     }
 
     function nodeSetExt(string calldata ext) external {
+        mustInitialized();
         Node().setExt(msg.sender, ext);
     }
 
-    function nodeOnline() external onlyInitialized notPaused {
+    function nodeOnline() external {
+        mustInitialized();
+        mustNotPaused();
         Node().online(msg.sender);
     }
 
-    function nodeMaintain() external onlyInitialized notPaused {
+    function nodeMaintain() external {
+        mustInitialized();
+        mustNotPaused();
         Node().maintain(msg.sender);
     }
 
-    function nodeAcceptTask(uint256 tid) external onlyInitialized notPaused {
+    function nodeAcceptTask(uint256 tid) external {
+        mustInitialized();
+        mustNotPaused();
         Task().acceptTask(msg.sender, tid);
     }
 
-    function nodeFinishTask(uint256 tid) external onlyInitialized notPaused {
+    function nodeFinishTask(uint256 tid) external {
+        mustInitialized();
+        mustNotPaused();
         NodeFileHandler().finishTask(msg.sender, tid);
     }
 
-    function nodeFailTask(uint256 tid) external onlyInitialized notPaused {
+    function nodeFailTask(uint256 tid) external {
+        mustInitialized();
+        mustNotPaused();
         NodeFileHandler().failTask(msg.sender, tid);
     }
 
-    function changeNodeSpace(uint256 space) external onlyInitialized notPaused {
+    function changeNodeSpace(uint256 space) external {
+        mustInitialized();
+        mustNotPaused();
         Node().changeSpace(msg.sender, space);
     }
 
-    function monitorRegister(string calldata ext) external onlyInitialized notPaused {
-        require(bytes(ext).length <= Setting().getMaxMonitorExtLength(), contractName.concat(": ext too long"));
+    function monitorRegister(string calldata ext) external {
+        mustInitialized();
+        mustNotPaused();
         Monitor().register(msg.sender, ext);
     }
 
-    function monitorOnline() external onlyInitialized notPaused {
+    function monitorOnline() external {
+        mustInitialized();
+        mustNotPaused();
         Monitor().online(msg.sender);
     }
 
-    function monitorMaintain() external onlyInitialized notPaused {
+    function monitorMaintain() external {
+        mustInitialized();
+        mustNotPaused();
         Monitor().maintain(msg.sender);
     }
 
-    function monitorCheckTask(uint256 tid) external onlyInitialized notPaused returns (bool) {
-        return Monitor().checkTask(msg.sender, tid);
-    }
-
-    function monitorResetCurrentTid(uint256 tid) external onlyInitialized notPaused {
+    function monitorResetCurrentTid(uint256 tid) external {
+        mustInitialized();
+        mustNotPaused();
         Monitor().resetCurrentTid(msg.sender, tid);
     }
 }

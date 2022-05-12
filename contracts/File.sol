@@ -51,7 +51,8 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
-    function addFile(string calldata cid, uint256 size, address owner) external onlyAddress(CONTRACT_USER) {
+    function addFile(string calldata cid, uint256 size, address owner) external {
+        mustAddress(CONTRACT_USER);
         if(!Storage().exist(cid)) {
             Storage().newFile(cid, size);
             NodeFileHandler().addFile(owner, cid, size);
@@ -62,18 +63,20 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function addFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
+    function addFileCallback(address node, address owner, string calldata cid) external {
+        mustAddress(CONTRACT_NODE);
         UserFileHandler().callbackFinishAddFile(owner, node, cid);
         if(Storage().exist(cid)) {
             if(!nodeExist(cid, node)) {
                 Storage().addNode(cid, node);
             }
         } else {
-            Task().issueTask(ITaskStorage.Action.Delete, owner, cid, node, Storage().getSize(cid));
+            Task().issueTask(Delete, owner, cid, node, Storage().getSize(cid));
         }
     }
 
-    function deleteFile(string calldata cid, address owner) external onlyAddress(CONTRACT_USER) {
+    function deleteFile(string calldata cid, address owner) external {
+        mustAddress(CONTRACT_USER);
         if(Storage().ownerExist(cid, owner)) {
             Storage().deleteOwner(cid, owner);
         }
@@ -84,13 +87,14 @@ contract File is Importable, ExternalStorable, IFile {
             } else {
                 address[] memory nodes = Storage().getNodes(cid);
                 for(uint i=0; i<nodes.length; i++) {
-                    Task().issueTask(ITaskStorage.Action.Delete, owner, cid, nodes[i], Storage().getSize(cid));
+                    Task().issueTask(Delete, owner, cid, nodes[i], Storage().getSize(cid));
                 }
             }
         }
     }
 
-    function deleteFileCallback(address node, address owner, string calldata cid) external onlyAddress(CONTRACT_NODE) {
+    function deleteFileCallback(address node, address owner, string calldata cid) external {
+        mustAddress(CONTRACT_NODE);
         UserFileHandler().callbackFinishDeleteFile(owner, node, cid);
         if(Storage().nodeExist(cid, node)) {
             Storage().deleteNode(cid, node);

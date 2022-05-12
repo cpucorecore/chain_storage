@@ -14,5 +14,37 @@ contract Constants {
     bytes32 internal constant CONTRACT_TASK = 'Task';
     bytes32 internal constant CONTRACT_MONITOR = 'Monitor';
 
+    bytes32 internal constant CONTRACT_TASK_STORAGE = 'TaskStorage';
+
     bytes32 internal constant ACCOUNT_ADMIN = 'Admin';
+
+    // user action
+    uint8 constant Add = 0;
+    uint8 constant Delete = 1;
+
+    // monitor report type
+    uint8 constant ReportTimeout = 0;
+    uint8 constant ReportAcceptTimeout = 1;
+
+    // default status
+    uint8 constant DefaultStatus = 0;
+
+    // task status
+    uint8 constant TaskCreated = 1;
+    uint8 constant TaskAccepted = 2;
+    uint8 constant TaskAcceptTimeout = 3;
+    uint8 constant TaskFinished = 4;
+    uint8 constant TaskFailed = 5;
+    uint8 constant TaskTimeout = 6;
+
+    // node status
+    uint8 constant NodeRegistered = 1;
+    uint8 constant NodeOnline = 2;
+    uint8 constant NodeMaintain = 3;
+    uint8 constant NodeOffline = 4;
+
+    // monitor status
+    uint8 constant MonitorRegistered = 1;
+    uint8 constant MonitorOnline = 2;
+    uint8 constant MonitorMaintain = 3;
 }

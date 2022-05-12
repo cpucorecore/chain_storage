@@ -19,7 +19,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function newMonitor(address addr, string calldata ext) external onlyManager(managerName) {
-        monitors[addr] = MonitorItem(Status.Registered, 0, 0, ext, true);
+        monitors[addr] = MonitorItem(MonitorRegistered, 0, 0, ext, true);
         monitorAddrs.add(addr);
     }
 
@@ -32,7 +32,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].exist;
     }
 
-    function getMonitor(address addr) external view returns (Status, uint256, uint256, string memory) {
+    function getMonitor(address addr) external view returns (uint8, uint256, uint256, string memory) {
         MonitorItem storage monitor = monitors[addr];
         return (monitor.status, monitor.firstOnlineTid, monitor.currentTid, monitor.ext);
     }
@@ -53,11 +53,11 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         monitors[addr].firstOnlineTid = tid;
     }
 
-    function getStatus(address addr) external view returns (Status) {
+    function getStatus(address addr) external view returns (uint8) {
         return monitors[addr].status;
     }
 
-    function setStatus(address addr, Status status) external onlyManager(managerName) {
+    function setStatus(address addr, uint8 status) external onlyManager(managerName) {
         monitors[addr].status = status;
     }
 
@@ -89,7 +89,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addReport(address addr, uint256 tid, ReportType reportType, uint256 timestamp) external onlyManager(managerName) {
+    function addReport(address addr, uint256 tid, uint8 reportType, uint256 timestamp) external onlyManager(managerName) {
         uint256 index = monitor2reports[addr].push(Report(tid, reportType, timestamp));
         monitor2rid[addr] = index;
     }
@@ -98,7 +98,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitor2rid[addr];
     }
 
-    function getReport(address addr, uint256 index) external view returns (uint256, ReportType, uint256) {
+    function getReport(address addr, uint256 index) external view returns (uint256, uint8, uint256) {
         Report storage report = monitor2reports[addr][index];
         return (report.tid, report.reportType, report.timestamp);
     }
