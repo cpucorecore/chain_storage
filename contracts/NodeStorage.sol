@@ -3,12 +3,33 @@ pragma experimental ABIEncoderV2;
 
 import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/INodeStorage.sol";
+import "./interfaces/storages/INodeStorageViewer.sol";
 import "./lib/EnumerableSet.sol";
 import "./lib/Paging.sol";
 
-contract NodeStorage is ExternalStorage, INodeStorage {
+contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    struct ServiceInfo {
+        uint256 maintainCount;
+        uint256 offlineCount;
+        uint256 taskAddFileFinishCount;
+        uint256 taskAddFileFailCount;
+        uint256 taskDeleteFileFinishCount;
+        uint256 taskAcceptTimeoutCount;
+        uint256 taskTimeoutCount;
+    }
+
+    struct NodeItem {
+        uint8 status;
+        ServiceInfo serviceInfo;
+        uint256 maxFinishedTid;
+        uint256 storageUsed;
+        uint256 storageTotal;
+        string ext;
+        bool exist;
+    }
 
     mapping(address=>NodeItem) private nodes;
     EnumerableSet.AddressSet private nodeAddrs;
@@ -25,18 +46,21 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].exist;
     }
 
-    function newNode(address node, uint256 totalSpace, string calldata ext) external onlyManager(managerName) {
+    function newNode(address node, uint256 storageTotal, string calldata ext) external {
+        mustManager(managerName);
         require(!nodes[node].exist, contractName.concat(": node exist"));
 
-        nodes[node] = NodeItem(Status.Registered,
+        nodes[node] = NodeItem(NodeRegistered,
             ServiceInfo(0, 0, 0, 0, 0, 0, 0),
-            StorageSpaceInfo(totalSpace, 0),
+            0,
+            storageTotal,
             0, ext, true);
 
         nodeAddrs.add(node);
     }
 
-    function deleteNode(address addr) external onlyManager(managerName) {
+    function deleteNode(address addr) external {
+        mustManager(managerName);
         require(nodes[addr].exist, contractName.concat(": node not exist"));
 
         delete nodes[addr];
@@ -45,16 +69,39 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         onlineNodeAddrs.remove(addr);
     }
 
+    function useStorage(address addr, uint256 value) external {
+        nodes[addr].storageUsed = nodes[addr].storageUsed.add(value);
+    }
+
+    function freeStorage(address addr, uint256 value) external {
+        nodes[addr].storageUsed = nodes[addr].storageUsed.sub(value);
+    }
+
     function isNodeOnline(address addr) external view returns (bool) {
         return onlineNodeAddrs.contains(addr);
     }
 
-    function addOnlineNode(address addr) external onlyManager(managerName) {
+    function addOnlineNode(address addr) external {
+        mustManager(managerName);
         onlineNodeAddrs.add(addr);
     }
 
-    function deleteOnlineNode(address addr) external onlyManager(managerName) {
+    function deleteOnlineNode(address addr) external {
+        mustManager(managerName);
         onlineNodeAddrs.remove(addr);
+    }
+
+    function offline(address addr) external {
+        mustManager(managerName);
+        require(nodes[addr].exist, "NodeFileHandler: node not exist");
+
+        require(NodeOnline == nodes[addr].status, "NodeFileHandler: wrong status");
+        nodes[addr].status = NodeOffline;
+        if(onlineNodeAddrs.contains(addr)) {
+            onlineNodeAddrs.remove(addr);
+        }
+
+        nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
     }
 
     function getServiceInfo(address addr) public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
@@ -69,23 +116,25 @@ contract NodeStorage is ExternalStorage, INodeStorage {
                 si.taskTimeoutCount);
     }
 
-    function getStorageSpaceInfo(address addr) public view returns (uint256, uint256) { // (used, total)
-        return (nodes[addr].storageInfo.used, nodes[addr].storageInfo.total);
+    function getStorageSpaceInfo(address addr) public view returns (uint256, uint256) {
+        return (nodes[addr].storageUsed, nodes[addr].storageTotal);
     }
 
     function getMaxFinishedTid(address addr) external view returns (uint256) {
         return nodes[addr].maxFinishedTid;
     }
 
-    function setMaxFinishedTid(address addr, uint256 tid) external onlyManager(managerName) {
+    function setMaxFinishedTid(address addr, uint256 tid) external {
+        mustManager(managerName);
         nodes[addr].maxFinishedTid = tid;
     }
 
-    function getStatus(address addr) external view returns (Status) {
+    function getStatus(address addr) external view returns (uint8) {
         return nodes[addr].status;
     }
 
-    function setStatus(address addr, Status status) external onlyManager(managerName) {
+    function setStatus(address addr, uint8 status) external {
+        mustManager(managerName);
         nodes[addr].status = status;
     }
 
@@ -93,7 +142,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.maintainCount;
     }
 
-    function setMaintainCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setMaintainCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.maintainCount = value;
     }
 
@@ -101,7 +151,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.offlineCount;
     }
 
-    function setOfflineCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setOfflineCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.offlineCount = value;
     }
 
@@ -109,7 +160,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.taskAddFileFinishCount;
     }
 
-    function setTaskAddFileFinishCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setTaskAddFileFinishCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.taskAddFileFinishCount = value;
     }
 
@@ -117,7 +169,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.taskAddFileFailCount;
     }
 
-    function setTaskAddFileFailCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setTaskAddFileFailCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.taskAddFileFailCount = value;
     }
 
@@ -125,7 +178,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.taskDeleteFileFinishCount;
     }
 
-    function setTaskDeleteFileFinishCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setTaskDeleteFileFinishCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.taskDeleteFileFinishCount = value;
     }
 
@@ -133,7 +187,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.taskAcceptTimeoutCount;
     }
 
-    function setTaskAcceptTimeoutCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setTaskAcceptTimeoutCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.taskAcceptTimeoutCount = value;
     }
 
@@ -141,32 +196,35 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return nodes[addr].serviceInfo.taskTimeoutCount;
     }
 
-    function setTaskTimeoutCount(address addr, uint256 value) external onlyManager(managerName) {
+    function setTaskTimeoutCount(address addr, uint256 value) external {
+        mustManager(managerName);
         nodes[addr].serviceInfo.taskTimeoutCount = value;
     }
 
     function getStorageFree(address addr) external view returns (uint256) {
-        if(nodes[addr].storageInfo.used > nodes[addr].storageInfo.total) return 0;
-        return nodes[addr].storageInfo.total.sub(nodes[addr].storageInfo.used);
+        if(nodes[addr].storageUsed > nodes[addr].storageTotal) return 0;
+        return nodes[addr].storageTotal.sub(nodes[addr].storageUsed);
     }
 
     function getStorageTotal(address addr) external view returns (uint256) {
-        return nodes[addr].storageInfo.total;
+        return nodes[addr].storageTotal;
     }
 
-    function setStorageTotal(address addr, uint256 value) external onlyManager(managerName) {
-        nodes[addr].storageInfo.total = value;
+    function setStorageTotal(address addr, uint256 value) external {
+        mustManager(managerName);
+        nodes[addr].storageUsed = value;
     }
 
     function getStorageUsed(address addr) external view returns (uint256) {
-        return nodes[addr].storageInfo.used;
+        return nodes[addr].storageUsed;
     }
 
     function getExt(address addr) external view returns (string memory) {
         return nodes[addr].ext;
     }
 
-    function setExt(address addr, string calldata ext) external onlyManager(managerName) {
+    function setExt(address addr, string calldata ext) external {
+        mustManager(managerName);
         nodes[addr].ext = ext;
     }
 
@@ -203,13 +261,15 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return node2cidHashes[addr].contains(cidHash);
     }
 
-    function addNodeCid(address addr, string calldata cid) external onlyManager(managerName) {
+    function addNodeCid(address addr, string calldata cid) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         node2cidHashes[addr].add(cidHash);
         cidHash2cid[cidHash] = cid;
     }
 
-    function removeNodeCid(address addr, string calldata cid) external onlyManager(managerName) {
+    function removeNodeCid(address addr, string calldata cid) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         node2cidHashes[addr].remove(cidHash);
         delete cidHash2cid[cidHash];
@@ -243,7 +303,8 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         return cid2addFileFailedCount[cid];
     }
 
-    function setAddFileFailedCount(string calldata cid, uint256 count) external onlyManager(managerName) {
+    function setAddFileFailedCount(string calldata cid, uint256 count) external {
+        mustManager(managerName);
         cid2addFileFailedCount[cid] = count;
     }
 

@@ -12,7 +12,8 @@ contract ExternalStorage is Storage {
         setManager(_manager);
     }
 
-    function setManager(address _manager) public onlyOwner {
+    function setManager(address _manager) public {
+        mustOwner();
         super.setManager(_manager);
         contractName = 'Storage';
         managerName = IOwnable(manager).contractName().toBytes32();

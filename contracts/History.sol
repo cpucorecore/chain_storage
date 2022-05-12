@@ -32,7 +32,7 @@ contract History is Importable, IHistory {
         ];
     }
 
-    function addUserAction(address addr, ActionType actionType, bytes32 cidHash) external {
+    function addUserAction(address addr, uint8 actionType, bytes32 cidHash) external {
         mustAddress(CONTRACT_USER);
         uint256 index = userActions.push(UserAction(now, addr, actionType, cidHash));
         user2userActionIndexes[addr].push(index);
@@ -44,7 +44,7 @@ contract History is Importable, IHistory {
         return userActions.length;
     }
 
-    function getUserHistory(uint256 index) external view returns (uint256, address, ActionType, bytes32) {
+    function getUserHistory(uint256 index) external view returns (uint256, address, uint8, bytes32) {
         require(index <= userActions.length);
         UserAction storage userAction = userActions[index];
         return (userAction.timestamp, userAction.addr, userAction.actionType, userAction.cidHash);
@@ -80,7 +80,7 @@ contract History is Importable, IHistory {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addNodeAction(address addr, uint256 tid, ActionType actionType, bytes32 cidHash) external {
+    function addNodeAction(address addr, uint256 tid, uint8 actionType, bytes32 cidHash) external {
         mustAddress(CONTRACT_NODE);
         uint256 index = nodeActions.push(NodeAction(now, addr, tid, actionType, cidHash));
         node2nodeActionIndexes[addr].push(index);
@@ -92,7 +92,7 @@ contract History is Importable, IHistory {
         return nodeActions.length;
     }
 
-    function getNodeHistory(uint256 index) external view returns (uint256, address, uint256, ActionType, bytes32) {
+    function getNodeHistory(uint256 index) external view returns (uint256, address, uint256, uint8, bytes32) {
         require(index <= nodeActions.length);
         NodeAction storage nodeAction = nodeActions[index];
         return (nodeAction.timestamp, nodeAction.addr, nodeAction.tid, nodeAction.actionType, nodeAction.cidHash);
@@ -128,7 +128,7 @@ contract History is Importable, IHistory {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addMonitorAction(address addr, uint256 tid, MonitorActionType actionType, bytes32 cidHash) external {
+    function addMonitorAction(address addr, uint256 tid, uint8 actionType, bytes32 cidHash) external {
         mustAddress(CONTRACT_MONITOR);
         uint256 index = monitorActions.push(MonitorAction(now, addr, tid, actionType, cidHash));
         monitor2monitorActionIndexes[addr].push(index);
@@ -140,7 +140,7 @@ contract History is Importable, IHistory {
         return monitorActions.length;
     }
 
-    function getMonitorHistory(uint256 index) external view returns (uint256, address, uint256, MonitorActionType, bytes32) {
+    function getMonitorHistory(uint256 index) external view returns (uint256, address, uint256, uint8, bytes32) {
         assert(index <= monitorActions.length);
         MonitorAction storage monitorAction = monitorActions[index];
         return (monitorAction.timestamp, monitorAction.addr, monitorAction.tid, monitorAction.actionType, monitorAction.cidHash);

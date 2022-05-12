@@ -12,7 +12,8 @@ contract ExternalStorable is Ownable {
         _;
     }
 
-    function setStorage(address value) public onlyOwner {
+    function setStorage(address value) public {
+        mustOwner();
         emit StorageChanged(_storage, value);
         _storage = value;
     }

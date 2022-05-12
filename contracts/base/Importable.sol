@@ -17,22 +17,8 @@ contract Importable is Ownable {
         require(msg.sender == _cache[name], contractName.concat(': caller is not the ', name));
     }
 
-    modifier containAddress(bytes32[] memory names) {
-        require(names.length < 20, contractName.concat(': cannot have more than 20 items'));
-
-        bool contain = false;
-        for (uint256 i = 0; i < names.length; i++) {
-            if (msg.sender == _cache[names[i]]) {
-                contain = true;
-                break;
-            }
-        }
-        require(contain, contractName.concat(': caller is not in contains'));
-        _;
-    }
-
     function mustContainAddress(bytes32[] memory names) public {
-        require(names.length < 20, contractName.concat(': cannot have more than 20 items'));
+        require(names.length < 20, "cannot have more than 20 items");
 
         bool contain = false;
         for (uint256 i = 0; i < names.length; i++) {
@@ -41,25 +27,11 @@ contract Importable is Ownable {
                 break;
             }
         }
-        require(contain, contractName.concat(': caller is not in contains'));
+        require(contain, "caller is not in contains");
     }
 
-    modifier containAddressOrOwner(bytes32[] memory names) {
-        require(names.length < 20, contractName.concat(': cannot have more than 20 items'));
-
-        bool contain = false;
-        for (uint256 i = 0; i < names.length; i++) {
-            if (msg.sender == _cache[names[i]]) {
-                contain = true;
-                break;
-            }
-        }
-        if (contain == false) contain = (msg.sender == owner);
-        require(contain, contractName.concat(': caller is not in dependencies'));
-        _;
-    }
-
-    function refreshCache() external onlyOwner {
+    function refreshCache() external {
+        mustOwner();
         for (uint256 i = 0; i < imports.length; i++) {
             bytes32 item = imports[i];
             _cache[item] = resolver.getAddress(item);
@@ -70,7 +42,8 @@ contract Importable is Ownable {
         return imports;
     }
 
-    function addAddress(bytes32 name) external onlyOwner {
+    function addAddress(bytes32 name) external {
+        mustOwner();
         _cache[name] = resolver.getAddress(name);
         imports.push(name);
     }

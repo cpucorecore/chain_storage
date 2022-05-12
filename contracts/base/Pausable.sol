@@ -15,7 +15,8 @@ contract Pausable is Ownable {
         paused = false;
     }
 
-    function setPaused(bool _paused) external onlyOwner {
+    function setPaused(bool _paused) external {
+        mustOwner();
         if (paused == _paused) return;
         emit PauseChanged(paused, _paused);
         paused = _paused;

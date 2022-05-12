@@ -13,7 +13,8 @@ import "./interfaces/ITask.sol";
 contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
 
-    function initialize(IResolver _resolver) external onlyOwner {
+    function initialize(IResolver _resolver) external {
+        mustOwner();
         setInitialized();
 
         resolver = _resolver;

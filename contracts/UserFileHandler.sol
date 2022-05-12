@@ -49,7 +49,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
 
-        History().addUserAction(addr, IHistory.ActionType.Add, keccak256(bytes(cid)));
+        History().addUserAction(addr, Add, keccak256(bytes(cid)));
         File().addFile(cid, size, addr);
         Storage().addFile(addr, cid, duration, ext, now);
         useStorage(addr, size);
@@ -76,7 +76,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
-        History().addUserAction(addr, IHistory.ActionType.Delete, keccak256(bytes(cid)));
+        History().addUserAction(addr, Delete, keccak256(bytes(cid)));
         Storage().deleteFile(addr, cid);
         uint256 size = File().getSize(cid);
         freeStorage(addr, size);

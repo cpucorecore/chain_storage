@@ -12,14 +12,16 @@ contract Resolver is AddressStorage, IResolver {
         setContractName(CONTRACT_RESOLVER);
     }
 
-    function importAddress(bytes32[] calldata name, address[] calldata value) external onlyOwner {
+    function importAddress(bytes32[] calldata name, address[] calldata value) external {
+        mustOwner();
         require(name.length == value.length, 'Resolver: name and value length mismatch');
         for (uint256 i = 0; i < name.length; i++) {
             setAddress(name[i], value[i]);
         }
     }
 
-    function setAddress(bytes32 name, address value) public onlyOwner {
+    function setAddress(bytes32 name, address value) public {
+        mustOwner();
         address previousValue = getAddressValue(name);
         emit AddressChanged(name, previousValue, value);
         setAddressValue(name, value);

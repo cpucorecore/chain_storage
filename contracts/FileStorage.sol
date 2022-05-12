@@ -2,7 +2,7 @@ pragma solidity ^0.5.2;
 pragma experimental ABIEncoderV2;
 
 import "./storages/ExternalStorage.sol";
-import './interfaces/storages/IFileStorage.sol';
+import "./interfaces/storages/IFileStorage.sol";
 import "./lib/EnumerableSet.sol";
 import "./lib/Paging.sol";
 
@@ -28,7 +28,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cidHash2fileItem[cidHash].exist;
     }
 
-    function newFile(string calldata cid, uint256 size) external onlyManager(managerName) {
+    function newFile(string calldata cid, uint256 size) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         require(!cidHash2fileItem[cidHash].exist, contractName.concat(": file exist"));
 
@@ -40,7 +41,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
         toatalFileNumber = toatalFileNumber.add(1);
     }
 
-    function deleteFile(string calldata cid) external onlyManager(managerName) {
+    function deleteFile(string calldata cid) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         require(cidHash2fileItem[cidHash].exist, contractName.concat(": file not exist"));
 
@@ -55,7 +57,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cidHash2fileItem[cidHash].size;
     }
 
-    function setSize(string calldata cid, uint256 size) external onlyManager(managerName) {
+    function setSize(string calldata cid, uint256 size) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].size = size;
     }
@@ -70,12 +73,14 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return 0 == cidHash2fileItem[cidHash].owners.length();
     }
 
-    function addOwner(string calldata cid, address owner) external onlyManager(managerName) {
+    function addOwner(string calldata cid, address owner) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].owners.add(owner);
     }
 
-    function deleteOwner(string calldata cid, address owner) external onlyManager(managerName) {
+    function deleteOwner(string calldata cid, address owner) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].owners.remove(owner);
     }
@@ -113,12 +118,14 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return 0 == cidHash2fileItem[cidHash].nodes.length();
     }
 
-    function addNode(string calldata cid, address node) external onlyManager(managerName) {
+    function addNode(string calldata cid, address node) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].nodes.add(node);
     }
 
-    function deleteNode(string calldata cid, address node) external onlyManager(managerName) {
+    function deleteNode(string calldata cid, address node) external {
+        mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].nodes.remove(node);
     }

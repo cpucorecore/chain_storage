@@ -177,7 +177,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportAcceptTimeout, now);
         string memory cid = TaskStorage().getCid(tid);
-        History().addMonitorAction(addr, tid, IHistory.MonitorActionType.AcceptTimeout, keccak256(bytes(cid)));
+        History().addMonitorAction(addr, tid, ReportAcceptTimeout, keccak256(bytes(cid)));
         NodeFileHandler().taskAcceptTimeout(addr, tid);
     }
 
@@ -185,7 +185,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportTimeout, now);
         string memory cid = TaskStorage().getCid(tid);
-        History().addMonitorAction(addr, tid, IHistory.MonitorActionType.Timeout, keccak256(bytes(cid)));
+        History().addMonitorAction(addr, tid, ReportTimeout, keccak256(bytes(cid)));
         NodeFileHandler().taskTimeout(addr, tid);
     }
 

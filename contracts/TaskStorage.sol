@@ -42,7 +42,8 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         string calldata cid,
         uint256 size,
         address node
-    ) external onlyManager(managerName) returns (uint256) {
+    ) external returns (uint256) {
+        mustManager(managerName);
         currentTid = currentTid.add(1);
 
         tid2taskItem[currentTid] = TaskItem(owner, action, node, size, cid, true);
@@ -144,7 +145,8 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return (status, time);
     }
 
-    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external onlyManager(managerName) {
+    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external {
+        mustManager(managerName);
         tid2taskState[tid].status = status;
         if(TaskAccepted == status) {
             tid2taskState[tid].acceptTime = time;
@@ -164,13 +166,15 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return (progress.time, progress.lastSize, progress.currentSize, progress.size, progress.lastPercentage, progress.currentPercentage);
     }
 
-    function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external onlyManager(managerName) {
+    function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external {
+        mustManager(managerName);
         tid2addFileProgress[tid].time = time;
         tid2addFileProgress[tid].lastSize = tid2addFileProgress[tid].currentSize;
         tid2addFileProgress[tid].currentSize = size;
     }
 
-    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 percentage) external onlyManager(managerName) {
+    function setAddFileTaskProgressByPercentage(uint256 tid, uint256 time, uint256 percentage) external {
+        mustManager(managerName);
         tid2addFileProgress[tid].time = time;
         tid2addFileProgress[tid].lastPercentage = tid2addFileProgress[tid].currentPercentage;
         tid2addFileProgress[tid].currentPercentage = percentage;

@@ -34,7 +34,8 @@ contract Setting is ExternalStorable, ISetting {
         return Storage().getUint(REPLICA);
     }
 
-    function setReplica(uint256 replica) external onlyOwner {
+    function setReplica(uint256 replica) external {
+        mustOwner();
         Storage().setUint(REPLICA, replica);
     }
 
@@ -42,7 +43,8 @@ contract Setting is ExternalStorable, ISetting {
         return Storage().getUint(INIT_SPACE);
     }
 
-    function setInitSpace(uint256 space) external onlyOwner {
+    function setInitSpace(uint256 space) external {
+        mustOwner();
         Storage().setUint(INIT_SPACE, space);
     }
 

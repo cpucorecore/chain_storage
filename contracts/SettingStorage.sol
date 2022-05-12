@@ -13,7 +13,8 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         bytes32 key,
         bytes32 field,
         uint256 value
-    ) external onlyManager(managerName) returns (uint256) {
+    ) external returns (uint256) {
+        mustManager(managerName);
         _storage[key][field] = _storage[key][field].add(value);
         return _storage[key][field];
     }
@@ -23,7 +24,8 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         bytes32 field,
         uint256 value,
         string calldata errorMessage
-    ) external onlyManager(managerName) returns (uint256) {
+    ) external returns (uint256) {
+        mustManager(managerName);
         _storage[key][field] = _storage[key][field].sub(value, errorMessage);
         return _storage[key][field];
     }
@@ -32,7 +34,8 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         bytes32 key,
         bytes32 field,
         uint256 value
-    ) external onlyManager(managerName) {
+    ) external {
+        mustManager(managerName);
         _storage[key][field] = value;
     }
 
@@ -40,7 +43,8 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         return _storage[key][field];
     }
 
-    function incrementUint(bytes32 key, uint256 value) external onlyManager(managerName) returns (uint256) {
+    function incrementUint(bytes32 key, uint256 value) external returns (uint256) {
+        mustManager(managerName);
         _storage[DEFAULT][key] = _storage[DEFAULT][key].add(value);
         return _storage[DEFAULT][key];
     }
@@ -49,12 +53,14 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         bytes32 key,
         uint256 value,
         string calldata errorMessage
-    ) external onlyManager(managerName) returns (uint256) {
+    ) external returns (uint256) {
+        mustManager(managerName);
         _storage[DEFAULT][key] = _storage[DEFAULT][key].sub(value, errorMessage);
         return _storage[DEFAULT][key];
     }
 
-    function setUint(bytes32 key, uint256 value) external onlyManager(managerName) {
+    function setUint(bytes32 key, uint256 value) external {
+        mustManager(managerName);
         _storage[DEFAULT][key] = value;
     }
 
@@ -62,7 +68,8 @@ contract SettingStorage is ExternalStorage, ISettingStorage {
         return _storage[DEFAULT][key];
     }
 
-    function setAddress(bytes32 key, address value) external onlyManager(managerName) {
+    function setAddress(bytes32 key, address value) external {
+        mustManager(managerName);
         _addresses[key] = value;
     }
 
