@@ -152,6 +152,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         Storage().setTaskAcceptTimeoutCount(node, StorageViewer().getTaskAcceptTimeoutCount(node).add(1));
 
         Storage().offline(node);
+        // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
         Task().acceptTaskTimeout(tid);
 
         if(Add == action) {
@@ -173,6 +174,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         Storage().setTaskTimeoutCount(node, StorageViewer().getTaskTimeoutCount(node).add(1));
 
         Storage().offline(node);
+        // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
         Task().taskTimeout(tid);
 
         if(Add == action) {

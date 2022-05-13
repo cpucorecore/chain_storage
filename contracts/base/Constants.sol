@@ -42,6 +42,7 @@ contract Constants {
     uint256 constant NodeOnline = 2;
     uint256 constant NodeMaintain = 3;
     uint256 constant NodeOffline = 4;
+    uint256 constant NodeDeRegistered = 5;
 
     // monitor status
     uint8 constant MonitorRegistered = 1;

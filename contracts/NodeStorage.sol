@@ -12,8 +12,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct ServiceInfo {
-        uint256 maintainCount;
-        uint256 offlineCount;
         uint256 taskAddFileFinishCount;
         uint256 taskAddFileFailCount;
         uint256 taskDeleteFileFinishCount;
@@ -51,7 +49,7 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         require(!exist(addr), contractName.concat(": node exist")); //TODO
 
         nodes[addr] = NodeItem(NodeRegistered,
-            ServiceInfo(0, 0, 0, 0, 0, 0, 0),
+            ServiceInfo(0, 0, 0, 0, 0),
             0,
             storageTotal,
             0, ext);
@@ -101,14 +99,12 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
             onlineNodeAddrs.remove(addr);
         }
 
-        nodes[addr].serviceInfo.offlineCount = nodes[addr].serviceInfo.offlineCount.add(1);
+        // TODO issue event
     }
 
-    function getServiceInfo(address addr) public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function getServiceInfo(address addr) public view returns (uint256, uint256, uint256, uint256, uint256) {
         ServiceInfo storage si = nodes[addr].serviceInfo;
-        return (si.maintainCount,
-                si.offlineCount,
-                si.taskAddFileFinishCount,
+        return (si.taskAddFileFinishCount,
                 si.taskAddFileFailCount,
                 si.taskDeleteFileFinishCount,
                 si.taskAcceptTimeoutCount,
@@ -135,24 +131,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     function setStatus(address addr, uint256 status) external {
         mustManager(managerName);
         nodes[addr].status = status;
-    }
-
-    function getMaintainCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.maintainCount;
-    }
-
-    function setMaintainCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.maintainCount = value;
-    }
-
-    function getOfflineCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.offlineCount;
-    }
-
-    function setOfflineCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.offlineCount = value;
     }
 
     function getTaskAddFileFinishCount(address addr) external view returns (uint256) {

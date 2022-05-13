@@ -13,6 +13,8 @@ import "./interfaces/storages/INodeStorageViewer.sol";
 contract Node is Importable, ExternalStorable, INode {
     using SafeMath for uint256;
 
+    event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_NODE);
         imports = [
@@ -44,6 +46,8 @@ contract Node is Importable, ExternalStorable, INode {
         require(space > 0, contractName.concat(": space must > 0"));
 
         Storage().newNode(addr, space, ext);
+
+        emit NodeStatusChanged(addr, DefaultStatus, NodeRegistered);
     }
 
     function deRegister(address addr) external {
@@ -56,6 +60,8 @@ contract Node is Importable, ExternalStorable, INode {
             contractName.concat(": can do deRegister only in [Registered/Maintain] status"));
 
         Storage().deleteNode(addr);
+
+        emit NodeStatusChanged(addr, status, NodeDeRegistered);
     }
 
     function setExt(address addr, string calldata ext) external {
@@ -90,6 +96,8 @@ contract Node is Importable, ExternalStorable, INode {
         if(!StorageViewer().isNodeOnline(addr)) {
             Storage().addOnlineNode(addr);
         }
+
+        emit NodeStatusChanged(addr, status, NodeOnline);
     }
 
     function maintain(address addr) external {
@@ -100,12 +108,12 @@ contract Node is Importable, ExternalStorable, INode {
         require(NodeOnline == status, contractName.concat(": wrong status"));
 
         Storage().setStatus(addr, NodeMaintain);
-        uint256 maintainCount = StorageViewer().getMaintainCount(addr);
-        Storage().setMaintainCount(addr, maintainCount.add(1));
 
         if(StorageViewer().isNodeOnline(addr)) {
             Storage().deleteOnlineNode(addr);
         }
+
+        emit NodeStatusChanged(addr, status, NodeMaintain);
     }
 
     function checkExist(address addr) private view {
