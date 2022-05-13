@@ -10,7 +10,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/INodeCallback.sol";
-import "./interfaces/IUserFileHandler.sol";
+import "./interfaces/IUserCallback.sol";
 
 contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
     using NodeSelector for address;
@@ -23,7 +23,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         imports = [
             CONTRACT_SETTING,
             CONTRACT_FILE,
-            CONTRACT_USER_FILE_HANDLER,
+            CONTRACT_USER_CALLBACK,
             CONTRACT_TASK
         ];
     }
@@ -48,8 +48,8 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         return IFile(requireAddress(CONTRACT_FILE));
     }
 
-    function UserFileHandler() private view returns (IUserFileHandler) {
-        return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
+    function UserCallback() private view returns (IUserCallback) {
+        return IUserCallback(requireAddress(CONTRACT_USER_CALLBACK));
     }
 
     function finishTask(address addr, uint256 tid) external {
@@ -96,7 +96,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
         uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
         if(addFileFailedCount >= maxAddFileFailedCount) {
-            UserFileHandler().callbackFailAddFile(owner, cid);
+            UserCallback().callbackFailAddFile(owner, cid);
             return;
         }
 
@@ -140,7 +140,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
             uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
             uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
             if(addFileFailedCount >= maxAddFileFailedCount) {
-                UserFileHandler().callbackFailAddFile(owner, cid);
+                UserCallback().callbackFailAddFile(owner, cid);
                 return;
             }
             _retryAddFileTask(owner, size, cid);

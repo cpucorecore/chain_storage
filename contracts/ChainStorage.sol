@@ -4,7 +4,6 @@ import "./base/Proxyable.sol";
 import "./base/Pausable.sol";
 import "./base/Importable.sol";
 import "./interfaces/IUser.sol";
-import "./interfaces/IUserFileHandler.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/INodeCallback.sol";
 import "./interfaces/IMonitor.sol";
@@ -22,7 +21,7 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
         imports = [
             CONTRACT_USER,
-            CONTRACT_USER_FILE_HANDLER,
+            CONTRACT_USER_CALLBACK,
             CONTRACT_NODE,
             CONTRACT_TASK,
             CONTRACT_MONITOR
@@ -31,10 +30,6 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
     function User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
-    }
-
-    function UserFileHandler() private view returns (IUserFileHandler) {
-        return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
     }
 
     function Node() private view returns (INode) {
@@ -62,13 +57,13 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
         mustInitialized();
         mustNotPaused();
-        UserFileHandler().addFile(msg.sender, cid, size, duration, ext);
+        User().addFile(msg.sender, cid, size, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external {
         mustInitialized();
         mustNotPaused();
-        UserFileHandler().deleteFile(msg.sender, cid);
+        User().deleteFile(msg.sender, cid);
     }
 
     function userSetExt(string calldata ext) external {
