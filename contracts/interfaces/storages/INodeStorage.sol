@@ -17,12 +17,6 @@ interface INodeStorage {
     function setMaxFinishedTid(address addr, uint256 tid) external;
     function setStatus(address addr, uint256 status) external;
 
-    function setTaskAddFileFinishCount(address addr, uint256 value) external;
-    function setTaskAddFileFailCount(address addr, uint256 value) external;
-    function setTaskDeleteFileFinishCount(address addr, uint256 value) external;
-    function setTaskAcceptTimeoutCount(address addr, uint256 value) external;
-    function setTaskTimeoutCount(address addr, uint256 value) external;
-
     function addNodeCid(address addr, string calldata cid) external;
     function removeNodeCid(address addr, string calldata cid) external;
 

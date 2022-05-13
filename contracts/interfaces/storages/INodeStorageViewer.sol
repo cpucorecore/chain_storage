@@ -6,22 +6,11 @@ interface INodeStorageViewer {
 
     function isNodeOnline(address addr) external view returns (bool);
 
-    function getServiceInfo(address addr) external view returns (uint256, uint256, uint256, uint256, uint256);
     function getStorageInfo(address addr) external view returns (uint256, uint256); // (used, total)
 
     function getMaxFinishedTid(address addr) external view returns (uint256);
 
     function getStatus(address addr) external view returns (uint256);
-
-    function getTaskAddFileFinishCount(address addr) external view returns (uint256);
-
-    function getTaskAddFileFailCount(address addr) external view returns (uint256);
-
-    function getTaskDeleteFileFinishCount(address addr) external view returns (uint256);
-
-    function getTaskAcceptTimeoutCount(address addr) external view returns (uint256);
-
-    function getTaskTimeoutCount(address addr) external view returns (uint256);
 
     function getStorageFree(address addr) external view returns (uint256);
     function getStorageTotal(address addr) external view returns (uint256);

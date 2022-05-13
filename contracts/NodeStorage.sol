@@ -11,17 +11,8 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    struct ServiceInfo {
-        uint256 taskAddFileFinishCount;
-        uint256 taskAddFileFailCount;
-        uint256 taskDeleteFileFinishCount;
-        uint256 taskAcceptTimeoutCount;
-        uint256 taskTimeoutCount;
-    }
-
     struct NodeItem {
         uint256 status;
-        ServiceInfo serviceInfo;
         uint256 maxFinishedTid;
         uint256 storageUsed;
         uint256 storageTotal;
@@ -49,7 +40,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         require(!exist(addr), contractName.concat(": node exist")); //TODO
 
         nodes[addr] = NodeItem(NodeRegistered,
-            ServiceInfo(0, 0, 0, 0, 0),
             0,
             storageTotal,
             0, ext);
@@ -102,15 +92,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         // TODO issue event
     }
 
-    function getServiceInfo(address addr) public view returns (uint256, uint256, uint256, uint256, uint256) {
-        ServiceInfo storage si = nodes[addr].serviceInfo;
-        return (si.taskAddFileFinishCount,
-                si.taskAddFileFailCount,
-                si.taskDeleteFileFinishCount,
-                si.taskAcceptTimeoutCount,
-                si.taskTimeoutCount);
-    }
-
     function getStorageInfo(address addr) public view returns (uint256, uint256) {
         return (nodes[addr].storageUsed, nodes[addr].storageTotal);
     }
@@ -131,51 +112,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     function setStatus(address addr, uint256 status) external {
         mustManager(managerName);
         nodes[addr].status = status;
-    }
-
-    function getTaskAddFileFinishCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskAddFileFinishCount;
-    }
-
-    function setTaskAddFileFinishCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.taskAddFileFinishCount = value;
-    }
-
-    function getTaskAddFileFailCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskAddFileFailCount;
-    }
-
-    function setTaskAddFileFailCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.taskAddFileFailCount = value;
-    }
-
-    function getTaskDeleteFileFinishCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskDeleteFileFinishCount;
-    }
-
-    function setTaskDeleteFileFinishCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.taskDeleteFileFinishCount = value;
-    }
-
-    function getTaskAcceptTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskAcceptTimeoutCount;
-    }
-
-    function setTaskAcceptTimeoutCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.taskAcceptTimeoutCount = value;
-    }
-
-    function getTaskTimeoutCount(address addr) external view returns (uint256) {
-        return nodes[addr].serviceInfo.taskTimeoutCount;
-    }
-
-    function setTaskTimeoutCount(address addr, uint256 value) external {
-        mustManager(managerName);
-        nodes[addr].serviceInfo.taskTimeoutCount = value;
     }
 
     function getStorageFree(address addr) external view returns (uint256) {

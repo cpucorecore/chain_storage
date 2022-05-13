@@ -89,7 +89,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             File().addFileCallback(node, owner, cid);
             Storage().useStorage(node, size);
             History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
-            Storage().setTaskAddFileFinishCount(node, StorageViewer().getTaskAddFileFinishCount(node).add(1));
             Storage().setAddFileFailedCount(cid, 0);
             if(!StorageViewer().cidExist(addr, cid)) {
                 Storage().addNodeCid(addr, cid);
@@ -97,7 +96,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         } else if(Delete == action) {
             File().deleteFileCallback(node, owner, cid);
             Storage().freeStorage(node, size);
-            Storage().setTaskDeleteFileFinishCount(node, StorageViewer().getTaskDeleteFileFinishCount(node).add(1));
             History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
             if(StorageViewer().cidExist(addr, cid)) {
                 Storage().removeNodeCid(addr, cid);
@@ -123,8 +121,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint8 action = TaskStorage().getAction(tid);
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
-        Storage().setTaskAddFileFailCount(node, StorageViewer().getTaskAddFileFailCount(node).add(1));
-
         uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
         uint256 addFileFailedCount = StorageViewer().getAddFileFailedCount(cid).add(1);
         Storage().setAddFileFailedCount(cid, addFileFailedCount);
@@ -149,8 +145,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint256 size = TaskStorage().getSize(tid);
         uint8 action = TaskStorage().getAction(tid);
 
-        Storage().setTaskAcceptTimeoutCount(node, StorageViewer().getTaskAcceptTimeoutCount(node).add(1));
-
         Storage().offline(node);
         // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
         Task().acceptTaskTimeout(tid);
@@ -170,8 +164,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         string memory cid = TaskStorage().getCid(tid);
         uint256 size = TaskStorage().getSize(tid);
         uint8 action = TaskStorage().getAction(tid);
-
-        Storage().setTaskTimeoutCount(node, StorageViewer().getTaskTimeoutCount(node).add(1));
 
         Storage().offline(node);
         // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
