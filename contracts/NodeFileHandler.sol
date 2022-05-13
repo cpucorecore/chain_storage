@@ -90,16 +90,10 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             Storage().useStorage(node, size);
             History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
             Storage().setAddFileFailedCount(cid, 0);
-            if(!StorageViewer().cidExist(addr, cid)) {
-                Storage().addNodeCid(addr, cid);
-            }
         } else if(Delete == action) {
             File().deleteFileCallback(node, owner, cid);
             Storage().freeStorage(node, size);
             History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
-            if(StorageViewer().cidExist(addr, cid)) {
-                Storage().removeNodeCid(addr, cid);
-            }
         }
 
         uint256 currentTid = StorageViewer().getMaxFinishedTid(addr);

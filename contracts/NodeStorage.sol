@@ -23,9 +23,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     EnumerableSet.AddressSet private nodeAddrs;
     EnumerableSet.AddressSet private onlineNodeAddrs;
 
-    mapping(address=>EnumerableSet.Bytes32Set) private node2cidHashes;
-    mapping(bytes32=>string) private cidHash2cid;
-
     mapping(string=>uint256) private cid2addFileFailedCount;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
@@ -52,7 +49,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         require(exist(addr), contractName.concat(": node not exist"));
 
         delete nodes[addr];
-        delete node2cidHashes[addr];
         nodeAddrs.remove(addr);
         onlineNodeAddrs.remove(addr);
     }
@@ -165,49 +161,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
             result[i] = onlineNodeAddrs.at(start+i);
-        }
-        return (result, page.pageNumber == page.totalPages);
-    }
-
-    function cidExist(address addr, string calldata cid) external view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return node2cidHashes[addr].contains(cidHash);
-    }
-
-    function addNodeCid(address addr, string calldata cid) external {
-        mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        node2cidHashes[addr].add(cidHash);
-        cidHash2cid[cidHash] = cid;
-    }
-
-    function removeNodeCid(address addr, string calldata cid) external {
-        mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        node2cidHashes[addr].remove(cidHash);
-        delete cidHash2cid[cidHash];
-    }
-
-    function getNodeCidsNumber(address addr) external view returns (uint256) {
-        return node2cidHashes[addr].length();
-    }
-
-    function getNodeCids(address addr) external view returns (string[] memory) {
-        uint256 length = node2cidHashes[addr].length();
-        string[] memory result = new string[](length);
-        for(uint256 i=0; i<length; i++) {
-            result[i] = cidHash2cid[node2cidHashes[addr].at(i)];
-        }
-        return result;
-    }
-
-    function getNodeCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, bool) {
-        EnumerableSet.Bytes32Set storage cidHashs = node2cidHashes[addr];
-        Paging.Page memory page = Paging.getPage(cidHashs.length(), pageSize, pageNumber);
-        uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
-        string[] memory result = new string[](page.pageRecords);
-        for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = cidHash2cid[cidHashs.at(start+i)];
         }
         return (result, page.pageNumber == page.totalPages);
     }

@@ -51,9 +51,9 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function deRegister(address addr) external {
+        // TODO node should delete cids and report the cids before deRegister
         mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
-        require(0 == StorageViewer().getNodeCidsNumber(addr), contractName.concat(": files not empty"));
         uint256 status = StorageViewer().getStatus(addr);
         require(NodeRegistered == status ||
                 NodeMaintain == status,
