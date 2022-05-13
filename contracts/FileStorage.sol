@@ -24,7 +24,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function exist(string memory cid) public view returns (bool) {
         bytes32 cidHash = keccak256(bytes(cid));
-        return cidHash2fileItem[cidHash].size > 0;
+        return cidHash2fileItem[cidHash].size > 0; // TODO use cid == "" to check
     }
 
     function newFile(string calldata cid, uint256 size) external {
@@ -42,8 +42,6 @@ contract FileStorage is ExternalStorage, IFileStorage {
         mustManager(managerName);
 
         bytes32 cidHash = keccak256(bytes(cid));
-        require(exist(cid), contractName.concat(": file not exist"));
-
         totalSize = totalSize.sub(cidHash2fileItem[cidHash].size);
         toatalFileNumber = toatalFileNumber.sub(1);
 

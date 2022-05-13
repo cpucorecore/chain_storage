@@ -48,6 +48,7 @@ contract File is Importable, ExternalStorable, IFile {
 
     function addFile(string calldata cid, uint256 size, address owner) external {
         mustAddress(CONTRACT_USER);
+
         if(!Storage().exist(cid)) {
             Storage().newFile(cid, size);
             Node().addFile(owner, cid, size);
@@ -60,6 +61,7 @@ contract File is Importable, ExternalStorable, IFile {
 
     function addFileCallback(address node, address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
+
         UserCallback().callbackFinishAddFile(owner, node, cid);
         if(Storage().exist(cid)) {
             if(!nodeExist(cid, node)) {
@@ -72,6 +74,9 @@ contract File is Importable, ExternalStorable, IFile {
 
     function deleteFile(string calldata cid, address owner) external {
         mustAddress(CONTRACT_USER);
+
+        require(Storage().exist(cid), "F:ne");
+
         if(Storage().ownerExist(cid, owner)) {
             Storage().deleteOwner(cid, owner);
         }
@@ -90,6 +95,7 @@ contract File is Importable, ExternalStorable, IFile {
 
     function deleteFileCallback(address node, address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
+
         UserCallback().callbackFinishDeleteFile(owner, node, cid);
         if(Storage().nodeExist(cid, node)) {
             Storage().deleteNode(cid, node);
