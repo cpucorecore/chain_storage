@@ -13,16 +13,15 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
 
     struct NodeItem {
         uint256 status;
-        uint256 maxFinishedTid;
         uint256 storageUsed;
         uint256 storageTotal;
+        uint256 maxFinishedTid;
         string ext;
     }
 
     mapping(address=>NodeItem) private nodes;
     EnumerableSet.AddressSet private nodeAddrs;
     EnumerableSet.AddressSet private onlineNodeAddrs;
-
     mapping(string=>uint256) private cid2addFileFailedCount;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
@@ -33,21 +32,12 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
 
     function newNode(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
-
-        require(!exist(addr), contractName.concat(": node exist")); //TODO
-
-        nodes[addr] = NodeItem(NodeRegistered,
-            0,
-            storageTotal,
-            0, ext);
-
+        nodes[addr] = NodeItem(NodeRegistered, 0, storageTotal, 0, ext);
         nodeAddrs.add(addr);
     }
 
     function deleteNode(address addr) external {
         mustManager(managerName);
-        require(exist(addr), contractName.concat(": node not exist"));
-
         delete nodes[addr];
         nodeAddrs.remove(addr);
         onlineNodeAddrs.remove(addr);
@@ -58,6 +48,7 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     }
 
     function freeStorage(address addr, uint256 value) external {
+        // TODO check: the sequence of task finish is random, maybe will throw overflow exception
         nodes[addr].storageUsed = nodes[addr].storageUsed.sub(value);
     }
 
