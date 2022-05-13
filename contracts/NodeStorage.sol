@@ -5,15 +5,16 @@ import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/INodeStorage.sol";
 import "./lib/EnumerableSet.sol";
 import "./lib/Paging.sol";
+import "./lib/StorageSpaceManager.sol";
 
 contract NodeStorage is ExternalStorage, INodeStorage {
+    using StorageSpaceManager for StorageSpaceManager.StorageSpace;
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct NodeItem {
         uint256 status;
-        uint256 storageUsed;
-        uint256 storageTotal;
+        StorageSpaceManager.StorageSpace storageSpace;
         uint256 maxFinishedTid;
         string ext;
     }
@@ -31,7 +32,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
 
     function newNode(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
-        nodes[addr] = NodeItem(NodeRegistered, 0, storageTotal, 0, ext);
+        nodes[addr] = NodeItem(NodeRegistered, StorageSpaceManager.StorageSpace(0, storageTotal), 0, ext);
         nodeAddrs.add(addr);
     }
 
@@ -42,13 +43,12 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         onlineNodeAddrs.remove(addr);
     }
 
-    function useStorage(address addr, uint256 value) external {
-        nodes[addr].storageUsed = nodes[addr].storageUsed.add(value);
+    function useStorage(address addr, uint256 size) external {
+        nodes[addr].storageSpace.useSpace(size);
     }
 
-    function freeStorage(address addr, uint256 value) external {
-        // TODO check: the sequence of task finish is random, maybe will throw overflow exception
-        nodes[addr].storageUsed = nodes[addr].storageUsed.sub(value);
+    function freeStorage(address addr, uint256 size) external {
+        nodes[addr].storageSpace.unUseSpace(size);
     }
 
     function isNodeOnline(address addr) external view returns (bool) {
@@ -66,7 +66,7 @@ contract NodeStorage is ExternalStorage, INodeStorage {
     }
 
     function getStorageInfo(address addr) public view returns (uint256, uint256) {
-        return (nodes[addr].storageUsed, nodes[addr].storageTotal);
+        return (nodes[addr].storageSpace.used, nodes[addr].storageSpace.total);
     }
 
     function getMaxFinishedTid(address addr) external view returns (uint256) {
@@ -87,22 +87,21 @@ contract NodeStorage is ExternalStorage, INodeStorage {
         nodes[addr].status = status;
     }
 
-    function getStorageFree(address addr) external view returns (uint256) {
-        if(nodes[addr].storageUsed > nodes[addr].storageTotal) return 0;
-        return nodes[addr].storageTotal.sub(nodes[addr].storageUsed);
+    function availableSpace(address addr) external view returns (uint256) {
+        return nodes[addr].storageSpace.availableSpace();
     }
 
     function getStorageTotal(address addr) external view returns (uint256) {
-        return nodes[addr].storageTotal;
+        return nodes[addr].storageSpace.total;
     }
 
     function setStorageTotal(address addr, uint256 value) external {
         mustManager(managerName);
-        nodes[addr].storageUsed = value;
+        nodes[addr].storageSpace.total = value;
     }
 
     function getStorageUsed(address addr) external view returns (uint256) {
-        return nodes[addr].storageUsed;
+        return nodes[addr].storageSpace.used;
     }
 
     function getExt(address addr) external view returns (string memory) {

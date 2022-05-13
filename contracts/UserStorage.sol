@@ -5,8 +5,10 @@ import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./lib/EnumerableSet.sol";
 import "./lib/Paging.sol";
+import "./lib/StorageSpaceManager.sol";
 
 contract UserStorage is ExternalStorage, IUserStorage {
+    using StorageSpaceManager for StorageSpaceManager.StorageSpace;
     using EnumerableSet for EnumerableSet.Bytes32Set;
 
     struct FileItem {
@@ -17,13 +19,8 @@ contract UserStorage is ExternalStorage, IUserStorage {
         bool exist;
     }
 
-    struct StorageInfo {
-        uint256 total;
-        uint256 used;
-    }
-
     struct UserItem {
-        StorageInfo storageInfo;
+        StorageSpaceManager.StorageSpace storageSpace;
         EnumerableSet.Bytes32Set cidHashes;
         uint256 invalidAddFileCount;
         string ext;
@@ -32,7 +29,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     mapping(address=>UserItem) private users;
     mapping(address=>mapping(bytes32=>FileItem)) files;
-    uint256 private toatalUserNumber;
+    uint256 private totalUserNumber;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -43,19 +40,16 @@ contract UserStorage is ExternalStorage, IUserStorage {
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
         require(!exist(addr), contractName.concat(": user exist"));
-
         EnumerableSet.Bytes32Set memory cidHashes;
-        users[addr] = UserItem(StorageInfo(storageTotal, 0), cidHashes, 0, ext, true);
-
-        toatalUserNumber = toatalUserNumber.add(1);
+        users[addr] = UserItem(StorageSpaceManager.StorageSpace(0, storageTotal), cidHashes, 0, ext, true);
+        totalUserNumber = totalUserNumber.add(1);
     }
 
     function deleteUser(address addr) external {
         mustManager(managerName);
         require(exist(addr), contractName.concat(": user not exist"));
         delete users[addr];
-
-        toatalUserNumber = toatalUserNumber.sub(1);
+        totalUserNumber = totalUserNumber.sub(1);
     }
 
     function getExt(address addr) external view returns (string memory) {
@@ -67,27 +61,29 @@ contract UserStorage is ExternalStorage, IUserStorage {
         users[addr].ext = ext;
     }
 
-    function getStorageFree(address addr) external view returns (uint256) {
-        if(users[addr].storageInfo.used > users[addr].storageInfo.total) return 0;
-        return users[addr].storageInfo.total.sub(users[addr].storageInfo.used);
+    function availableSpace(address addr) external view returns (uint256) {
+        return users[addr].storageSpace.availableSpace();
     }
 
     function getStorageTotal(address addr) external view returns (uint256) {
-        return users[addr].storageInfo.total;
+        return users[addr].storageSpace.total;
     }
 
     function setStorageTotal(address addr, uint256 size) external {
         mustManager(managerName);
-        users[addr].storageInfo.total = size;
+        users[addr].storageSpace.total = size;
+    }
+
+    function useStorage(address addr, uint256 size) external {
+        users[addr].storageSpace.useSpace(size);
+    }
+
+    function freeStorage(address addr, uint256 size) external {
+        users[addr].storageSpace.unUseSpace(size);
     }
 
     function getStorageUsed(address addr) external view returns (uint256) {
-        return users[addr].storageInfo.used;
-    }
-
-    function setStorageUsed(address addr, uint256 size) external {
-        mustManager(managerName);
-        users[addr].storageInfo.used = size;
+        return users[addr].storageSpace.used;
     }
 
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
@@ -162,6 +158,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
     }
 
     function getTotalUserNumber() external view returns (uint256) {
-        return toatalUserNumber;
+        return totalUserNumber;
     }
 }

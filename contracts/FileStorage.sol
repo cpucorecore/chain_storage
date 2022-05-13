@@ -10,21 +10,20 @@ contract FileStorage is ExternalStorage, IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct FileItem {
-        string cid;
         uint256 size;
+        bool exist;
         EnumerableSet.AddressSet owners;
         EnumerableSet.AddressSet nodes;
     }
 
-    mapping(bytes32=>FileItem) private cidHash2fileItem;
+    mapping(string=>FileItem) private cid2fileItem;
     uint256 private totalSize; // TODO: measure accurate
     uint256 private totalFileNumber;  // TODO: measure accurate
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function exist(string memory cid) public view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return bytes(cidHash2fileItem[cidHash].cid).length > 0;
+        return cid2fileItem[cid].exist;
     }
 
     function newFile(string calldata cid, uint256 size) external {
@@ -32,7 +31,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
-        cidHash2fileItem[keccak256(bytes(cid))] = FileItem(cid, size, owners, nodes);
+        cid2fileItem[cid] = FileItem(size, true, owners, nodes);
 
         totalSize = totalSize.add(size);
         totalFileNumber = totalFileNumber.add(1);
@@ -41,50 +40,41 @@ contract FileStorage is ExternalStorage, IFileStorage {
     function deleteFile(string calldata cid) external {
         mustManager(managerName);
 
-        bytes32 cidHash = keccak256(bytes(cid));
-        totalSize = totalSize.sub(cidHash2fileItem[cidHash].size);
+        totalSize = totalSize.sub(cid2fileItem[cid].size);
         totalFileNumber = totalFileNumber.sub(1);
 
-        delete cidHash2fileItem[cidHash];
+        delete cid2fileItem[cid];
     }
 
     function getSize(string calldata cid) external view returns (uint256) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return cidHash2fileItem[cidHash].size;
+        return cid2fileItem[cid].size;
     }
 
     function setSize(string calldata cid, uint256 size) external {
         mustManager(managerName);
-
-        bytes32 cidHash = keccak256(bytes(cid));
-        cidHash2fileItem[cidHash].size = size;
+        cid2fileItem[cid].size = size;
     }
 
     function ownerExist(string calldata cid, address owner) external view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return cidHash2fileItem[cidHash].owners.contains(owner);
+        return cid2fileItem[cid].owners.contains(owner);
     }
 
     function ownerEmpty(string calldata cid) external view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return 0 == cidHash2fileItem[cidHash].owners.length();
+        return 0 == cid2fileItem[cid].owners.length();
     }
 
     function addOwner(string calldata cid, address owner) external {
         mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        cidHash2fileItem[cidHash].owners.add(owner);
+        cid2fileItem[cid].owners.add(owner);
     }
 
     function deleteOwner(string calldata cid, address owner) external {
         mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        cidHash2fileItem[cidHash].owners.remove(owner);
+        cid2fileItem[cid].owners.remove(owner);
     }
 
     function getOwners(string calldata cid) external view returns (address[] memory) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        EnumerableSet.AddressSet storage owners = cidHash2fileItem[cidHash].owners;
+        EnumerableSet.AddressSet storage owners = cid2fileItem[cid].owners;
         uint256 count = owners.length();
         address[] memory result = new address[](count);
         for(uint256 i=0; i<count; i++) {
@@ -94,8 +84,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        EnumerableSet.AddressSet storage owners = cidHash2fileItem[cidHash].owners;
+        EnumerableSet.AddressSet storage owners = cid2fileItem[cid].owners;
         Paging.Page memory page = Paging.getPage(owners.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
@@ -106,30 +95,25 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function nodeExist(string calldata cid, address node) external view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return cidHash2fileItem[cidHash].nodes.contains(node);
+        return cid2fileItem[cid].nodes.contains(node);
     }
 
     function nodeEmpty(string calldata cid) external view returns (bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        return 0 == cidHash2fileItem[cidHash].nodes.length();
+        return 0 == cid2fileItem[cid].nodes.length();
     }
 
     function addNode(string calldata cid, address node) external {
         mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        cidHash2fileItem[cidHash].nodes.add(node);
+        cid2fileItem[cid].nodes.add(node);
     }
 
     function deleteNode(string calldata cid, address node) external {
         mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        cidHash2fileItem[cidHash].nodes.remove(node);
+        cid2fileItem[cid].nodes.remove(node);
     }
 
     function getNodes(string calldata cid) external view returns (address[] memory) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        EnumerableSet.AddressSet storage nodes = cidHash2fileItem[cidHash].nodes;
+        EnumerableSet.AddressSet storage nodes = cid2fileItem[cid].nodes;
         uint256 count = nodes.length();
         address[] memory result = new address[](count);
         for(uint256 i=0; i<count; i++) {
@@ -139,8 +123,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        bytes32 cidHash = keccak256(bytes(cid));
-        EnumerableSet.AddressSet storage nodes = cidHash2fileItem[cidHash].nodes;
+        EnumerableSet.AddressSet storage nodes = cid2fileItem[cid].nodes;
         Paging.Page memory page = Paging.getPage(nodes.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);

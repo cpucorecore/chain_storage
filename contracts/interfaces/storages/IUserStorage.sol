@@ -9,12 +9,14 @@ interface IUserStorage {
     function getExt(address addr) external view returns (string memory);
     function setExt(address addr, string calldata ext) external;
 
-    function getStorageFree(address addr) external view returns (uint256);
+    function availableSpace(address addr) external view returns (uint256);
     function getStorageTotal(address addr) external view returns (uint256);
     function setStorageTotal(address addr, uint256 size) external;
 
+    function useStorage(address addr, uint256 size) external;
+    function freeStorage(address addr, uint256 size) external;
+
     function getStorageUsed(address addr) external view returns (uint256);
-    function setStorageUsed(address addr, uint256 size) external;
 
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external;
     function deleteFile(address addr, string calldata cid) external;

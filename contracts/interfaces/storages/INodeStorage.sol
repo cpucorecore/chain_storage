@@ -28,7 +28,7 @@ interface INodeStorage {
 
     function getStatus(address addr) external view returns (uint256);
 
-    function getStorageFree(address addr) external view returns (uint256);
+    function availableSpace(address addr) external view returns (uint256);
     function getStorageTotal(address addr) external view returns (uint256);
 
     function getStorageUsed(address addr) external view returns (uint256);
