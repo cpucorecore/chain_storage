@@ -76,7 +76,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function online(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
-        uint8 status = Storage().getStatus(addr);
+        uint256 status = Storage().getStatus(addr);
         require(MonitorRegistered == status ||
                 MonitorMaintain == status, contractName.concat(": wrong status"));
 
@@ -92,7 +92,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function maintain(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(Storage().exist(addr), contractName.concat(": monitor not exist"));
-        uint8 status = Storage().getStatus(addr);
+        uint256 status = Storage().getStatus(addr);
         require(MonitorOnline == status, contractName.concat(": wrong status"));
         Storage().setStatus(addr, MonitorMaintain);
         Storage().deleteOnlineMonitor(addr);

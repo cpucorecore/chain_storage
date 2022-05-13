@@ -76,7 +76,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
     function finishTask(address addr, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         address owner;
-        uint8 action;
+        uint256 action;
         address node;
         uint256 size;
         string memory cid;
@@ -118,7 +118,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
         uint256 size = TaskStorage().getSize(tid);
-        uint8 action = TaskStorage().getAction(tid);
+        uint256 action = TaskStorage().getAction(tid);
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
         uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
@@ -143,7 +143,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
         uint256 size = TaskStorage().getSize(tid);
-        uint8 action = TaskStorage().getAction(tid);
+        uint256 action = TaskStorage().getAction(tid);
 
         Storage().offline(node);
         // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
@@ -163,7 +163,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
         uint256 size = TaskStorage().getSize(tid);
-        uint8 action = TaskStorage().getAction(tid);
+        uint256 action = TaskStorage().getAction(tid);
 
         Storage().offline(node);
         // TODO emit NodeStatusChanged(addr, status, NodeMaintain);

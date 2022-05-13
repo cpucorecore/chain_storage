@@ -3,7 +3,7 @@ pragma solidity ^0.5.2;
 interface ITaskStorage {
     struct TaskItem {
         address owner;
-        uint8 action;
+        uint256 action;
         address node;
         uint256 size;
         string cid;
@@ -39,15 +39,15 @@ interface ITaskStorage {
 
     function newTask(
         address owner,
-        uint8 action,
+        uint256 action,
         string calldata cid,
         uint256 size,
         address node
     ) external returns (uint256);
 
-    function getTask(uint256 tid) external view returns (address, uint8, address, uint256, string memory);
+    function getTask(uint256 tid) external view returns (address, uint256, address, uint256, string memory);
     function getOwner(uint256 tid) external view returns (address);
-    function getAction(uint256 tid) external view returns (uint8);
+    function getAction(uint256 tid) external view returns (uint256);
     function getNode(uint256 tid) external view returns (address);
     function getSize(uint256 tid) external view returns (uint256);
     function getCid(uint256 tid) external view returns (string memory);

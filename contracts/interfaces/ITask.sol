@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
 interface ITask {
-    function issueTask(uint8, address owner, string calldata cid, address node, uint256 size) external returns (uint256);
+    function issueTask(uint256, address owner, string calldata cid, address node, uint256 size) external returns (uint256);
     function acceptTask(address node, uint256 tid) external; // for storage server
     function finishTask(uint256 tid) external; // for Node()
     function failTask(uint256 tid) external; // for Node()

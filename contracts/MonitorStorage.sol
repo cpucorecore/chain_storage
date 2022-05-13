@@ -34,7 +34,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitors[addr].exist;
     }
 
-    function getMonitor(address addr) external view returns (uint8, uint256, uint256, string memory) {
+    function getMonitor(address addr) external view returns (uint256, uint256, uint256, string memory) {
         MonitorItem storage monitor = monitors[addr];
         return (monitor.status, monitor.firstOnlineTid, monitor.currentTid, monitor.ext);
     }
@@ -57,11 +57,11 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         monitors[addr].firstOnlineTid = tid;
     }
 
-    function getStatus(address addr) external view returns (uint8) {
+    function getStatus(address addr) external view returns (uint256) {
         return monitors[addr].status;
     }
 
-    function setStatus(address addr, uint8 status) external {
+    function setStatus(address addr, uint256 status) external {
         mustManager(managerName);
         monitors[addr].status = status;
     }
@@ -96,7 +96,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addReport(address addr, uint256 tid, uint8 reportType, uint256 timestamp) external {
+    function addReport(address addr, uint256 tid, uint256 reportType, uint256 timestamp) external {
         mustManager(managerName);
         uint256 index = monitor2reports[addr].push(Report(tid, reportType, timestamp));
         monitor2rid[addr] = index;
@@ -106,7 +106,7 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
         return monitor2rid[addr];
     }
 
-    function getReport(address addr, uint256 index) external view returns (uint256, uint8, uint256) {
+    function getReport(address addr, uint256 index) external view returns (uint256, uint256, uint256) {
         Report storage report = monitor2reports[addr][index];
         return (report.tid, report.reportType, report.timestamp);
     }

@@ -19,15 +19,15 @@ contract Constants {
     bytes32 internal constant ACCOUNT_ADMIN = 'Admin';
 
     // user action
-    uint8 constant Add = 0;
-    uint8 constant Delete = 1;
+    uint256 constant Add = 0;
+    uint256 constant Delete = 1;
 
     // monitor report type
-    uint8 constant ReportTimeout = 0;
-    uint8 constant ReportAcceptTimeout = 1;
+    uint256 constant ReportTimeout = 0;
+    uint256 constant ReportAcceptTimeout = 1;
 
     // default status
-    uint8 constant DefaultStatus = 0;
+    uint256 constant DefaultStatus = 0;
 
     // task status
     uint256 constant TaskCreated = 1;
@@ -45,7 +45,7 @@ contract Constants {
     uint256 constant NodeDeRegistered = 5;
 
     // monitor status
-    uint8 constant MonitorRegistered = 1;
-    uint8 constant MonitorOnline = 2;
-    uint8 constant MonitorMaintain = 3;
+    uint256 constant MonitorRegistered = 1;
+    uint256 constant MonitorOnline = 2;
+    uint256 constant MonitorMaintain = 3;
 }

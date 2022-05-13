@@ -38,7 +38,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     function newTask(
         address owner,
-        uint8 action,
+        uint256 action,
         string calldata cid,
         uint256 size,
         address node
@@ -57,7 +57,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return currentTid;
     }
 
-    function getTask(uint256 tid) external view returns (address, uint8, address, uint256, string memory) {
+    function getTask(uint256 tid) external view returns (address, uint256, address, uint256, string memory) {
         TaskItem storage task = tid2taskItem[tid];
         return (task.owner, task.action, task.node, task.size, task.cid);
     }
@@ -66,7 +66,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid].owner;
     }
 
-    function getAction(uint256 tid) external view returns (uint8) {
+    function getAction(uint256 tid) external view returns (uint256) {
         return tid2taskItem[tid].action;
     }
 
