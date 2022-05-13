@@ -14,7 +14,6 @@ contract FileStorage is ExternalStorage, IFileStorage {
         uint256 size;
         EnumerableSet.AddressSet owners;
         EnumerableSet.AddressSet nodes;
-        bool exist;
     }
 
     mapping(bytes32=>FileItem) private cidHash2fileItem;
@@ -25,17 +24,15 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function exist(string memory cid) public view returns (bool) {
         bytes32 cidHash = keccak256(bytes(cid));
-        return cidHash2fileItem[cidHash].exist;
+        return cidHash2fileItem[cidHash].size > 0;
     }
 
     function newFile(string calldata cid, uint256 size) external {
         mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        require(!cidHash2fileItem[cidHash].exist, contractName.concat(": file exist"));
 
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
-        cidHash2fileItem[cidHash] = FileItem(cid, size, owners, nodes, true);
+        cidHash2fileItem[keccak256(bytes(cid))] = FileItem(cid, size, owners, nodes);
 
         totalSize = totalSize.add(size);
         toatalFileNumber = toatalFileNumber.add(1);
@@ -43,8 +40,9 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function deleteFile(string calldata cid) external {
         mustManager(managerName);
+
         bytes32 cidHash = keccak256(bytes(cid));
-        require(cidHash2fileItem[cidHash].exist, contractName.concat(": file not exist"));
+        require(exist(cid), contractName.concat(": file not exist"));
 
         totalSize = totalSize.sub(cidHash2fileItem[cidHash].size);
         toatalFileNumber = toatalFileNumber.sub(1);
@@ -59,6 +57,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function setSize(string calldata cid, uint256 size) external {
         mustManager(managerName);
+
         bytes32 cidHash = keccak256(bytes(cid));
         cidHash2fileItem[cidHash].size = size;
     }
