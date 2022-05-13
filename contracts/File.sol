@@ -17,7 +17,6 @@ contract File is Importable, ExternalStorable, IFile {
             CONTRACT_USER,
             CONTRACT_USER_CALLBACK,
             CONTRACT_NODE,
-            CONTRACT_NODE_CALLBACK,
             CONTRACT_TASK
         ];
     }
