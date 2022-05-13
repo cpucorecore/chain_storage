@@ -3,11 +3,10 @@ pragma experimental ABIEncoderV2;
 
 import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/INodeStorage.sol";
-import "./interfaces/storages/INodeStorageViewer.sol";
 import "./lib/EnumerableSet.sol";
 import "./lib/Paging.sol";
 
-contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
+contract NodeStorage is ExternalStorage, INodeStorage {
     using EnumerableSet for EnumerableSet.Bytes32Set;
     using EnumerableSet for EnumerableSet.AddressSet;
 

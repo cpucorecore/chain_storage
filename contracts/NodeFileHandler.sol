@@ -10,7 +10,6 @@ import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IUserFileHandler.sol";
-import "./interfaces/storages/INodeStorageViewer.sol";
 
 contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
     using SafeMath for uint256;
@@ -29,10 +28,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
 
     function Storage() private view returns (INodeStorage) {
         return INodeStorage(getStorage());
-    }
-
-    function StorageViewer() private view returns (INodeStorageViewer) {
-        return INodeStorageViewer(getStorage());
     }
 
     function Setting() private view returns (ISetting) {
@@ -90,7 +85,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             Storage().freeStorage(node, size);
         }
 
-        uint256 currentTid = StorageViewer().getMaxFinishedTid(addr);
+        uint256 currentTid = Storage().getMaxFinishedTid(addr);
         if(tid > currentTid) {
             Storage().setMaxFinishedTid(addr, tid);
         }
@@ -172,14 +167,14 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
     function selectNodes(uint256 size, uint256 count) private view returns (address[] memory) {
         address[] memory onlineNodeAddresses;
         bool finish;
-        (onlineNodeAddresses, finish) = StorageViewer().getAllOnlineNodeAddresses(50, 1);
+        (onlineNodeAddresses, finish) = Storage().getAllOnlineNodeAddresses(50, 1);
 
         if(onlineNodeAddresses.length <= count) {
             return onlineNodeAddresses;
         } else {
             address[] memory nodes = new address[](count);
             for(uint256 i=0; i<count; i++) {
-                if(StorageViewer().getStorageFree(onlineNodeAddresses[i]) >= size) {
+                if(Storage().getStorageFree(onlineNodeAddresses[i]) >= size) {
                     nodes[i] = onlineNodeAddresses[i];
                 }
             }
@@ -190,12 +185,12 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
     function offline(address addr) private {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        uint256 status = StorageViewer().getStatus(addr);
+        uint256 status = Storage().getStatus(addr);
         require(NodeOnline == status, contractName.concat(": wrong status"));
 
         Storage().setStatus(addr, NodeMaintain);
 
-        if(StorageViewer().isNodeOnline(addr)) {
+        if(Storage().isNodeOnline(addr)) {
             Storage().deleteOnlineNode(addr);
         }
 
