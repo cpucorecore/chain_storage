@@ -50,7 +50,7 @@ contract Node is Importable, ExternalStorable, INode {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
         require(0 == StorageViewer().getNodeCidsNumber(addr), contractName.concat(": files not empty"));
-        uint8 status = StorageViewer().getStatus(addr);
+        uint256 status = StorageViewer().getStatus(addr);
         require(NodeRegistered == status ||
                 NodeMaintain == status,
             contractName.concat(": can do deRegister only in [Registered/Maintain] status"));
@@ -76,7 +76,7 @@ contract Node is Importable, ExternalStorable, INode {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
 
-        uint8 status = StorageViewer().getStatus(addr);
+        uint256 status = StorageViewer().getStatus(addr);
         require(NodeRegistered == status ||
                 NodeMaintain == status ||
                 NodeOffline == status,
@@ -96,7 +96,7 @@ contract Node is Importable, ExternalStorable, INode {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         checkExist(addr);
 
-        uint8 status = StorageViewer().getStatus(addr);
+        uint256 status = StorageViewer().getStatus(addr);
         require(NodeOnline == status, contractName.concat(": wrong status"));
 
         Storage().setStatus(addr, NodeMaintain);

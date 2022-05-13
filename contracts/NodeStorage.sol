@@ -22,13 +22,12 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     }
 
     struct NodeItem {
-        uint8 status;
+        uint256 status;
         ServiceInfo serviceInfo;
         uint256 maxFinishedTid;
         uint256 storageUsed;
         uint256 storageTotal;
         string ext;
-        bool exist;
     }
 
     mapping(address=>NodeItem) private nodes;
@@ -42,26 +41,27 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function exist(address addr) external view returns (bool) {
-        return nodes[addr].exist;
+    function exist(address addr) public view returns (bool) {
+        return 0 != nodes[addr].status;
     }
 
-    function newNode(address node, uint256 storageTotal, string calldata ext) external {
+    function newNode(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
-        require(!nodes[node].exist, contractName.concat(": node exist"));
 
-        nodes[node] = NodeItem(NodeRegistered,
+        require(!exist(addr), contractName.concat(": node exist")); //TODO
+
+        nodes[addr] = NodeItem(NodeRegistered,
             ServiceInfo(0, 0, 0, 0, 0, 0, 0),
             0,
             storageTotal,
-            0, ext, true);
+            0, ext);
 
-        nodeAddrs.add(node);
+        nodeAddrs.add(addr);
     }
 
     function deleteNode(address addr) external {
         mustManager(managerName);
-        require(nodes[addr].exist, contractName.concat(": node not exist"));
+        require(exist(addr), contractName.concat(": node not exist"));
 
         delete nodes[addr];
         delete node2cidHashes[addr];
@@ -93,7 +93,7 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
 
     function offline(address addr) external {
         mustManager(managerName);
-        require(nodes[addr].exist, "NodeFileHandler: node not exist");
+        require(exist(addr), "NodeFileHandler: node not exist");
 
         require(NodeOnline == nodes[addr].status, "NodeFileHandler: wrong status");
         nodes[addr].status = NodeOffline;
@@ -128,11 +128,11 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         nodes[addr].maxFinishedTid = tid;
     }
 
-    function getStatus(address addr) external view returns (uint8) {
+    function getStatus(address addr) external view returns (uint256) {
         return nodes[addr].status;
     }
 
-    function setStatus(address addr, uint8 status) external {
+    function setStatus(address addr, uint256 status) external {
         mustManager(managerName);
         nodes[addr].status = status;
     }

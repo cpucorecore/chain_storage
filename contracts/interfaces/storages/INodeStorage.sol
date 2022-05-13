@@ -15,7 +15,7 @@ interface INodeStorage {
     function offline(address addr) external;
 
     function setMaxFinishedTid(address addr, uint256 tid) external;
-    function setStatus(address addr, uint8 status) external;
+    function setStatus(address addr, uint256 status) external;
 
     function setMaintainCount(address addr, uint256 value) external;
     function setOfflineCount(address addr, uint256 value) external;

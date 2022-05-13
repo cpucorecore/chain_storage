@@ -11,7 +11,7 @@ interface INodeStorageViewer {
 
     function getMaxFinishedTid(address addr) external view returns (uint256);
 
-    function getStatus(address addr) external view returns (uint8);
+    function getStatus(address addr) external view returns (uint256);
 
     function getMaintainCount(address addr) external view returns (uint256);
 

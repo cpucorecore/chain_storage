@@ -38,10 +38,10 @@ contract Constants {
     uint8 constant TaskTimeout = 6;
 
     // node status
-    uint8 constant NodeRegistered = 1;
-    uint8 constant NodeOnline = 2;
-    uint8 constant NodeMaintain = 3;
-    uint8 constant NodeOffline = 4;
+    uint256 constant NodeRegistered = 1;
+    uint256 constant NodeOnline = 2;
+    uint256 constant NodeMaintain = 3;
+    uint256 constant NodeOffline = 4;
 
     // monitor status
     uint8 constant MonitorRegistered = 1;
