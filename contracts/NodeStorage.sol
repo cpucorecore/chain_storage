@@ -28,7 +28,7 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function exist(address addr) public view returns (bool) {
-        return 0 != nodes[addr].status;
+        return DefaultStatus != nodes[addr].status;
     }
 
     function newNode(address addr, uint256 storageTotal, string calldata ext) external {
@@ -169,9 +169,15 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         return cid2addFileFailedCount[cid];
     }
 
-    function setAddFileFailedCount(string calldata cid, uint256 count) external {
+    function resetAddFileFailedCount(string calldata cid) external {
         mustManager(managerName);
-        cid2addFileFailedCount[cid] = count;
+        cid2addFileFailedCount[cid] = 0;
+    }
+
+    function upAddFileFailedCount(string calldata cid) external returns (uint256) {
+        mustManager(managerName);
+        cid2addFileFailedCount[cid] = cid2addFileFailedCount[cid].add(1);
+        return cid2addFileFailedCount[cid];
     }
 
     function getTotalNodeNumber() external view returns (uint256) {

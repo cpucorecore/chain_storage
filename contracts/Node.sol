@@ -58,10 +58,11 @@ contract Node is Importable, ExternalStorable, INode {
         require(NodeRegistered == status ||
                 NodeMaintain == status,
             contractName.concat(": can do deRegister only in [Registered/Maintain] status"));
+        //TODO "N:WS" //Node:WrongStatus
 
         Storage().deleteNode(addr);
 
-        emit NodeStatusChanged(addr, status, NodeDeRegistered);
+        emit NodeStatusChanged(addr, status, DefaultStatus);
     }
 
     function setExt(address addr, string calldata ext) external {

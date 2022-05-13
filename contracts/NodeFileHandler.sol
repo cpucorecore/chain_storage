@@ -89,7 +89,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             File().addFileCallback(node, owner, cid);
             Storage().useStorage(node, size);
             History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
-            Storage().setAddFileFailedCount(cid, 0);
+            Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
             File().deleteFileCallback(node, owner, cid);
             Storage().freeStorage(node, size);
@@ -116,8 +116,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
         uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
-        uint256 addFileFailedCount = StorageViewer().getAddFileFailedCount(cid).add(1);
-        Storage().setAddFileFailedCount(cid, addFileFailedCount);
+        uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
         if(addFileFailedCount >= maxAddFileFailedCount) {
             UserFileHandler().callbackFailAddFile(owner, cid);
             return;
@@ -165,11 +164,11 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
 
         if(Add == action) {
             uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
-            uint256 addFileFailedCount = StorageViewer().getAddFileFailedCount(cid);
+            uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
             if(addFileFailedCount >= maxAddFileFailedCount) {
+                UserFileHandler().callbackFailAddFile(owner, cid);
                 return;
             }
-            Storage().setAddFileFailedCount(cid, addFileFailedCount.add(1));
 
             address[] memory nodes = selectNodes(size, 1);
             require(1 == nodes.length, "NodeFileHandler: no available node:1"); // TODO check: no require?
