@@ -2,22 +2,24 @@ pragma solidity ^0.5.2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
-import "./interfaces/INodeFileHandler.sol";
 import "./lib/SafeMath.sol";
+import "./lib/NodeSelector.sol";
 import "./interfaces/storages/INodeStorage.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/IFile.sol";
+import "./interfaces/INodeCallback.sol";
 import "./interfaces/IUserFileHandler.sol";
 
-contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
+contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
+    using NodeSelector for address;
     using SafeMath for uint256;
 
     event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
-        setContractName(CONTRACT_NODE_FILE_HANDLER);
+        setContractName(CONTRACT_NODE_CALLBACK);
         imports = [
             CONTRACT_SETTING,
             CONTRACT_FILE,
@@ -50,22 +52,9 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
     }
 
-    function addFile(address owner, string calldata cid, uint256 size) external {
-        mustAddress(CONTRACT_FILE);
-
-        uint256 replica = Setting().getReplica();
-        require(0 != replica, "NodeFileHandler: replica is 0");
-
-        address[] memory nodeAddrs = selectNodes(size, replica);
-        require(nodeAddrs.length == replica, "NodeFileHandler: no available node");
-
-        for(uint256 i=0; i<nodeAddrs.length; i++) {
-            Task().issueTask(Add, owner, cid, nodeAddrs[i], size);
-        }
-    }
-
     function finishTask(address addr, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
+
         address owner;
         uint256 action;
         address node;
@@ -111,9 +100,9 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             return;
         }
 
-        address[] memory nodes = selectNodes(size, 1);
-        require(1 == nodes.length, "NodeFileHandler: no available node:1"); // TODO check: no require?
-        Task().issueTask(Add, owner, cid, nodes[0], size);
+        if(Add == action) {
+            _retryAddFileTask(owner, size, cid);
+        }
 
         Task().failTask(tid);
     }
@@ -127,13 +116,11 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
-        offline(node);
+        _offline(node);
         Task().acceptTaskTimeout(tid);
 
         if(Add == action) {
-            address[] memory nodes = selectNodes(size, 1);
-            require(1 == nodes.length, "NodeFileHandler: no available node:1"); // TODO check: no require?
-            Task().issueTask(Add, owner, cid, nodes[0], size);
+            _retryAddFileTask(owner, size, cid);
         }
     }
 
@@ -146,7 +133,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
-        offline(node);
+        _offline(node);
         Task().taskTimeout(tid);
 
         if(Add == action) {
@@ -156,33 +143,11 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
                 UserFileHandler().callbackFailAddFile(owner, cid);
                 return;
             }
-
-            address[] memory nodes = selectNodes(size, 1);
-            require(1 == nodes.length, "NodeFileHandler: no available node:1"); // TODO check: no require?
-            Task().issueTask(Add, owner, cid, nodes[0], size);
+            _retryAddFileTask(owner, size, cid);
         }
     }
 
-    //////////////////////// private functions ////////////////////////
-    function selectNodes(uint256 size, uint256 count) private view returns (address[] memory) {
-        address[] memory onlineNodeAddresses;
-        bool finish;
-        (onlineNodeAddresses, finish) = Storage().getAllOnlineNodeAddresses(50, 1);
-
-        if(onlineNodeAddresses.length <= count) {
-            return onlineNodeAddresses;
-        } else {
-            address[] memory nodes = new address[](count);
-            for(uint256 i=0; i<count; i++) {
-                if(Storage().getStorageFree(onlineNodeAddresses[i]) >= size) {
-                    nodes[i] = onlineNodeAddresses[i];
-                }
-            }
-            return nodes;
-        }
-    }
-
-    function offline(address addr) private {
+    function _offline(address addr) private {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
         uint256 status = Storage().getStatus(addr);
@@ -195,5 +160,14 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         }
 
         emit NodeStatusChanged(addr, status, NodeMaintain);
+    }
+
+    function _retryAddFileTask(address owner, uint256 size, string memory cid) private {
+        address[] memory nodes;
+        bool success;
+        address nodeStorageAddr = getStorage();
+        (nodes, success) = nodeStorageAddr.selectNodes(size, 1);
+        require(success, "N:no available node"); // TODO check: no require?
+        Task().issueTask(Add, owner, cid, nodes[0], size);
     }
 }

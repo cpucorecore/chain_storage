@@ -9,7 +9,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
 import "./lib/SafeMath.sol";
-import "./interfaces/INodeFileHandler.sol";
+import "./interfaces/INodeCallback.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
@@ -35,8 +35,8 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
-    function NodeFileHandler() private view returns (INodeFileHandler) {
-        return INodeFileHandler(requireAddress(CONTRACT_NODE_FILE_HANDLER));
+    function NodeCallback() private view returns (INodeCallback) {
+        return INodeCallback(requireAddress(CONTRACT_NODE_CALLBACK));
     }
 
     function Task() private view returns (ITask) {
@@ -168,14 +168,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function reportTaskAcceptTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportAcceptTimeout, now);
-        NodeFileHandler().taskAcceptTimeout(addr, tid);
+        NodeCallback().taskAcceptTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportAcceptTimeout);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportTimeout, now);
-        NodeFileHandler().taskTimeout(addr, tid);
+        NodeCallback().taskTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportTimeout);
     }
 

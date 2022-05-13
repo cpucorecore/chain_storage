@@ -7,7 +7,9 @@ import "./interfaces/INode.sol";
 import "./interfaces/storages/INodeStorage.sol";
 import "./interfaces/ISetting.sol";
 import "./lib/SafeMath.sol";
+import "./lib/NodeSelector.sol";
 import "./interfaces/storages/ITaskStorage.sol";
+import "./interfaces/ITask.sol";
 
 // "N:e"        = "Node: exist"
 // "N:etl"      = "Node: ext too long"
@@ -16,6 +18,7 @@ import "./interfaces/storages/ITaskStorage.sol";
 // "N:sts"       = "Node: storageTotal too small"
 
 contract Node is Importable, ExternalStorable, INode {
+    using NodeSelector for address;
     using SafeMath for uint256;
 
     event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
@@ -24,6 +27,7 @@ contract Node is Importable, ExternalStorable, INode {
         setContractName(CONTRACT_NODE);
         imports = [
             CONTRACT_SETTING,
+            CONTRACT_TASK,
             CONTRACT_TASK_STORAGE
         ];
     }
@@ -34,6 +38,10 @@ contract Node is Importable, ExternalStorable, INode {
 
     function Setting() private view returns (ISetting) {
         return ISetting(requireAddress(CONTRACT_SETTING));
+    }
+
+    function Task() private view returns (ITask) {
+        return ITask(requireAddress(CONTRACT_TASK));
     }
 
     function TaskStorage() private view returns (ITaskStorage) {
@@ -113,6 +121,23 @@ contract Node is Importable, ExternalStorable, INode {
         }
 
         emit NodeStatusChanged(addr, status, NodeMaintain);
+    }
+
+    function addFile(address owner, string calldata cid, uint256 size) external {
+        mustAddress(CONTRACT_FILE);
+
+        uint256 replica = Setting().getReplica();
+        require(0 != replica, "N:replica is 0");
+
+        address nodeStorageAddr = getStorage();
+        address[] memory nodeAddrs;
+        bool success;
+        (nodeAddrs, success) = nodeStorageAddr.selectNodes(size, replica);
+        require(success, "N:no available node");
+
+        for(uint256 i=0; i<nodeAddrs.length; i++) {
+            Task().issueTask(Add, owner, cid, nodeAddrs[i], size);
+        }
     }
 
     function nodeMustExist(address addr) private view {

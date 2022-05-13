@@ -6,7 +6,7 @@ import "./base/Importable.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/IUserFileHandler.sol";
 import "./interfaces/INode.sol";
-import "./interfaces/INodeFileHandler.sol";
+import "./interfaces/INodeCallback.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/ITask.sol";
 
@@ -41,8 +41,8 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
-    function NodeFileHandler() private view returns (INodeFileHandler) {
-        return INodeFileHandler(requireAddress(CONTRACT_NODE_FILE_HANDLER));
+    function NodeCallback() private view returns (INodeCallback) {
+        return INodeCallback(requireAddress(CONTRACT_NODE_CALLBACK));
     }
 
     function Monitor() private view returns (IMonitor) {
@@ -126,13 +126,13 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function nodeFinishTask(uint256 tid) external {
         mustInitialized();
         mustNotPaused();
-        NodeFileHandler().finishTask(msg.sender, tid);
+        NodeCallback().finishTask(msg.sender, tid);
     }
 
     function nodeFailTask(uint256 tid) external {
         mustInitialized();
         mustNotPaused();
-        NodeFileHandler().failTask(msg.sender, tid);
+        NodeCallback().failTask(msg.sender, tid);
     }
 
     function nodeSetStorageTotal(uint256 storageTotal) external {
