@@ -8,7 +8,6 @@ import "./interfaces/storages/IMonitorStorage.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
-import "./interfaces/IHistory.sol";
 import "./lib/SafeMath.sol";
 import "./interfaces/INodeFileHandler.sol";
 import "./interfaces/storages/ITaskStorage.sol";
@@ -16,14 +15,15 @@ import "./interfaces/storages/ITaskStorage.sol";
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
 
+    event MonitorReport(address indexed addr, uint256 tid, uint256 reportType);
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_MONITOR);
         imports = [
             CONTRACT_SETTING,
             CONTRACT_USER,
             CONTRACT_TASK,
-            CONTRACT_TASK_STORAGE,
-            CONTRACT_HISTORY
+            CONTRACT_TASK_STORAGE
         ];
     }
 
@@ -33,10 +33,6 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function Setting() private view returns (ISetting) {
         return ISetting(requireAddress(CONTRACT_SETTING));
-    }
-
-    function Node() private view returns (INode) {
-        return INode(requireAddress(CONTRACT_NODE));
     }
 
     function NodeFileHandler() private view returns (INodeFileHandler) {
@@ -49,10 +45,6 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function TaskStorage() private view returns (ITaskStorage) {
         return ITaskStorage(requireAddress(CONTRACT_TASK_STORAGE));
-    }
-
-    function History() private view returns (IHistory) {
-        return IHistory(requireAddress(CONTRACT_HISTORY));
     }
 
     function register(address addr, string calldata ext) external {
@@ -176,17 +168,15 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function reportTaskAcceptTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportAcceptTimeout, now);
-        string memory cid = TaskStorage().getCid(tid);
-        History().addMonitorAction(addr, tid, ReportAcceptTimeout, keccak256(bytes(cid)));
         NodeFileHandler().taskAcceptTimeout(addr, tid);
+        emit MonitorReport(addr, tid, ReportAcceptTimeout);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportTimeout, now);
-        string memory cid = TaskStorage().getCid(tid);
-        History().addMonitorAction(addr, tid, ReportTimeout, keccak256(bytes(cid)));
         NodeFileHandler().taskTimeout(addr, tid);
+        emit MonitorReport(addr, tid, ReportTimeout);
     }
 
     function saveCurrentTid(address addr, uint256 tid) private {

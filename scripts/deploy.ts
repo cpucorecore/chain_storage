@@ -23,9 +23,6 @@ async function main() {
   const SettingStorage = await ethers.getContractFactory("SettingStorage");
   const settingStorage = await SettingStorage.deploy(setting.address);
 
-  const History = await ethers.getContractFactory("History");
-  const history = await History.deploy(resolver.address);
-
   const File = await ethers.getContractFactory("File");
   const file = await File.deploy(resolver.address);
 
@@ -59,7 +56,6 @@ async function main() {
   await resolver.deployed();
   await setting.deployed();
   await settingStorage.deployed();
-  await history.deployed();
   await file.deployed();
   await fileStorage.deployed();
   await user.deployed();
@@ -71,7 +67,6 @@ async function main() {
   console.log("Resolver deployed to:", resolver.address);
   console.log("Setting deployed to:", setting.address);
   console.log("SettingStorage deployed to:", settingStorage.address);
-  console.log("History deployed to:", history.address);
   console.log("File deployed to:", file.address);
   console.log("FileStorage deployed to:", fileStorage.address);
   console.log("User deployed to:", user.address);

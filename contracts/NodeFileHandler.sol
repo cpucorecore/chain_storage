@@ -10,7 +10,6 @@ import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IUserFileHandler.sol";
-import "./interfaces/IHistory.sol";
 import "./interfaces/storages/INodeStorageViewer.sol";
 
 contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
@@ -24,8 +23,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             CONTRACT_SETTING,
             CONTRACT_FILE,
             CONTRACT_USER_FILE_HANDLER,
-            CONTRACT_TASK,
-            CONTRACT_HISTORY
+            CONTRACT_TASK
         ];
     }
 
@@ -57,10 +55,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         return IUserFileHandler(requireAddress(CONTRACT_USER_FILE_HANDLER));
     }
 
-    function History() private view returns (IHistory) {
-        return IHistory(requireAddress(CONTRACT_HISTORY));
-    }
-
     function addFile(address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_FILE);
 
@@ -90,12 +84,10 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         if(Add == action) {
             File().addFileCallback(node, owner, cid);
             Storage().useStorage(node, size);
-            History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
             Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
             File().deleteFileCallback(node, owner, cid);
             Storage().freeStorage(node, size);
-            History().addNodeAction(addr, tid, action, keccak256(bytes(cid)));
         }
 
         uint256 currentTid = StorageViewer().getMaxFinishedTid(addr);

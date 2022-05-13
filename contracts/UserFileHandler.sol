@@ -7,11 +7,11 @@ import "./lib/SafeMath.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
-import "./interfaces/IHistory.sol";
 
 contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
     using SafeMath for uint256;
 
+    event UserAction(address indexed addr, uint256 action, string cid);
     event FileAdded(address indexed owner, string cid); // for User Client
     event FileAddFailed(address indexed owner, string cid); // for User Client
     event FileDeleted(address indexed owner, string cid); // for User Client
@@ -20,8 +20,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         setContractName(CONTRACT_USER_FILE_HANDLER);
         imports = [
         CONTRACT_SETTING,
-        CONTRACT_FILE,
-        CONTRACT_HISTORY
+        CONTRACT_FILE
         ];
     }
 
@@ -37,10 +36,6 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         return IFile(requireAddress(CONTRACT_FILE));
     }
 
-    function History() private view returns (IHistory) {
-        return IHistory(requireAddress(CONTRACT_HISTORY));
-    }
-
     function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(size > 0, contractName.concat(": size must > 0"));
@@ -49,7 +44,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         require(!Storage().fileExist(addr, cid), contractName.concat(": file exist"));
         require(Storage().getStorageFree(addr) >= size, contractName.concat(": space not enough"));
 
-        History().addUserAction(addr, Add, keccak256(bytes(cid)));
+        emit UserAction(addr, Add, cid);
         File().addFile(cid, size, addr);
         Storage().addFile(addr, cid, duration, ext, now);
         useStorage(addr, size);
@@ -76,7 +71,7 @@ contract UserFileHandler is Importable, ExternalStorable, IUserFileHandler {
         require(bytes(cid).length <= Setting().getMaxCidLength(), contractName.concat(": cid too long"));
         require(Storage().fileExist(addr, cid), contractName.concat(": file not exist"));
 
-        History().addUserAction(addr, Delete, keccak256(bytes(cid)));
+        emit UserAction(addr, Add, cid);
         Storage().deleteFile(addr, cid);
         uint256 size = File().getSize(cid);
         freeStorage(addr, size);
