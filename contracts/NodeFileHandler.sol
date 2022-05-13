@@ -16,6 +16,8 @@ import "./interfaces/storages/INodeStorageViewer.sol";
 contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
     using SafeMath for uint256;
 
+    event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
+
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_NODE_FILE_HANDLER);
         imports = [
@@ -138,8 +140,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
-        Storage().offline(node);
-        // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
+        offline(node);
         Task().acceptTaskTimeout(tid);
 
         if(Add == action) {
@@ -158,8 +159,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
         uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
-        Storage().offline(node);
-        // TODO emit NodeStatusChanged(addr, status, NodeMaintain);
+        offline(node);
         Task().taskTimeout(tid);
 
         if(Add == action) {
@@ -193,5 +193,20 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeFileHandler {
             }
             return nodes;
         }
+    }
+
+    function offline(address addr) private {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
+
+        uint256 status = StorageViewer().getStatus(addr);
+        require(NodeOnline == status, contractName.concat(": wrong status"));
+
+        Storage().setStatus(addr, NodeMaintain);
+
+        if(StorageViewer().isNodeOnline(addr)) {
+            Storage().deleteOnlineNode(addr);
+        }
+
+        emit NodeStatusChanged(addr, status, NodeMaintain);
     }
 }

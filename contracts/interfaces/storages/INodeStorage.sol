@@ -12,8 +12,6 @@ interface INodeStorage {
     function addOnlineNode(address addr) external;
     function deleteOnlineNode(address addr) external;
 
-    function offline(address addr) external;
-
     function setMaxFinishedTid(address addr, uint256 tid) external;
     function setStatus(address addr, uint256 status) external;
 

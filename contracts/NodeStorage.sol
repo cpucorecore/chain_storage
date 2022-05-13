@@ -75,19 +75,6 @@ contract NodeStorage is ExternalStorage, INodeStorage, INodeStorageViewer {
         onlineNodeAddrs.remove(addr);
     }
 
-    function offline(address addr) external {
-        mustManager(managerName);
-        require(exist(addr), "NodeFileHandler: node not exist");
-
-        require(NodeOnline == nodes[addr].status, "NodeFileHandler: wrong status");
-        nodes[addr].status = NodeOffline;
-        if(onlineNodeAddrs.contains(addr)) {
-            onlineNodeAddrs.remove(addr);
-        }
-
-        // TODO issue event
-    }
-
     function getStorageInfo(address addr) public view returns (uint256, uint256) {
         return (nodes[addr].storageUsed, nodes[addr].storageTotal);
     }
