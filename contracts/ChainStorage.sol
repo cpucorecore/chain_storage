@@ -135,10 +135,10 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         NodeFileHandler().failTask(msg.sender, tid);
     }
 
-    function changeNodeSpace(uint256 space) external {
+    function nodeSetStorageTotal(uint256 storageTotal) external {
         mustInitialized();
         mustNotPaused();
-        Node().changeSpace(msg.sender, space);
+        Node().setStorageTotal(msg.sender, storageTotal);
     }
 
     function monitorRegister(string calldata ext) external {
