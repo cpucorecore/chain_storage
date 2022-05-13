@@ -30,12 +30,12 @@ contract Constants {
     uint8 constant DefaultStatus = 0;
 
     // task status
-    uint8 constant TaskCreated = 1;
-    uint8 constant TaskAccepted = 2;
-    uint8 constant TaskAcceptTimeout = 3;
-    uint8 constant TaskFinished = 4;
-    uint8 constant TaskFailed = 5;
-    uint8 constant TaskTimeout = 6;
+    uint256 constant TaskCreated = 1;
+    uint256 constant TaskAccepted = 2;
+    uint256 constant TaskAcceptTimeout = 3;
+    uint256 constant TaskFinished = 4;
+    uint256 constant TaskFailed = 5;
+    uint256 constant TaskTimeout = 6;
 
     // node status
     uint256 constant NodeRegistered = 1;

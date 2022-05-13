@@ -11,7 +11,7 @@ interface ITaskStorage {
     }
 
     struct TaskState {
-        uint8 status;
+        uint256 status;
         uint256 createBlockNumber;
         uint256 createTime;
         uint256 acceptTime;
@@ -52,8 +52,8 @@ interface ITaskStorage {
     function getSize(uint256 tid) external view returns (uint256);
     function getCid(uint256 tid) external view returns (string memory);
 
-    function getTaskState(uint256 tid) external view returns (uint8, uint256, uint256, uint256, uint256, uint256, uint256, uint256);
-    function getStatus(uint256 tid) external view returns (uint8);
+    function getTaskState(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256);
+    function getStatus(uint256 tid) external view returns (uint256);
     function getCreateBlockNumber(uint256 tid) external view returns (uint256);
     function getCreateTime(uint256 tid) external view returns (uint256);
     function getAcceptTime(uint256 tid) external view returns (uint256);
@@ -62,8 +62,8 @@ interface ITaskStorage {
     function getFailTime(uint256 tid) external view returns (uint256);
     function getTimeoutTime(uint256 tid) external view returns (uint256);
 
-    function getStatusAndTime(uint256 tid) external view returns (uint8, uint256);
-    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external;
+    function getStatusAndTime(uint256 tid) external view returns (uint256, uint256);
+    function setStatusAndTime(uint256 tid, uint256 status, uint256 time) external;
 
     function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256);
     function setAddFileTaskProgressBySize(uint256 tid, uint256 time, uint256 size) external;

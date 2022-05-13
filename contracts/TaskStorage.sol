@@ -82,7 +82,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskItem[tid].cid;
     }
 
-    function getTaskState(uint256 tid) external view returns (uint8, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function getTaskState(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         TaskState storage state = tid2taskState[tid];
         return (state.status,
                 state.createBlockNumber,
@@ -94,7 +94,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
                 state.timeoutTime);
     }
 
-    function getStatus(uint256 tid) external view returns (uint8) {
+    function getStatus(uint256 tid) external view returns (uint256) {
         return tid2taskState[tid].status;
     }
 
@@ -126,9 +126,9 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return tid2taskState[tid].timeoutTime;
     }
 
-    function getStatusAndTime(uint256 tid) external view returns (uint8, uint256) {
+    function getStatusAndTime(uint256 tid) external view returns (uint256, uint256) {
         uint256 time = 0;
-        uint8 status = tid2taskState[tid].status;
+        uint256 status = tid2taskState[tid].status;
         if(TaskCreated == status) {
             time = tid2taskState[tid].createTime;
         } else if(TaskAccepted == status) {
@@ -145,7 +145,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return (status, time);
     }
 
-    function setStatusAndTime(uint256 tid, uint8 status, uint256 time) external {
+    function setStatusAndTime(uint256 tid, uint256 status, uint256 time) external {
         mustManager(managerName);
         tid2taskState[tid].status = status;
         if(TaskAccepted == status) {
