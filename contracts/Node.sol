@@ -30,26 +30,26 @@ contract Node is Importable, ExternalStorable, INode {
         ];
     }
 
-    function Storage() private view returns (INodeStorage) {
+    function _Storage() private view returns (INodeStorage) {
         return INodeStorage(getStorage());
     }
 
-    function Setting() private view returns (ISetting) {
+    function _Setting() private view returns (ISetting) {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
-    function Task() private view returns (ITask) {
+    function _Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
     function register(address addr, uint256 storageTotal, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        require(!Storage().exist(addr), "N:e");
-        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), "N:etl");
+        require(!_Storage().exist(addr), "N:e");
+        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "N:etl");
         require(storageTotal > 0, "N:s0");
 
-        Storage().newNode(addr, storageTotal, ext);
+        _Storage().newNode(addr, storageTotal, ext);
 
         emit NodeStatusChanged(addr, DefaultStatus, NodeRegistered);
     }
@@ -58,44 +58,44 @@ contract Node is Importable, ExternalStorable, INode {
         // TODO node should delete cids and report the cids before deRegister
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        nodeMustExist(addr);
-        uint256 status = Storage().getStatus(addr);
+        _nodeMustExist(addr);
+        uint256 status = _Storage().getStatus(addr);
         require(NodeRegistered == status || NodeMaintain == status, "N:ws[RM]");
-        Storage().deleteNode(addr);
+        _Storage().deleteNode(addr);
 
         emit NodeStatusChanged(addr, status, DefaultStatus);
     }
 
     function setExt(address addr, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        nodeMustExist(addr);
-        require(bytes(ext).length <= Setting().getMaxNodeExtLength(), "N:etl");
-        Storage().setExt(addr, ext);
+        _nodeMustExist(addr);
+        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "N:etl");
+        _Storage().setExt(addr, ext);
     }
 
     function setStorageTotal(address addr, uint256 storageTotal) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        nodeMustExist(addr);
-        require(storageTotal >= Storage().getStorageUsed(addr), "N:tl");
-        Storage().setStorageTotal(addr, storageTotal);
+        _nodeMustExist(addr);
+        require(storageTotal >= _Storage().getStorageUsed(addr), "N:tl");
+        _Storage().setStorageTotal(addr, storageTotal);
     }
 
     function online(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        nodeMustExist(addr);
+        _nodeMustExist(addr);
 
-        uint256 status = Storage().getStatus(addr);
+        uint256 status = _Storage().getStatus(addr);
         require(NodeRegistered == status ||
                 NodeMaintain == status ||
                 NodeOffline == status, "N:ws[RMO]");
 
-        uint256 maxFinishedTid = Storage().getMaxFinishedTid(addr);
-        uint256 nodeMaxTid = Task().getNodeMaxTid(addr);
+        uint256 maxFinishedTid = _Storage().getMaxFinishedTid(addr);
+        uint256 nodeMaxTid = _Task().getNodeMaxTid(addr);
         require(nodeMaxTid == maxFinishedTid, "N:tnf"); // task not finish
 
-        Storage().setStatus(addr, NodeOnline);
-        if(!Storage().isNodeOnline(addr)) {
-            Storage().addOnlineNode(addr);
+        _Storage().setStatus(addr, NodeOnline);
+        if(!_Storage().isNodeOnline(addr)) {
+            _Storage().addOnlineNode(addr);
         }
 
         emit NodeStatusChanged(addr, status, NodeOnline);
@@ -103,15 +103,15 @@ contract Node is Importable, ExternalStorable, INode {
 
     function maintain(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        nodeMustExist(addr);
+        _nodeMustExist(addr);
 
-        uint256 status = Storage().getStatus(addr);
+        uint256 status = _Storage().getStatus(addr);
         require(NodeOnline == status, "N:ws[O]");
 
-        Storage().setStatus(addr, NodeMaintain);
+        _Storage().setStatus(addr, NodeMaintain);
 
-        if(Storage().isNodeOnline(addr)) {
-            Storage().deleteOnlineNode(addr);
+        if(_Storage().isNodeOnline(addr)) {
+            _Storage().deleteOnlineNode(addr);
         }
 
         emit NodeStatusChanged(addr, status, NodeMaintain);
@@ -120,7 +120,7 @@ contract Node is Importable, ExternalStorable, INode {
     function addFile(address owner, string calldata cid) external {
         mustAddress(CONTRACT_FILE);
 
-        uint256 replica = Setting().getReplica();
+        uint256 replica = _Setting().getReplica();
         require(0 != replica, "N:replica is 0");
 
         address nodeStorageAddr = getStorage();
@@ -130,11 +130,11 @@ contract Node is Importable, ExternalStorable, INode {
         require(success, "N:no available node");
 
         for(uint256 i=0; i<nodeAddrs.length; i++) {
-            Task().issueTask(Add, owner, cid, nodeAddrs[i]);
+            _Task().issueTask(Add, owner, cid, nodeAddrs[i]);
         }
     }
 
-    function nodeMustExist(address addr) private view {
-        require(Storage().exist(addr), "N:ne"); // Node: not exist
+    function _nodeMustExist(address addr) private view {
+        require(_Storage().exist(addr), "N:ne"); // Node: not exist
     }
 }

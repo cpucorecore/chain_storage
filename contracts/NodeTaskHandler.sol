@@ -26,19 +26,19 @@ contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
         ];
     }
 
-    function Storage() private view returns (INodeStorage) {
+    function _Storage() private view returns (INodeStorage) {
         return INodeStorage(getStorage());
     }
 
-    function Setting() private view returns (ISetting) {
+    function _Setting() private view returns (ISetting) {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
-    function Task() private view returns (ITask) {
+    function _Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function File() private view returns (IFile) {
+    function _File() private view returns (IFile) {
         return IFile(requireAddress(CONTRACT_FILE));
     }
 
@@ -50,36 +50,36 @@ contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
         address node;
         string memory cid;
 
-        (owner, action, node, cid) = Task().getTask(tid); // TODO check getTask
+        (owner, action, node, cid) = _Task().getTask(tid); // TODO check getTask
         require(addr == node, "NC:nt"); // node have no this task
 
         if(Add == action) {
-            File().onNodeAddFileFinish(node, owner, cid, size);
-            Storage().useStorage(node, size);
-            Storage().resetAddFileFailedCount(cid);
+            _File().onNodeAddFileFinish(node, owner, cid, size);
+            _Storage().useStorage(node, size);
+            _Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
-            File().onNodeDeleteFileFinish(node, owner, cid);
-            Storage().freeStorage(node, size);
+            _File().onNodeDeleteFileFinish(node, owner, cid);
+            _Storage().freeStorage(node, size);
         }
 
-        uint256 currentTid = Storage().getMaxFinishedTid(addr);
+        uint256 currentTid = _Storage().getMaxFinishedTid(addr);
         if(tid > currentTid) {
-            Storage().setMaxFinishedTid(addr, tid);
+            _Storage().setMaxFinishedTid(addr, tid);
         }
 
-        Task().finishTask(tid);
+        _Task().finishTask(tid);
     }
 
     function failTask(address addr, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        (address owner, uint256 action, address node, string memory cid) = Task().getTask(tid);
+        (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);
         require(addr == node, "NodeFileHandler: node have no this task");
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
-        uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
-        uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
+        uint256 maxAddFileFailedCount = _Setting().getMaxAddFileFailedCount();
+        uint256 addFileFailedCount = _Storage().upAddFileFailedCount(cid);
         if(addFileFailedCount >= maxAddFileFailedCount) {
-            File().onAddFileFail(owner, cid);
+            _File().onAddFileFail(owner, cid);
             return;
         }
 
@@ -87,16 +87,16 @@ contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
             _retryAddFileTask(owner, cid);
         }
 
-        Task().failTask(tid);
+        _Task().failTask(tid);
     }
 
     function reportAcceptTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        (, uint256 action, address node, string memory cid) = Task().getTask(tid);
+        (, uint256 action, address node, string memory cid) = _Task().getTask(tid);
 
         _offline(node);
-        Task().acceptTaskTimeout(tid);
+        _Task().acceptTaskTimeout(tid);
 
         if(Add == action) {
             _retryAddFileTask(owner, cid);
@@ -106,16 +106,16 @@ contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
     function reportTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        (address owner, uint256 action, address node, string memory cid) = Task().getTask(tid);
+        (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);
 
         _offline(node);
-        Task().taskTimeout(tid);
+        _Task().taskTimeout(tid);
 
         if(Add == action) {
-            uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
-            uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
+            uint256 maxAddFileFailedCount = _Setting().getMaxAddFileFailedCount();
+            uint256 addFileFailedCount = _Storage().upAddFileFailedCount(cid);
             if(addFileFailedCount >= maxAddFileFailedCount) {
-                File().onAddFileFail(owner, cid);
+                _File().onAddFileFail(owner, cid);
                 return;
             }
             _retryAddFileTask(owner, cid);
@@ -125,24 +125,22 @@ contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
     function _offline(address addr) private {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        uint256 status = Storage().getStatus(addr);
+        uint256 status = _Storage().getStatus(addr);
         require(NodeOnline == status, contractName.concat(": wrong status"));
 
-        Storage().setStatus(addr, NodeMaintain);
+        _Storage().setStatus(addr, NodeMaintain);
 
-        if(Storage().isNodeOnline(addr)) {
-            Storage().deleteOnlineNode(addr);
+        if(_Storage().isNodeOnline(addr)) {
+            _Storage().deleteOnlineNode(addr);
         }
 
         emit NodeStatusChanged(addr, status, NodeMaintain);
     }
 
     function _retryAddFileTask(address owner, string memory cid) private {
-        address[] memory nodes;
-        bool success;
         address nodeStorageAddr = getStorage();
-        (nodes, success) = nodeStorageAddr.selectNodes(1);
+        (address[] memory nodes, bool success) = nodeStorageAddr.selectNodes(1);
         require(success, "N:no available node"); // TODO check: no require?
-        Task().issueTask(Add, owner, cid, nodes[0]);
+        _Task().issueTask(Add, owner, cid, nodes[0]);
     }
 }

@@ -26,116 +26,116 @@ contract Setting is ExternalStorable, ISetting {
         setContractName(CONTRACT_SETTING);
     }
 
-    function Storage() private view returns (ISettingStorage) {
+    function _Storage() private view returns (ISettingStorage) {
         return ISettingStorage(getStorage());
     }
 
     function getReplica() external view returns (uint256) {
-        return Storage().getUint(REPLICA);
+        return _Storage().getUint(REPLICA);
     }
 
     function setReplica(uint256 replica) external {
         mustOwner();
-        Storage().setUint(REPLICA, replica);
+        _Storage().setUint(REPLICA, replica);
     }
 
     function getInitSpace() external view returns (uint256) {
-        return Storage().getUint(INIT_SPACE);
+        return _Storage().getUint(INIT_SPACE);
     }
 
     function setInitSpace(uint256 space) external {
         mustOwner();
-        Storage().setUint(INIT_SPACE, space);
+        _Storage().setUint(INIT_SPACE, space);
     }
 
     function getAdmin() public view returns (address) {
-        return Storage().getAddress(ADMIN_ACCOUNT);
+        return _Storage().getAddress(ADMIN_ACCOUNT);
     }
 
     function setAdmin(address addr) external {
         require(addr != address(0), "can not set address(0) as admin");
         address oldAdmin = getAdmin();
         require(oldAdmin == address(0) || msg.sender == oldAdmin || msg.sender == owner, "no auth");
-        Storage().setAddress(ADMIN_ACCOUNT, addr);
+        _Storage().setAddress(ADMIN_ACCOUNT, addr);
     }
 
     function getMaxUserExtLength() external view returns (uint256) {
-        return Storage().getUint(MAX_USER_EXT_LENGTH);
+        return _Storage().getUint(MAX_USER_EXT_LENGTH);
     }
 
     function setMaxUserExtLength(uint256 length) external {
-        Storage().setUint(MAX_USER_EXT_LENGTH, length);
+        _Storage().setUint(MAX_USER_EXT_LENGTH, length);
     }
 
     function getMaxNodeExtLength() external view returns (uint256) {
-        return Storage().getUint(MAX_NODE_EXT_LENGTH);
+        return _Storage().getUint(MAX_NODE_EXT_LENGTH);
     }
 
     function setMaxNodeExtLength(uint256 length) external {
-        Storage().setUint(MAX_NODE_EXT_LENGTH, length);
+        _Storage().setUint(MAX_NODE_EXT_LENGTH, length);
     }
 
     function getMaxMonitorExtLength() external view returns (uint256) {
-        return Storage().getUint(MAX_MONITOR_EXT_LENGTH);
+        return _Storage().getUint(MAX_MONITOR_EXT_LENGTH);
     }
 
     function setMaxMonitorExtLength(uint256 length) external {
-        Storage().setUint(MAX_MONITOR_EXT_LENGTH, length);
+        _Storage().setUint(MAX_MONITOR_EXT_LENGTH, length);
     }
 
     function getMaxFileExtLength() external view returns (uint256) {
-        return Storage().getUint(MAX_FILE_EXT_LENGTH);
+        return _Storage().getUint(MAX_FILE_EXT_LENGTH);
     }
 
     function setMaxFileExtLength(uint256 length) external {
-        Storage().setUint(MAX_FILE_EXT_LENGTH, length);
+        _Storage().setUint(MAX_FILE_EXT_LENGTH, length);
     }
 
     function getMaxCidLength() external view returns (uint256) {
-        return Storage().getUint(MAX_CID_LENGTH);
+        return _Storage().getUint(MAX_CID_LENGTH);
     }
 
     function setMaxCidLength(uint256 length) external {
-        Storage().setUint(MAX_CID_LENGTH, length);
+        _Storage().setUint(MAX_CID_LENGTH, length);
     }
 
     function getTaskAcceptTimeout() external view returns (uint256) {
-        return Storage().getUint(TASK_ACCEPT_TIMEOUT);
+        return _Storage().getUint(TASK_ACCEPT_TIMEOUT);
     }
 
     function setTaskAcceptTimeout(uint256 value) external {
-        Storage().setUint(TASK_ACCEPT_TIMEOUT, value);
+        _Storage().setUint(TASK_ACCEPT_TIMEOUT, value);
     }
 
     function getAddFileTaskTimeout() external view returns (uint256) {
-        return Storage().getUint(ADD_FILE_TASK_TIMEOUT);
+        return _Storage().getUint(ADD_FILE_TASK_TIMEOUT);
     }
 
     function setAddFileTaskTimeout(uint256 value) external {
-        Storage().setUint(ADD_FILE_TASK_TIMEOUT, value);
+        _Storage().setUint(ADD_FILE_TASK_TIMEOUT, value);
     }
 
     function getDeleteFileTaskTimeout() external view returns (uint256) {
-        return Storage().getUint(DELETE_FILE_TASK_TIMEOUT);
+        return _Storage().getUint(DELETE_FILE_TASK_TIMEOUT);
     }
 
     function setDeleteFileTaskTimeout(uint256 value) external {
-        Storage().setUint(DELETE_FILE_TASK_TIMEOUT, value);
+        _Storage().setUint(DELETE_FILE_TASK_TIMEOUT, value);
     }
 
     function getAddFileProgressTimeout() external view returns (uint256) {
-        return Storage().getUint(ADD_FILE_PROGRESS_TIMEOUT);
+        return _Storage().getUint(ADD_FILE_PROGRESS_TIMEOUT);
     }
 
     function setAddFileProgressTimeout(uint256 value) external {
-        Storage().setUint(ADD_FILE_PROGRESS_TIMEOUT, value);
+        _Storage().setUint(ADD_FILE_PROGRESS_TIMEOUT, value);
     }
 
     function getMaxAddFileFailedCount() external view returns (uint256) {
-        return Storage().getUint(MAX_ADD_FILE_FAILED_COUNT);
+        return _Storage().getUint(MAX_ADD_FILE_FAILED_COUNT);
     }
 
     function setMaxAddFileFailedCount(uint256 value) external {
-        Storage().setUint(MAX_ADD_FILE_FAILED_COUNT, value);
+        _Storage().setUint(MAX_ADD_FILE_FAILED_COUNT, value);
     }
 }

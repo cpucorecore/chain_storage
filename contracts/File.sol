@@ -19,36 +19,36 @@ contract File is Importable, ExternalStorable, IFile {
         ];
     }
 
-    function Storage() private view returns (IFileStorage) {
+    function _Storage() private view returns (IFileStorage) {
         return IFileStorage(getStorage());
     }
 
-    function User() private view returns (IUser) {
+    function _User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
     }
 
-    function Node() private view returns (INode) {
+    function _Node() private view returns (INode) {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
-    function Task() private view returns (ITask) {
+    function _Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
     function exist(string calldata cid) external view returns (bool) {
-        return Storage().exist(cid);
+        return _Storage().exist(cid);
     }
 
     function addFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
-        if(!Storage().exist(cid)) {
-            Storage().newFile(cid);
-            Node().addFile(owner, cid);
+        if(!_Storage().exist(cid)) {
+            _Storage().newFile(cid);
+            _Node().addFile(owner, cid);
         }
 
-        if(!Storage().ownerExist(cid, owner)) {
-            Storage().addOwner(cid, owner);
+        if(!_Storage().ownerExist(cid, owner)) {
+            _Storage().addOwner(cid, owner);
             finish = true;
         }
     }
@@ -56,41 +56,41 @@ contract File is Importable, ExternalStorable, IFile {
     function onNodeAddFileFinish(address node, address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_NODE);
 
-        if(Storage().exist(cid)) {
-            if(Storage().nodeEmpty(cid)) {
-                User().onAddFileFinish(owner, cid, size);
+        if(_Storage().exist(cid)) {
+            if(_Storage().nodeEmpty(cid)) {
+                _User().onAddFileFinish(owner, cid, size);
             }
 
             if(!nodeExist(cid, node)) {
-                Storage().addNode(cid, node);
+                _Storage().addNode(cid, node);
             }
         } else {
-            Task().issueTask(Delete, owner, cid, node);
+            _Task().issueTask(Delete, owner, cid, node);
         }
     }
 
     function onAddFileFail(address owner, string calldata cid) external {
-        User().onAddFileFail(owner, cid);
+        _User().onAddFileFail(owner, cid);
     }
 
     function deleteFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
-        require(Storage().exist(cid), "F:ne");
+        require(_Storage().exist(cid), "F:ne");
 
-        if(Storage().ownerExist(cid, owner)) {
-            Storage().deleteOwner(cid, owner);
+        if(_Storage().ownerExist(cid, owner)) {
+            _Storage().deleteOwner(cid, owner);
             finish = true;
         }
 
-        if(Storage().ownerEmpty(cid)) {
-            if(Storage().nodeEmpty(cid)) {
-                Storage().deleteFile(cid);
+        if(_Storage().ownerEmpty(cid)) {
+            if(_Storage().nodeEmpty(cid)) {
+                _Storage().deleteFile(cid);
                 finish = true;
             } else {
-                address[] memory nodes = Storage().getNodes(cid);
+                address[] memory nodes = _Storage().getNodes(cid);
                 for(uint i=0; i<nodes.length; i++) {
-                    Task().issueTask(Delete, owner, cid, nodes[i]);
+                    _Task().issueTask(Delete, owner, cid, nodes[i]);
                 }
             }
         }
@@ -99,51 +99,51 @@ contract File is Importable, ExternalStorable, IFile {
     function onNodeDeleteFileFinish(address node, address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
 
-        if(Storage().nodeExist(cid, node)) {
-            Storage().deleteNode(cid, node);
+        if(_Storage().nodeExist(cid, node)) {
+            _Storage().deleteNode(cid, node);
         }
 
-        if(Storage().nodeEmpty(cid)) {
-            User().onDeleteFileFinish(owner, cid, Storage().getSize(cid));
-            if(Storage().ownerEmpty(cid)) {
-                Storage().deleteFile(cid);
+        if(_Storage().nodeEmpty(cid)) {
+            _User().onDeleteFileFinish(owner, cid, _Storage().getSize(cid));
+            if(_Storage().ownerEmpty(cid)) {
+                _Storage().deleteFile(cid);
             }
         }
     }
 
     function getSize(string calldata cid) external view returns (uint256) {
-        return Storage().getSize(cid);
+        return _Storage().getSize(cid);
     }
 
     function ownerExist(string memory cid, address owner) public view returns (bool) {
-        return Storage().ownerExist(cid, owner);
+        return _Storage().ownerExist(cid, owner);
     }
 
     function getOwners(string calldata cid) external view returns (address[] memory) {
-        return Storage().getOwners(cid);
+        return _Storage().getOwners(cid);
     }
 
     function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        return Storage().getOwners(cid, pageSize, pageNumber);
+        return _Storage().getOwners(cid, pageSize, pageNumber);
     }
 
     function nodeExist(string memory cid, address node) public view returns (bool) {
-        return Storage().nodeExist(cid, node);
+        return _Storage().nodeExist(cid, node);
     }
 
     function getNodes(string calldata cid) external view returns (address[] memory) {
-        return Storage().getNodes(cid);
+        return _Storage().getNodes(cid);
     }
 
     function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        return Storage().getNodes(cid, pageSize, pageNumber);
+        return _Storage().getNodes(cid, pageSize, pageNumber);
     }
 
     function getTotalSize() external view returns (uint256) {
-        return Storage().getTotalSize();
+        return _Storage().getTotalSize();
     }
 
     function getTotalFileNumber() external view returns (uint256) {
-        return Storage().getTotalFileNumber();
+        return _Storage().getTotalFileNumber();
     }
 }
