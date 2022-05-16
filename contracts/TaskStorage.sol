@@ -1,10 +1,36 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 import "./storages/ExternalStorage.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 
 contract TaskStorage is ExternalStorage, ITaskStorage {
+    struct TaskItem {
+        address owner;
+        uint256 action;
+        address node;
+        string cid;
+    }
+
+    struct TaskState {
+        uint256 status;
+        uint256 createBlockNumber;
+        uint256 createTime;
+        uint256 acceptTime;
+        uint256 acceptTimeoutTime;
+        uint256 finishTime;
+        uint256 failTime;
+        uint256 timeoutTime;
+    }
+
+    struct AddFileTaskProgress {
+        uint256 time;
+        uint256 lastSize;
+        uint256 currentSize;
+        uint256 size;
+        uint256 lastPercentage;
+        uint256 currentPercentage;
+    }
+
     uint256 private currentTid;
     mapping(uint256=>TaskItem) private tid2taskItem;
     mapping(uint256=>TaskState) private tid2taskState;
@@ -13,8 +39,28 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
+    function newTask(address owner, uint256 action, string calldata cid, address node) external returns (uint256) {
+        mustManager(managerName);
+        currentTid = currentTid.add(1);
+
+        tid2taskItem[currentTid] = TaskItem(owner, action, node, cid);
+        tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0);
+        if(Add == action) {
+            tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0);
+        }
+
+        node2nodeMaxTid[node] = currentTid;
+
+        return currentTid;
+    }
+
+    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
+        TaskItem storage task = tid2taskItem[tid];
+        return (task.owner, task.action, task.node, task.cid);
+    }
+
     function exist(uint256 tid) external view returns (bool) {
-        return tid2taskItem[tid].exist && tid2taskState[tid].exist;
+        return tid2taskItem[tid].owner != address(0);
     }
 
     function getCurrentTid() external view returns (uint256) {
@@ -36,47 +82,6 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return over;
     }
 
-    function newTask(
-        address owner,
-        uint256 action,
-        string calldata cid,
-        address node
-    ) external returns (uint256) {
-        mustManager(managerName);
-        currentTid = currentTid.add(1);
-
-        tid2taskItem[currentTid] = TaskItem(owner, action, node, cid, true);
-        tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0, true);
-        if(Add == action) {
-            tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
-        }
-
-        node2nodeMaxTid[node] = currentTid;
-
-        return currentTid;
-    }
-
-    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
-        TaskItem storage task = tid2taskItem[tid];
-        return (task.owner, task.action, task.node, task.cid);
-    }
-
-    function getOwner(uint256 tid) external view returns (address) {
-        return tid2taskItem[tid].owner;
-    }
-
-    function getAction(uint256 tid) external view returns (uint256) {
-        return tid2taskItem[tid].action;
-    }
-
-    function getNode(uint256 tid) external view returns (address) {
-        return tid2taskItem[tid].node;
-    }
-
-    function getCid(uint256 tid) external view returns (string memory) {
-        return tid2taskItem[tid].cid;
-    }
-
     function getTaskState(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         TaskState storage state = tid2taskState[tid];
         return (state.status,
@@ -87,38 +92,6 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
                 state.finishTime,
                 state.failTime,
                 state.timeoutTime);
-    }
-
-    function getStatus(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].status;
-    }
-
-    function getCreateBlockNumber(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].createBlockNumber;
-    }
-
-    function getCreateTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].createTime;
-    }
-
-    function getAcceptTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].acceptTime;
-    }
-
-    function getAcceptTimeoutTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].acceptTimeoutTime;
-    }
-
-    function getFinishTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].finishTime;
-    }
-
-    function getFailTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].failTime;
-    }
-
-    function getTimeoutTime(uint256 tid) external view returns (uint256) {
-        return tid2taskState[tid].timeoutTime;
     }
 
     function getStatusAndTime(uint256 tid) external view returns (uint256, uint256) {

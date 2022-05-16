@@ -9,8 +9,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
 import "./lib/SafeMath.sol";
-import "./interfaces/INodeCallback.sol";
-import "./interfaces/storages/ITaskStorage.sol";
+import "./interfaces/INodeTaskHandler.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
@@ -23,7 +22,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
             CONTRACT_SETTING,
             CONTRACT_USER,
             CONTRACT_TASK,
-            CONTRACT_TASK_STORAGE
+            CONTRACT_NODE_TASK_HANDLER
         ];
     }
 
@@ -35,16 +34,12 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
-    function NodeCallback() private view returns (INodeCallback) {
-        return INodeCallback(requireAddress(CONTRACT_NODE_CALLBACK));
+    function NodeTaskHandler() private view returns (INodeTaskHandler) {
+        return INodeTaskHandler(requireAddress(CONTRACT_NODE_TASK_HANDLER));
     }
 
     function Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
-    }
-
-    function TaskStorage() private view returns (ITaskStorage) {
-        return ITaskStorage(requireAddress(CONTRACT_TASK_STORAGE));
     }
 
     function register(address addr, string calldata ext) external {
@@ -76,7 +71,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         Storage().addOnlineMonitor(addr);
 
         if(MonitorRegistered == status) {
-            uint256 currentTid = TaskStorage().getCurrentTid();
+            uint256 currentTid = Task().getCurrentTid();
             Storage().setFirstOnlineTid(addr, currentTid);
         }
     }
@@ -168,14 +163,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function reportTaskAcceptTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportAcceptTimeout, now);
-        NodeCallback().taskAcceptTimeout(addr, tid);
+        NodeTaskHandler().reportAcceptTaskTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportAcceptTimeout);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         Storage().addReport(addr, tid, ReportTimeout, now);
-        NodeCallback().taskTimeout(addr, tid);
+        NodeTaskHandler().reportTaskTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportTimeout);
     }
 

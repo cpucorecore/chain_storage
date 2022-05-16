@@ -9,22 +9,20 @@ import "./interfaces/ISetting.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/IFile.sol";
-import "./interfaces/INodeCallback.sol";
-import "./interfaces/IUserCallback.sol";
+import "./interfaces/INodeTaskHandler.sol";
 
-contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
+contract NodeTaskHandler is Importable, ExternalStorable, INodeTaskHandler {
     using NodeSelector for address;
     using SafeMath for uint256;
 
     event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
-        setContractName(CONTRACT_NODE_CALLBACK);
+        setContractName(CONTRACT_NODE_TASK_HANDLER);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_FILE,
-            CONTRACT_USER_CALLBACK,
-            CONTRACT_TASK
+            CONTRACT_TASK,
+            CONTRACT_FILE
         ];
     }
 
@@ -40,16 +38,8 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function TaskStorage() private view returns (ITaskStorage) {
-        return ITaskStorage(requireAddress(CONTRACT_TASK_STORAGE));
-    }
-
     function File() private view returns (IFile) {
         return IFile(requireAddress(CONTRACT_FILE));
-    }
-
-    function UserCallback() private view returns (IUserCallback) {
-        return IUserCallback(requireAddress(CONTRACT_USER_CALLBACK));
     }
 
     function finishTask(address addr, uint256 tid, uint256 size) external {
@@ -60,15 +50,15 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         address node;
         string memory cid;
 
-        (owner, action, node, cid) = TaskStorage().getTask(tid); // TODO check getTask
+        (owner, action, node, cid) = Task().getTask(tid); // TODO check getTask
         require(addr == node, "NC:nt"); // node have no this task
 
         if(Add == action) {
-            File().addFileCallback(node, owner, cid, size);
+            File().onNodeAddFileFinish(node, owner, cid, size);
             Storage().useStorage(node, size);
             Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
-            File().deleteFileCallback(node, owner, cid);
+            File().onNodeDeleteFileFinish(node, owner, cid);
             Storage().freeStorage(node, size);
         }
 
@@ -82,18 +72,14 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
 
     function failTask(address addr, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        address node = TaskStorage().getNode(tid);
+        (address owner, uint256 action, address node, string memory cid) = Task().getTask(tid);
         require(addr == node, "NodeFileHandler: node have no this task");
-
-        address owner = TaskStorage().getOwner(tid);
-        string memory cid = TaskStorage().getCid(tid);
-        uint256 action = TaskStorage().getAction(tid);
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
         uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
         uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
         if(addFileFailedCount >= maxAddFileFailedCount) {
-            UserCallback().callbackFailAddFile(owner, cid);
+            File().onAddFileFail(owner, cid);
             return;
         }
 
@@ -104,13 +90,10 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         Task().failTask(tid);
     }
 
-    function taskAcceptTimeout(address addr, uint256 tid) external {
+    function reportAcceptTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        address node = TaskStorage().getNode(tid);
-        address owner = TaskStorage().getOwner(tid);
-        string memory cid = TaskStorage().getCid(tid);
-        uint256 action = TaskStorage().getAction(tid);
+        (, uint256 action, address node, string memory cid) = Task().getTask(tid);
 
         _offline(node);
         Task().acceptTaskTimeout(tid);
@@ -120,13 +103,10 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         }
     }
 
-    function taskTimeout(address addr, uint256 tid) external {
+    function reportTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
         // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        address node = TaskStorage().getNode(tid);
-        address owner = TaskStorage().getOwner(tid);
-        string memory cid = TaskStorage().getCid(tid);
-        uint256 action = TaskStorage().getAction(tid);
+        (address owner, uint256 action, address node, string memory cid) = Task().getTask(tid);
 
         _offline(node);
         Task().taskTimeout(tid);
@@ -135,7 +115,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
             uint256 maxAddFileFailedCount = Setting().getMaxAddFileFailedCount();
             uint256 addFileFailedCount = Storage().upAddFileFailedCount(cid);
             if(addFileFailedCount >= maxAddFileFailedCount) {
-                UserCallback().callbackFailAddFile(owner, cid);
+                File().onAddFileFail(owner, cid);
                 return;
             }
             _retryAddFileTask(owner, cid);

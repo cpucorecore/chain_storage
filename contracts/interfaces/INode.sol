@@ -7,5 +7,6 @@ interface INode {
     function setStorageTotal(address addr, uint256 storageTotal) external;
     function online(address addr) external;
     function maintain(address addr) external;
-    function addFile(address owner, string calldata cid) external; // for file
+
+    function addFile(address owner, string calldata cid) external;
 }

@@ -8,14 +8,12 @@ import "./interfaces/storages/IFileStorage.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/IUser.sol";
-import "./interfaces/IUserCallback.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_FILE);
         imports = [
             CONTRACT_USER,
-            CONTRACT_USER_CALLBACK,
             CONTRACT_NODE,
             CONTRACT_TASK
         ];
@@ -27,10 +25,6 @@ contract File is Importable, ExternalStorable, IFile {
 
     function User() private view returns (IUser) {
         return IUser(requireAddress(CONTRACT_USER));
-    }
-
-    function UserCallback() private view returns (IUserCallback) {
-        return IUserCallback(requireAddress(CONTRACT_USER_CALLBACK));
     }
 
     function Node() private view returns (INode) {
@@ -45,7 +39,7 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
-    function addFile(string calldata cid, address owner) external {
+    function addFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
         if(!Storage().exist(cid)) {
@@ -55,15 +49,16 @@ contract File is Importable, ExternalStorable, IFile {
 
         if(!Storage().ownerExist(cid, owner)) {
             Storage().addOwner(cid, owner);
+            finish = true;
         }
     }
 
-    function addFileCallback(address node, address owner, string calldata cid, uint256 size) external {
+    function onNodeAddFileFinish(address node, address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_NODE);
 
         if(Storage().exist(cid)) {
             if(Storage().nodeEmpty(cid)) {
-                UserCallback().callbackFinishAddFile(owner, cid, size);
+                User().onAddFileFinish(owner, cid, size);
             }
 
             if(!nodeExist(cid, node)) {
@@ -74,18 +69,24 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function deleteFile(string calldata cid, address owner) external {
+    function onAddFileFail(address owner, string calldata cid) external {
+        User().onAddFileFail(owner, cid);
+    }
+
+    function deleteFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
         require(Storage().exist(cid), "F:ne");
 
         if(Storage().ownerExist(cid, owner)) {
             Storage().deleteOwner(cid, owner);
+            finish = true;
         }
 
         if(Storage().ownerEmpty(cid)) {
             if(Storage().nodeEmpty(cid)) {
                 Storage().deleteFile(cid);
+                finish = true;
             } else {
                 address[] memory nodes = Storage().getNodes(cid);
                 for(uint i=0; i<nodes.length; i++) {
@@ -95,7 +96,7 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function deleteFileCallback(address node, address owner, string calldata cid) external {
+    function onNodeDeleteFileFinish(address node, address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
 
         if(Storage().nodeExist(cid, node)) {
@@ -103,7 +104,7 @@ contract File is Importable, ExternalStorable, IFile {
         }
 
         if(Storage().nodeEmpty(cid)) {
-            UserCallback().callbackFinishDeleteFile(owner, cid, Storage().getSize(cid));
+            User().onDeleteFileFinish(owner, cid, Storage().getSize(cid));
             if(Storage().ownerEmpty(cid)) {
                 Storage().deleteFile(cid);
             }

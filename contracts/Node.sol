@@ -8,7 +8,6 @@ import "./interfaces/storages/INodeStorage.sol";
 import "./interfaces/ISetting.sol";
 import "./lib/SafeMath.sol";
 import "./lib/NodeSelector.sol";
-import "./interfaces/storages/ITaskStorage.sol";
 import "./interfaces/ITask.sol";
 
 // "N:e"        = "Node: exist"
@@ -27,8 +26,7 @@ contract Node is Importable, ExternalStorable, INode {
         setContractName(CONTRACT_NODE);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_TASK,
-            CONTRACT_TASK_STORAGE
+            CONTRACT_TASK
         ];
     }
 
@@ -42,10 +40,6 @@ contract Node is Importable, ExternalStorable, INode {
 
     function Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
-    }
-
-    function TaskStorage() private view returns (ITaskStorage) {
-        return ITaskStorage(requireAddress(CONTRACT_TASK_STORAGE));
     }
 
     function register(address addr, uint256 storageTotal, string calldata ext) external {
@@ -96,7 +90,7 @@ contract Node is Importable, ExternalStorable, INode {
                 NodeOffline == status, "N:ws[RMO]");
 
         uint256 maxFinishedTid = Storage().getMaxFinishedTid(addr);
-        uint256 nodeMaxTid = TaskStorage().getNodeMaxTid(addr);
+        uint256 nodeMaxTid = Task().getNodeMaxTid(addr);
         require(nodeMaxTid == maxFinishedTid, "N:tnf"); // task not finish
 
         Storage().setStatus(addr, NodeOnline);

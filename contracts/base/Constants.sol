@@ -7,13 +7,10 @@ contract Constants {
 
     bytes32 internal constant CONTRACT_FILE = 'File';
     bytes32 internal constant CONTRACT_USER = 'User';
-    bytes32 internal constant CONTRACT_USER_CALLBACK = 'UserCallback';
     bytes32 internal constant CONTRACT_NODE = 'Node';
-    bytes32 internal constant CONTRACT_NODE_CALLBACK = 'NodeCallback';
+    bytes32 internal constant CONTRACT_NODE_TASK_HANDLER = 'NodeTaskHandler';
     bytes32 internal constant CONTRACT_TASK = 'Task';
     bytes32 internal constant CONTRACT_MONITOR = 'Monitor';
-
-    bytes32 internal constant CONTRACT_TASK_STORAGE = 'TaskStorage';
 
     bytes32 internal constant ACCOUNT_ADMIN = 'Admin';
 

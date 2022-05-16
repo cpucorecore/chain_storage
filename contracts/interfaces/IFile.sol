@@ -4,11 +4,12 @@ pragma experimental ABIEncoderV2;
 interface IFile {
     function exist(string calldata cid) external view returns (bool);
 
-    function addFile(string calldata cid, address owner) external;
-    function addFileCallback(address node, address owner, string calldata cid, uint256 size) external;
+    function addFile(string calldata cid, address owner) external returns (bool finish);
+    function onNodeAddFileFinish(address node, address owner, string calldata cid, uint256 size) external;
+    function onAddFileFail(address owner, string calldata cid) external;
 
-    function deleteFile(string calldata cid, address owner) external;
-    function deleteFileCallback(address node, address owner, string calldata cid) external;
+    function deleteFile(string calldata cid, address owner) external returns (bool finish);
+    function onNodeDeleteFileFinish(address node, address owner, string calldata cid) external;
 
     function getSize(string calldata cid) external view returns (uint256);
 

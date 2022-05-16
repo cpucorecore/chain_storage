@@ -13,6 +13,9 @@ contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
 
     event UserAction(address indexed addr, uint256 action, string cid);
+    event FileAdded(address indexed owner, string cid); // for User Client
+    event FileAddFailed(address indexed owner, string cid); // for User Client
+    event FileDeleted(address indexed owner, string cid); // for User Client
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_USER);
@@ -87,5 +90,26 @@ contract User is Importable, ExternalStorable, IUser {
         require(Storage().fileExist(addr, cid), "U:fne"); // file not exist
         emit UserAction(addr, Add, cid);
         File().deleteFile(cid, addr);
+    }
+
+    function onAddFileFinish(address owner, string calldata cid, uint256 size) external {
+        mustAddress(CONTRACT_FILE);
+        Storage().useStorage(owner, size);
+    }
+
+    function onAddFileFail(address owner, string calldata cid) external {
+        mustAddress(CONTRACT_NODE);
+        if(!File().ownerExist(cid, owner)) {
+            uint256 invalidAddFileCount = Storage().getInvalidAddFileCount(owner);
+            Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
+            emit FileAddFailed(owner, cid);
+        }
+    }
+
+    function onDeleteFileFinish(address owner, string calldata cid, uint256 size) external {
+        mustAddress(CONTRACT_FILE);
+        emit FileDeleted(owner, cid);
+        Storage().deleteFile(owner, cid);
+        Storage().freeStorage(owner, size);
     }
 }

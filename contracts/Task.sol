@@ -33,11 +33,10 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         checkTaskExist(tid);
 
-        address taskNode = Storage().getNode(tid);
+        (, uint256 action, address taskNode,) = Storage().getTask(tid);
         require(node == taskNode, contractName.concat(": node have no this task"));
 
-        uint256 action = Storage().getAction(tid);
-        uint256 status = Storage().getStatus(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
         if(Add == action) {
             require(TaskCreated == status, contractName.concat(": add file task status is not Created"));
         } else {
@@ -55,9 +54,8 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        uint256 status = Storage().getStatus(tid);
-        address node = Storage().getNode(tid);
-        uint256 action = Storage().getAction(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
+        (,uint256 action, address node,) = Storage().getTask(tid);
         require(TaskAccepted == status, contractName.concat(": task status is not Accepted"));
 
         Storage().setStatusAndTime(tid, TaskFinished, now);
@@ -68,11 +66,10 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        address node = Storage().getNode(tid);
-        uint256 action = Storage().getAction(tid);
+        (,uint256 action, address node,) = Storage().getTask(tid);
         require(Add == action, contractName.concat(": only add file task can fail"));
 
-        uint256 status = Storage().getStatus(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
         require(TaskAccepted == status, contractName.concat(": task status is not Accepted"));
 
         Storage().setStatusAndTime(tid, TaskFailed, now);
@@ -83,9 +80,8 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        address node = Storage().getNode(tid);
-        uint256 action = Storage().getAction(tid);
-        uint256 status = Storage().getStatus(tid);
+        (,uint256 action, address node,) = Storage().getTask(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
         require(TaskCreated == status, contractName.concat(": task status is not Created"));
 
         Storage().setStatusAndTime(tid, TaskAcceptTimeout, now);
@@ -96,9 +92,8 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        uint256 status = Storage().getStatus(tid);
-        address node = Storage().getNode(tid);
-        uint256 action = Storage().getAction(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
+        (,uint256 action, address node,) = Storage().getTask(tid);
         require(TaskAccepted == status, contractName.concat(": task status is not Accepted"));
 
         Storage().setStatusAndTime(tid, TaskTimeout, now);
@@ -110,10 +105,10 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        address node = Storage().getNode(tid);
+        (,,address node,) = Storage().getTask(tid);
         require(addr == node, contractName.concat(": node have no this task"));
 
-        uint256 status = Storage().getStatus(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
         require(TaskAccepted == status, contractName.concat(": task status is not Accepted"));
 
         Storage().setAddFileTaskProgressBySize(tid, now, size);
@@ -123,10 +118,10 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         checkTaskExist(tid);
 
-        address node = Storage().getNode(tid);
+        (,,address node,) = Storage().getTask(tid);
         require(addr == node, contractName.concat(": node have no this task"));
 
-        uint256 status = Storage().getStatus(tid);
+        (uint256 status,,,,,,,) = Storage().getTaskState(tid);
         require(TaskAccepted == status, contractName.concat(": task status is not Accepted"));
 
         Storage().setAddFileTaskProgressByPercentage(tid, now, percentage);
@@ -134,5 +129,17 @@ contract Task is Importable, ExternalStorable, ITask {
 
     function checkTaskExist(uint256 tid) private view {
         require(Storage().exist(tid), contractName.concat(": task not exist"));
+    }
+
+    function getCurrentTid() external view returns (uint256) {
+        return Storage().getCurrentTid();
+    }
+
+    function getNodeMaxTid(address addr) external view returns (uint256) {
+        return Storage().getNodeMaxTid(addr);
+    }
+
+    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
+        return Storage().getTask(tid);
     }
 }

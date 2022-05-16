@@ -10,4 +10,8 @@ interface IUser {
     function setFileDuration(address addr, string calldata cid, uint256 duration) external;
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external;
     function deleteFile(address addr, string calldata cid) external;
+
+    function onAddFileFinish(address owner, string calldata cid, uint256 size) external;
+    function onAddFileFail(address owner, string calldata cid) external;
+    function onDeleteFileFinish(address owner, string calldata cid, uint256 size) external;
 }

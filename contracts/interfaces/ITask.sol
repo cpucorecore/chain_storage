@@ -9,4 +9,8 @@ interface ITask {
     function taskTimeout(uint256 tid) external; // for Monitor()-->Node()
     function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external; // for storage server
     function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external; // for storage server
+
+    function getCurrentTid() external view returns (uint256);
+    function getNodeMaxTid(address addr) external view returns (uint256);
+    function getTask(uint256 tid) external view returns (address, uint256, address, string memory);
 }
