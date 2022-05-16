@@ -21,9 +21,9 @@ contract Task is Importable, ExternalStorable, ITask {
         return ITaskStorage(getStorage());
     }
 
-    function issueTask(uint256 action, address owner, string calldata cid, address node, uint256 size) external returns (uint256) {
+    function issueTask(uint256 action, address owner, string calldata cid, address node) external returns (uint256) {
         mustContainAddress(ISSUEABLE_CONTRACTS);
-        uint256 tid = Storage().newTask(owner, action, cid, size, node);
+        uint256 tid = Storage().newTask(owner, action, cid, node);
         emit TaskIssued(node, tid);
         emit TaskStatusChanged(tid, node, action, DefaultStatus, TaskCreated);
         return tid;

@@ -123,7 +123,7 @@ contract Node is Importable, ExternalStorable, INode {
         emit NodeStatusChanged(addr, status, NodeMaintain);
     }
 
-    function addFile(address owner, string calldata cid, uint256 size) external {
+    function addFile(address owner, string calldata cid) external {
         mustAddress(CONTRACT_FILE);
 
         uint256 replica = Setting().getReplica();
@@ -132,11 +132,11 @@ contract Node is Importable, ExternalStorable, INode {
         address nodeStorageAddr = getStorage();
         address[] memory nodeAddrs;
         bool success;
-        (nodeAddrs, success) = nodeStorageAddr.selectNodes(size, replica);
+        (nodeAddrs, success) = nodeStorageAddr.selectNodes(replica);
         require(success, "N:no available node");
 
         for(uint256 i=0; i<nodeAddrs.length; i++) {
-            Task().issueTask(Add, owner, cid, nodeAddrs[i], size);
+            Task().issueTask(Add, owner, cid, nodeAddrs[i]);
         }
     }
 

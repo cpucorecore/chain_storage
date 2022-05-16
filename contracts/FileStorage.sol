@@ -26,14 +26,13 @@ contract FileStorage is ExternalStorage, IFileStorage {
         return cid2fileItem[cid].exist;
     }
 
-    function newFile(string calldata cid, uint256 size) external {
+    function newFile(string calldata cid) external {
         mustManager(managerName);
 
         EnumerableSet.AddressSet memory owners;
         EnumerableSet.AddressSet memory nodes;
-        cid2fileItem[cid] = FileItem(size, true, owners, nodes);
+        cid2fileItem[cid] = FileItem(0, true, owners, nodes);
 
-        totalSize = totalSize.add(size);
         totalFileNumber = totalFileNumber.add(1);
     }
 

@@ -40,13 +40,12 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         address owner,
         uint256 action,
         string calldata cid,
-        uint256 size,
         address node
     ) external returns (uint256) {
         mustManager(managerName);
         currentTid = currentTid.add(1);
 
-        tid2taskItem[currentTid] = TaskItem(owner, action, node, size, cid, true);
+        tid2taskItem[currentTid] = TaskItem(owner, action, node, cid, true);
         tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0, true);
         if(Add == action) {
             tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0, true);
@@ -57,9 +56,9 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return currentTid;
     }
 
-    function getTask(uint256 tid) external view returns (address, uint256, address, uint256, string memory) {
+    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
         TaskItem storage task = tid2taskItem[tid];
-        return (task.owner, task.action, task.node, task.size, task.cid);
+        return (task.owner, task.action, task.node, task.cid);
     }
 
     function getOwner(uint256 tid) external view returns (address) {
@@ -72,10 +71,6 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     function getNode(uint256 tid) external view returns (address) {
         return tid2taskItem[tid].node;
-    }
-
-    function getSize(uint256 tid) external view returns (uint256) {
-        return tid2taskItem[tid].size;
     }
 
     function getCid(uint256 tid) external view returns (string memory) {

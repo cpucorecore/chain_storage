@@ -8,7 +8,7 @@ library NodeSelector {
         return INodeStorage(addr);
     }
 
-    function selectNodes(address nodeStorageAddr, uint256 size, uint256 count) internal view returns (address[] memory nodes, bool success) {
+    function selectNodes(address nodeStorageAddr, uint256 count) internal view returns (address[] memory nodes, bool success) {
         address[] memory allOnlineNodeAddresses = NodeStorage(nodeStorageAddr).getAllOnlineNodeAddresses();
         return (allOnlineNodeAddresses, true);
     }

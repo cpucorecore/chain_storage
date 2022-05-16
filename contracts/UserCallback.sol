@@ -4,11 +4,10 @@ import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./lib/SafeMath.sol";
 import "./interfaces/storages/IUserStorage.sol";
-import "./interfaces/ISetting.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/IUserCallback.sol";
 
-contract UserFileHandler is Importable, ExternalStorable, IUserCallback {
+contract UserCallback is Importable, ExternalStorable, IUserCallback {
     using SafeMath for uint256;
 
     event FileAdded(address indexed owner, string cid); // for User Client
@@ -18,7 +17,6 @@ contract UserFileHandler is Importable, ExternalStorable, IUserCallback {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_USER_CALLBACK);
         imports = [
-            CONTRACT_SETTING,
             CONTRACT_FILE
         ];
     }
@@ -27,19 +25,13 @@ contract UserFileHandler is Importable, ExternalStorable, IUserCallback {
         return IUserStorage(getStorage());
     }
 
-    function Setting() private view returns (ISetting) {
-        return ISetting(requireAddress(CONTRACT_SETTING));
-    }
-
     function File() private view returns (IFile) {
         return IFile(requireAddress(CONTRACT_FILE));
     }
 
-    function callbackFinishAddFile(address owner, address node, string calldata cid) external {
+    function callbackFinishAddFile(address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_FILE);
-        if(!File().ownerExist(cid, owner)) {
-            emit FileAdded(owner, cid);
-        }
+        Storage().useStorage(owner, size);
     }
 
     function callbackFailAddFile(address owner, string calldata cid) external {
@@ -51,8 +43,10 @@ contract UserFileHandler is Importable, ExternalStorable, IUserCallback {
         }
     }
 
-    function callbackFinishDeleteFile(address owner, address node, string calldata cid) external {
+    function callbackFinishDeleteFile(address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_FILE);
         emit FileDeleted(owner, cid);
+        Storage().deleteFile(owner, cid);
+        Storage().freeStorage(owner, size);
     }
 }

@@ -45,12 +45,12 @@ contract File is Importable, ExternalStorable, IFile {
         return Storage().exist(cid);
     }
 
-    function addFile(string calldata cid, uint256 size, address owner) external {
+    function addFile(string calldata cid, address owner) external {
         mustAddress(CONTRACT_USER);
 
         if(!Storage().exist(cid)) {
-            Storage().newFile(cid, size);
-            Node().addFile(owner, cid, size);
+            Storage().newFile(cid);
+            Node().addFile(owner, cid);
         }
 
         if(!Storage().ownerExist(cid, owner)) {
@@ -58,16 +58,19 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function addFileCallback(address node, address owner, string calldata cid) external {
+    function addFileCallback(address node, address owner, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_NODE);
 
-        UserCallback().callbackFinishAddFile(owner, node, cid);
         if(Storage().exist(cid)) {
+            if(Storage().nodeEmpty(cid)) {
+                UserCallback().callbackFinishAddFile(owner, cid, size);
+            }
+
             if(!nodeExist(cid, node)) {
                 Storage().addNode(cid, node);
             }
         } else {
-            Task().issueTask(Delete, owner, cid, node, Storage().getSize(cid));
+            Task().issueTask(Delete, owner, cid, node);
         }
     }
 
@@ -86,7 +89,7 @@ contract File is Importable, ExternalStorable, IFile {
             } else {
                 address[] memory nodes = Storage().getNodes(cid);
                 for(uint i=0; i<nodes.length; i++) {
-                    Task().issueTask(Delete, owner, cid, nodes[i], Storage().getSize(cid));
+                    Task().issueTask(Delete, owner, cid, nodes[i]);
                 }
             }
         }
@@ -95,12 +98,12 @@ contract File is Importable, ExternalStorable, IFile {
     function deleteFileCallback(address node, address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
 
-        UserCallback().callbackFinishDeleteFile(owner, node, cid);
         if(Storage().nodeExist(cid, node)) {
             Storage().deleteNode(cid, node);
         }
 
         if(Storage().nodeEmpty(cid)) {
+            UserCallback().callbackFinishDeleteFile(owner, cid, Storage().getSize(cid));
             if(Storage().ownerEmpty(cid)) {
                 Storage().deleteFile(cid);
             }

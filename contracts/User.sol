@@ -74,15 +74,12 @@ contract User is Importable, ExternalStorable, IUser {
         Storage().setFileDuration(addr, cid, duration);
     }
 
-    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(size > 0, "U:zs"); // zero size
         require(!Storage().fileExist(addr, cid), "U:fe"); // file exist
-        require(Storage().availableSpace(addr) >= size, "U:sne"); // storage space not enough
         emit UserAction(addr, Add, cid);
-        File().addFile(cid, size, addr);
-        Storage().addFile(addr, cid, duration, ext, now); // TODO check do in callback?
-        Storage().useStorage(addr, size); // TODO do in callback
+        File().addFile(cid, addr);
+        Storage().addFile(addr, cid, duration, ext, now);
     }
 
     function deleteFile(address addr, string calldata cid) external {
@@ -90,7 +87,5 @@ contract User is Importable, ExternalStorable, IUser {
         require(Storage().fileExist(addr, cid), "U:fne"); // file not exist
         emit UserAction(addr, Add, cid);
         File().deleteFile(cid, addr);
-        Storage().deleteFile(addr, cid); // TODO check do in callback?
-        Storage().freeStorage(addr, File().getSize(cid)); // TODO do in callback
     }
 }

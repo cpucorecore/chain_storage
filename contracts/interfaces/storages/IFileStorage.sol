@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 contract IFileStorage {
     function exist(string memory cid) public view returns (bool);
-    function newFile(string calldata cid, uint256 size) external;
+    function newFile(string calldata cid) external;
     function deleteFile(string calldata cid) external;
 
     function getSize(string calldata cid) external view returns (uint256);

@@ -4,8 +4,8 @@ pragma experimental ABIEncoderV2;
 interface IFile {
     function exist(string calldata cid) external view returns (bool);
 
-    function addFile(string calldata cid, uint256 size, address owner) external;
-    function addFileCallback(address node, address owner, string calldata cid) external;
+    function addFile(string calldata cid, address owner) external;
+    function addFileCallback(address node, address owner, string calldata cid, uint256 size) external;
 
     function deleteFile(string calldata cid, address owner) external;
     function deleteFileCallback(address node, address owner, string calldata cid) external;

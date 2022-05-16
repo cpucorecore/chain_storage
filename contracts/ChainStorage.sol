@@ -61,12 +61,12 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         User().register(msg.sender, ext);
     }
 
-    function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
+    function userAddFile(string calldata cid, uint256 duration, string calldata ext) external {
         mustInitialized();
         mustNotPaused();
         require(bytes(ext).length <= Setting().getMaxUserExtLength(), "CS:fetl"); // file ext too long
         require(bytes(cid).length <= Setting().getMaxCidLength(), "CS:ctl"); // cid too long
-        User().addFile(msg.sender, cid, size, duration, ext);
+        User().addFile(msg.sender, cid, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external {
@@ -130,10 +130,10 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         Task().acceptTask(msg.sender, tid);
     }
 
-    function nodeFinishTask(uint256 tid) external {
+    function nodeFinishTask(uint256 tid, uint256 size) external {
         mustInitialized();
         mustNotPaused();
-        NodeCallback().finishTask(msg.sender, tid);
+        NodeCallback().finishTask(msg.sender, tid, size);
     }
 
     function nodeFailTask(uint256 tid) external {

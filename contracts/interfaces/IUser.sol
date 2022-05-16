@@ -8,6 +8,6 @@ interface IUser {
     function changeSpace(address addr, uint256 size) external;
     function setFileExt(address addr, string calldata cid, string calldata ext) external;
     function setFileDuration(address addr, string calldata cid, uint256 duration) external;
-    function addFile(address addr, string calldata cid, uint256 size, uint256 duration, string calldata ext) external;
+    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external;
     function deleteFile(address addr, string calldata cid) external;
 }

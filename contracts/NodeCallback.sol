@@ -52,21 +52,19 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         return IUserCallback(requireAddress(CONTRACT_USER_CALLBACK));
     }
 
-    function finishTask(address addr, uint256 tid) external {
+    function finishTask(address addr, uint256 tid, uint256 size) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
         address owner;
         uint256 action;
         address node;
-        uint256 size;
         string memory cid;
 
-        (owner, action, node, size, cid) = TaskStorage().getTask(tid);
-
-        require(addr == node, "NodeFileHandler: node have no this task");
+        (owner, action, node, cid) = TaskStorage().getTask(tid); // TODO check getTask
+        require(addr == node, "NC:nt"); // node have no this task
 
         if(Add == action) {
-            File().addFileCallback(node, owner, cid);
+            File().addFileCallback(node, owner, cid, size);
             Storage().useStorage(node, size);
             Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
@@ -89,7 +87,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
 
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
-        uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
         require(Add == action, "NodeFileHandler: only Add task can fail");
 
@@ -101,7 +98,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         }
 
         if(Add == action) {
-            _retryAddFileTask(owner, size, cid);
+            _retryAddFileTask(owner, cid);
         }
 
         Task().failTask(tid);
@@ -113,14 +110,13 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         address node = TaskStorage().getNode(tid);
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
-        uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
         _offline(node);
         Task().acceptTaskTimeout(tid);
 
         if(Add == action) {
-            _retryAddFileTask(owner, size, cid);
+            _retryAddFileTask(owner, cid);
         }
     }
 
@@ -130,7 +126,6 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         address node = TaskStorage().getNode(tid);
         address owner = TaskStorage().getOwner(tid);
         string memory cid = TaskStorage().getCid(tid);
-        uint256 size = TaskStorage().getSize(tid);
         uint256 action = TaskStorage().getAction(tid);
 
         _offline(node);
@@ -143,7 +138,7 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
                 UserCallback().callbackFailAddFile(owner, cid);
                 return;
             }
-            _retryAddFileTask(owner, size, cid);
+            _retryAddFileTask(owner, cid);
         }
     }
 
@@ -162,12 +157,12 @@ contract NodeFileHandler is Importable, ExternalStorable, INodeCallback {
         emit NodeStatusChanged(addr, status, NodeMaintain);
     }
 
-    function _retryAddFileTask(address owner, uint256 size, string memory cid) private {
+    function _retryAddFileTask(address owner, string memory cid) private {
         address[] memory nodes;
         bool success;
         address nodeStorageAddr = getStorage();
-        (nodes, success) = nodeStorageAddr.selectNodes(size, 1);
+        (nodes, success) = nodeStorageAddr.selectNodes(1);
         require(success, "N:no available node"); // TODO check: no require?
-        Task().issueTask(Add, owner, cid, nodes[0], size);
+        Task().issueTask(Add, owner, cid, nodes[0]);
     }
 }
