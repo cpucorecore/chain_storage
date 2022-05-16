@@ -10,6 +10,31 @@ library NodeSelector {
 
     function selectNodes(address nodeStorageAddr, uint256 count) internal view returns (address[] memory nodes, bool success) {
         address[] memory allOnlineNodeAddresses = NodeStorage(nodeStorageAddr).getAllOnlineNodeAddresses();
-        return (allOnlineNodeAddresses, true);
+
+        if(allOnlineNodeAddresses.length < count) {
+            return(allOnlineNodeAddresses, false);
+        } else if(allOnlineNodeAddresses.length == count) {
+            return(allOnlineNodeAddresses, true);
+        } else {
+            address[] memory result = new address[](count);
+            uint256 random = uint256(keccak256(abi.encodePacked(now)));
+
+            uint256 sliceNumber = allOnlineNodeAddresses.length / count;
+            if((allOnlineNodeAddresses.length % count) > 0) {
+                sliceNumber += 1;
+            }
+
+            uint256 slice = random % sliceNumber;
+            uint256 start = slice*count;
+            if(slice == (sliceNumber - 1)) {
+                start = allOnlineNodeAddresses.length - count;
+            }
+
+            for(uint i=0; i<count; i++) {
+                result[i] = allOnlineNodeAddresses[start+i];
+            }
+
+            return (result, true);
+        }
     }
 }
