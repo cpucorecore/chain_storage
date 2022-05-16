@@ -16,7 +16,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
         uint256 createTime;
         uint256 duration;
         string ext;
-        bool exist;
     }
 
     struct UserItem {
@@ -24,7 +23,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
         EnumerableSet.Bytes32Set cidHashes;
         uint256 invalidAddFileCount;
         string ext;
-        bool exist;
     }
 
     mapping(address=>UserItem) private users;
@@ -34,20 +32,18 @@ contract UserStorage is ExternalStorage, IUserStorage {
     constructor(address _manager) public ExternalStorage(_manager) {}
 
     function exist(address addr) public view returns (bool) {
-        return users[addr].exist;
+        return users[addr].storageSpace.total > 0;
     }
 
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
-        require(!exist(addr), contractName.concat(": user exist"));
         EnumerableSet.Bytes32Set memory cidHashes;
-        users[addr] = UserItem(StorageSpaceManager.StorageSpace(0, storageTotal), cidHashes, 0, ext, true);
+        users[addr] = UserItem(StorageSpaceManager.StorageSpace(0, storageTotal), cidHashes, 0, ext);
         totalUserNumber = totalUserNumber.add(1);
     }
 
     function deleteUser(address addr) external {
         mustManager(managerName);
-        require(exist(addr), contractName.concat(": user not exist"));
         delete users[addr];
         totalUserNumber = totalUserNumber.sub(1);
     }
@@ -75,10 +71,12 @@ contract UserStorage is ExternalStorage, IUserStorage {
     }
 
     function useStorage(address addr, uint256 size) external {
+        mustManager(managerName);
         users[addr].storageSpace.useSpace(size);
     }
 
     function freeStorage(address addr, uint256 size) external {
+        mustManager(managerName);
         users[addr].storageSpace.unUseSpace(size);
     }
 
@@ -89,7 +87,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
         mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash] = FileItem(cid, createTime, duration, ext, true);
+        files[addr][cidHash] = FileItem(cid, createTime, duration, ext);
         users[addr].cidHashes.add(cidHash);
     }
 
@@ -142,7 +140,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return (result, page.totalPages == page.pageNumber);
     }
 
-    function getFileItem(address addr, string calldata cid) external view returns (string memory, uint256, uint256, string memory) { // (cid, createTime, duration, ext)
+    function getFileItem(address addr, string calldata cid) external view returns (string memory, uint256, uint256, string memory) {
         bytes32 cidHash = keccak256(bytes(cid));
         FileItem storage file = files[addr][cidHash];
         return (file.cid, file.createTime, file.duration, file.ext);
