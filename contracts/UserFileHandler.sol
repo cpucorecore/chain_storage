@@ -18,8 +18,8 @@ contract UserFileHandler is Importable, ExternalStorable, IUserCallback {
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_USER_CALLBACK);
         imports = [
-        CONTRACT_SETTING,
-        CONTRACT_FILE
+            CONTRACT_SETTING,
+            CONTRACT_FILE
         ];
     }
 

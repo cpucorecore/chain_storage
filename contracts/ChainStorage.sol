@@ -8,6 +8,7 @@ import "./interfaces/INode.sol";
 import "./interfaces/INodeCallback.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/ITask.sol";
+import "./interfaces/ISetting.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
@@ -20,12 +21,17 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         setContractName(CONTRACT_CHAIN_STORAGE);
 
         imports = [
+            CONTRACT_SETTING,
             CONTRACT_USER,
             CONTRACT_USER_CALLBACK,
             CONTRACT_NODE,
             CONTRACT_TASK,
             CONTRACT_MONITOR
         ];
+    }
+
+    function Setting() private view returns (ISetting) {
+        return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
     function User() private view returns (IUser) {
@@ -51,29 +57,35 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function userRegister(string calldata ext) external {
         mustInitialized();
         mustNotPaused();
+        require(bytes(ext).length <= Setting().getMaxUserExtLength(), "CS:uetl"); // user ext too long
         User().register(msg.sender, ext);
     }
 
     function userAddFile(string calldata cid, uint256 size, uint256 duration, string calldata ext) external {
         mustInitialized();
         mustNotPaused();
+        require(bytes(ext).length <= Setting().getMaxUserExtLength(), "CS:fetl"); // file ext too long
+        require(bytes(cid).length <= Setting().getMaxCidLength(), "CS:ctl"); // cid too long
         User().addFile(msg.sender, cid, size, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external {
         mustInitialized();
         mustNotPaused();
+        require(bytes(cid).length <= Setting().getMaxCidLength(), "CS:ctl"); // cid too long
         User().deleteFile(msg.sender, cid);
     }
 
     function userSetExt(string calldata ext) external {
         mustInitialized();
         mustNotPaused();
+        require(bytes(ext).length <= Setting().getMaxUserExtLength(), "CS:uetl"); // user ext too long
         User().setExt(msg.sender, ext);
     }
 
     function userSetFileExt(string calldata cid, string calldata ext) external {
         mustInitialized();
+        require(bytes(ext).length <= Setting().getMaxFileExtLength(), "CS:fetl"); // file ext too long
         User().setFileExt(msg.sender, cid, ext);
     }
 

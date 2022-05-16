@@ -31,10 +31,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function exist(address addr) public view returns (bool) {
-        return users[addr].storageSpace.total > 0;
-    }
-
     function newUser(address addr, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
         EnumerableSet.Bytes32Set memory cidHashes;
@@ -48,21 +44,9 @@ contract UserStorage is ExternalStorage, IUserStorage {
         totalUserNumber = totalUserNumber.sub(1);
     }
 
-    function getExt(address addr) external view returns (string memory) {
-        return users[addr].ext;
-    }
-
     function setExt(address addr, string calldata ext) external {
         mustManager(managerName);
         users[addr].ext = ext;
-    }
-
-    function availableSpace(address addr) external view returns (uint256) {
-        return users[addr].storageSpace.availableSpace();
-    }
-
-    function getStorageTotal(address addr) external view returns (uint256) {
-        return users[addr].storageSpace.total;
     }
 
     function setStorageTotal(address addr, uint256 size) external {
@@ -78,6 +62,22 @@ contract UserStorage is ExternalStorage, IUserStorage {
     function freeStorage(address addr, uint256 size) external {
         mustManager(managerName);
         users[addr].storageSpace.unUseSpace(size);
+    }
+
+    function exist(address addr) public view returns (bool) {
+        return users[addr].storageSpace.total > 0;
+    }
+
+    function getExt(address addr) external view returns (string memory) {
+        return users[addr].ext;
+    }
+
+    function availableSpace(address addr) external view returns (uint256) {
+        return users[addr].storageSpace.availableSpace();
+    }
+
+    function getStorageTotal(address addr) external view returns (uint256) {
+        return users[addr].storageSpace.total;
     }
 
     function getStorageUsed(address addr) external view returns (uint256) {
@@ -98,6 +98,23 @@ contract UserStorage is ExternalStorage, IUserStorage {
         delete files[addr][cidHash];
     }
 
+    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+        mustManager(managerName);
+        bytes32 cidHash = keccak256(bytes(cid));
+        files[addr][cidHash].ext = ext;
+    }
+
+    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+        mustManager(managerName);
+        bytes32 cidHash = keccak256(bytes(cid));
+        files[addr][cidHash].duration = duration;
+    }
+
+    function setInvalidAddFileCount(address addr, uint256 count) external {
+        mustManager(managerName);
+        users[addr].invalidAddFileCount = count;
+    }
+
     function fileExist(address addr, string calldata cid) external view returns(bool) {
         bytes32 cidHash = keccak256(bytes(cid));
         return users[addr].cidHashes.contains(cidHash);
@@ -108,21 +125,9 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return files[addr][cidHash].ext;
     }
 
-    function setFileExt(address addr, string calldata cid, string calldata ext) external {
-        mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash].ext = ext;
-    }
-
     function getFileDuration(address addr, string calldata cid) external view returns (uint256) {
         bytes32 cidHash = keccak256(bytes(cid));
         return files[addr][cidHash].duration;
-    }
-
-    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
-        mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash].duration = duration;
     }
 
     function getFileNumber(address addr) external view returns (uint256) {
@@ -148,11 +153,6 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     function getInvalidAddFileCount(address addr) external view returns (uint256) {
         return users[addr].invalidAddFileCount;
-    }
-
-    function setInvalidAddFileCount(address addr, uint256 count) external {
-        mustManager(managerName);
-        users[addr].invalidAddFileCount = count;
     }
 
     function getTotalUserNumber() external view returns (uint256) {
