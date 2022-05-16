@@ -9,4 +9,9 @@ interface INode {
     function maintain(address addr) external;
 
     function addFile(address owner, string calldata cid) external;
+
+    function finishTask(address addr, uint256 tid, uint256 size) external;
+    function failTask(address addr, uint256 tid) external;
+    function reportAcceptTaskTimeout(address addr, uint256 tid) external;
+    function reportTaskTimeout(address addr, uint256 tid) external;
 }

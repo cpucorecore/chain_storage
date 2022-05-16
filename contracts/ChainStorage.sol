@@ -8,7 +8,6 @@ import "./interfaces/INode.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
-import "./interfaces/INodeTaskHandler.sol";
 
 contract ChainStorage is Proxyable, Pausable, Importable {
     constructor() public Importable(IResolver(0)) {}
@@ -25,8 +24,7 @@ contract ChainStorage is Proxyable, Pausable, Importable {
             CONTRACT_USER,
             CONTRACT_NODE,
             CONTRACT_TASK,
-            CONTRACT_MONITOR,
-            CONTRACT_NODE_TASK_HANDLER
+            CONTRACT_MONITOR
         ];
     }
 
@@ -40,10 +38,6 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
     function _Node() private view returns (INode) {
         return INode(requireAddress(CONTRACT_NODE));
-    }
-
-    function _NodeTaskHandler() private view returns (INodeTaskHandler) {
-        return INodeTaskHandler(requireAddress(CONTRACT_NODE_TASK_HANDLER));
     }
 
     function _Monitor() private view returns (IMonitor) {
@@ -109,6 +103,7 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
     function nodeSetExt(string calldata ext) external {
         mustInitialized();
+        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:netl"); // node ext too long
         _Node().setExt(msg.sender, ext);
     }
 
@@ -133,13 +128,13 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function nodeFinishTask(uint256 tid, uint256 size) external {
         mustInitialized();
         mustNotPaused();
-        _NodeTaskHandler().finishTask(msg.sender, tid, size);
+        _Node().finishTask(msg.sender, tid, size);
     }
 
     function nodeFailTask(uint256 tid) external {
         mustInitialized();
         mustNotPaused();
-        _NodeTaskHandler().failTask(msg.sender, tid);
+        _Node().failTask(msg.sender, tid);
     }
 
     function nodeSetStorageTotal(uint256 storageTotal) external {

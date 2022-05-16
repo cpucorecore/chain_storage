@@ -9,7 +9,6 @@ import "./interfaces/ITask.sol";
 import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
 import "./lib/SafeMath.sol";
-import "./interfaces/INodeTaskHandler.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
@@ -20,7 +19,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         setContractName(CONTRACT_MONITOR);
         imports = [
             CONTRACT_TASK,
-            CONTRACT_NODE_TASK_HANDLER
+            CONTRACT_NODE
         ];
     }
 
@@ -28,12 +27,12 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return IMonitorStorage(getStorage());
     }
 
-    function _NodeTaskHandler() private view returns (INodeTaskHandler) {
-        return INodeTaskHandler(requireAddress(CONTRACT_NODE_TASK_HANDLER));
-    }
-
     function _Task() private view returns (ITask) {
         return ITask(requireAddress(CONTRACT_TASK));
+    }
+
+    function _Node() private view returns (INode) {
+        return INode(requireAddress(CONTRACT_NODE));
     }
 
     function register(address addr, string calldata ext) external {
@@ -96,14 +95,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function reportTaskAcceptTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _Storage().addReport(addr, tid, ReportAcceptTimeout, now);
-        _NodeTaskHandler().reportAcceptTaskTimeout(addr, tid);
+        _Node().reportAcceptTaskTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportAcceptTimeout);
     }
 
     function reportTaskTimeout(address addr, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _Storage().addReport(addr, tid, ReportTimeout, now);
-        _NodeTaskHandler().reportTaskTimeout(addr, tid);
+        _Node().reportTaskTimeout(addr, tid);
         emit MonitorReport(addr, tid, ReportTimeout);
     }
 
