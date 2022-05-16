@@ -32,17 +32,11 @@ async function main() {
   const User = await ethers.getContractFactory("User");
   const user = await User.deploy(resolver.address);
 
-  const UserFileHandler = await ethers.getContractFactory("UserFileHandler");
-  const userFileHandler = await UserFileHandler.deploy(resolver.address);
-
   const UserStorage = await ethers.getContractFactory("UserStorage");
   const userStorage = await UserStorage.deploy(user.address);
 
   const Node = await ethers.getContractFactory("Node");
   const node = await Node.deploy(resolver.address);
-
-  const NodeFileHandler = await ethers.getContractFactory("NodeFileHandler");
-  const nodeFileHandler = await NodeFileHandler.deploy(resolver.address);
 
   const NodeStorage = await ethers.getContractFactory("NodeStorage");
   const nodeStorage = await NodeStorage.deploy(node.address);
@@ -59,9 +53,7 @@ async function main() {
   await file.deployed();
   await fileStorage.deployed();
   await user.deployed();
-  await userFileHandler.deployed();
   await userStorage.deployed();
-  await nodeFileHandler.deployed();
   await nodeStorage.deployed();
 
   console.log("Resolver deployed to:", resolver.address);
@@ -70,8 +62,6 @@ async function main() {
   console.log("File deployed to:", file.address);
   console.log("FileStorage deployed to:", fileStorage.address);
   console.log("User deployed to:", user.address);
-  console.log("UserFileHandler deployed to:", userFileHandler.address);
-  console.log("NodeFileHandler deployed to:", nodeFileHandler.address);
   console.log("NodeStorage deployed to:", nodeStorage.address);
 }
 
