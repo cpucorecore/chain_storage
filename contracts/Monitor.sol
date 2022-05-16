@@ -37,15 +37,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function register(address addr, string calldata ext) external {
         mustAddress(CONTRACT_MONITOR);
-        require(false == _Storage().exist(addr), contractName.concat(": monitor exist"));
-        require(bytes(ext).length <= 1024, contractName.concat(": ext too long, must<=1024"));
+        require(!_Storage().exist(addr), "M:monitor exist");
         _Storage().newMonitor(addr, ext);
     }
 
     function deRegister(address addr) external {
         mustAddress(CONTRACT_MONITOR);
-        require(_Storage().exist(addr), contractName.concat(": monitor not exist"));
-        require(MonitorMaintain == _Storage().getStatus(addr), contractName.concat(": must maintain first"));
+        require(_Storage().exist(addr), "M:monitor not exist");
+        require(MonitorMaintain == _Storage().getStatus(addr), "M:must in maintain");
         _Storage().deleteMonitor(addr);
     }
 
@@ -55,10 +54,9 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function online(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), contractName.concat(": monitor not exist"));
+        require(_Storage().exist(addr), "M:monitor not exist");
         uint256 status = _Storage().getStatus(addr);
-        require(MonitorRegistered == status ||
-                MonitorMaintain == status, contractName.concat(": wrong status"));
+        require(MonitorRegistered == status || MonitorMaintain == status, "M:wrong status");
 
         _Storage().setStatus(addr, MonitorOnline);
         _Storage().addOnlineMonitor(addr);
@@ -71,9 +69,9 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function maintain(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), contractName.concat(": monitor not exist"));
+        require(_Storage().exist(addr), "M:monitor not exist");
         uint256 status = _Storage().getStatus(addr);
-        require(MonitorOnline == status, contractName.concat(": wrong status"));
+        require(MonitorOnline == status, "M:wrong status");
         _Storage().setStatus(addr, MonitorMaintain);
         _Storage().deleteOnlineMonitor(addr);
     }

@@ -51,35 +51,35 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function userRegister(string calldata ext) external {
         mustInitialized();
         mustNotPaused();
-        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:uetl"); // user ext too long
+        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:user ext too long");
         _User().register(msg.sender, ext);
     }
 
     function userAddFile(string calldata cid, uint256 duration, string calldata ext) external {
         mustInitialized();
         mustNotPaused();
-        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:fetl"); // file ext too long
-        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:ctl"); // cid too long
+        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:file ext too long");
+        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
         _User().addFile(msg.sender, cid, duration, ext);
     }
 
     function userDeleteFile(string calldata cid) external {
         mustInitialized();
         mustNotPaused();
-        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:ctl"); // cid too long
+        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
         _User().deleteFile(msg.sender, cid);
     }
 
     function userSetExt(string calldata ext) external {
         mustInitialized();
         mustNotPaused();
-        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:uetl"); // user ext too long
+        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:user ext too long");
         _User().setExt(msg.sender, ext);
     }
 
     function userSetFileExt(string calldata cid, string calldata ext) external {
         mustInitialized();
-        require(bytes(ext).length <= _Setting().getMaxFileExtLength(), "CS:fetl"); // file ext too long
+        require(bytes(ext).length <= _Setting().getMaxFileExtLength(), "CS:file ext too long");
         _User().setFileExt(msg.sender, cid, ext);
     }
 
@@ -95,15 +95,17 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         _User().changeSpace(addr, space);
     }
 
-    function nodeRegister(uint256 space, string calldata ext) external {
+    function nodeRegister(uint256 storageTotal, string calldata ext) external {
         mustInitialized();
         mustNotPaused();
-        _Node().register(msg.sender, space, ext);
+        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:node ext too long");
+        require(storageTotal > 0, "CS:node storageTotal must>0");
+        _Node().register(msg.sender, storageTotal, ext);
     }
 
     function nodeSetExt(string calldata ext) external {
         mustInitialized();
-        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:netl"); // node ext too long
+        require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:node ext too long");
         _Node().setExt(msg.sender, ext);
     }
 
@@ -146,6 +148,7 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     function monitorRegister(string calldata ext) external {
         mustInitialized();
         mustNotPaused();
+        require(bytes(ext).length <= _Setting().getMaxMonitorExtLength(), "CS:monitor ext too long");
         _Monitor().register(msg.sender, ext);
     }
 

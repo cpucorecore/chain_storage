@@ -53,9 +53,9 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setAdmin(address addr) external {
-        require(addr != address(0), "can not set address(0) as admin");
+        require(addr != address(0), "S:can not set address(0) as admin");
         address oldAdmin = getAdmin();
-        require(oldAdmin == address(0) || msg.sender == oldAdmin || msg.sender == owner, "no auth");
+        require(oldAdmin == address(0) || msg.sender == oldAdmin || msg.sender == owner, "S:no auth");
         _Storage().setAddress(ADMIN_ACCOUNT, addr);
     }
 

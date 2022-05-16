@@ -76,7 +76,7 @@ contract File is Importable, ExternalStorable, IFile {
     function deleteFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
-        require(_Storage().exist(cid), "F:ne");
+        require(_Storage().exist(cid), "F:file not exist");
 
         if(_Storage().ownerExist(cid, owner)) {
             _Storage().deleteOwner(cid, owner);
