@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 pragma solidity ^0.5.2;
 
 import './base/ExternalStorable.sol';
@@ -64,6 +63,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxUserExtLength(uint256 length) external {
+        mustOwner();
         _Storage().setUint(MAX_USER_EXT_LENGTH, length);
     }
 
@@ -72,6 +72,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxNodeExtLength(uint256 length) external {
+        mustOwner();
         _Storage().setUint(MAX_NODE_EXT_LENGTH, length);
     }
 
@@ -80,6 +81,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxMonitorExtLength(uint256 length) external {
+        mustOwner();
         _Storage().setUint(MAX_MONITOR_EXT_LENGTH, length);
     }
 
@@ -88,6 +90,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxFileExtLength(uint256 length) external {
+        mustOwner();
         _Storage().setUint(MAX_FILE_EXT_LENGTH, length);
     }
 
@@ -96,6 +99,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxCidLength(uint256 length) external {
+        mustOwner();
         _Storage().setUint(MAX_CID_LENGTH, length);
     }
 
@@ -104,6 +108,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setTaskAcceptTimeout(uint256 value) external {
+        mustOwner();
         _Storage().setUint(TASK_ACCEPT_TIMEOUT, value);
     }
 
@@ -112,6 +117,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setAddFileTaskTimeout(uint256 value) external {
+        mustOwner();
         _Storage().setUint(ADD_FILE_TASK_TIMEOUT, value);
     }
 
@@ -120,6 +126,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setDeleteFileTaskTimeout(uint256 value) external {
+        mustOwner();
         _Storage().setUint(DELETE_FILE_TASK_TIMEOUT, value);
     }
 
@@ -128,6 +135,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setAddFileProgressTimeout(uint256 value) external {
+        mustOwner();
         _Storage().setUint(ADD_FILE_PROGRESS_TIMEOUT, value);
     }
 
@@ -136,6 +144,7 @@ contract Setting is ExternalStorable, ISetting {
     }
 
     function setMaxAddFileFailedCount(uint256 value) external {
+        mustOwner();
         _Storage().setUint(MAX_ADD_FILE_FAILED_COUNT, value);
     }
 }

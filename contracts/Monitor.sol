@@ -1,25 +1,21 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/IMonitor.sol";
 import "./interfaces/storages/IMonitorStorage.sol";
 import "./interfaces/ITask.sol";
-import "./interfaces/ISetting.sol";
 import "./interfaces/INode.sol";
-import "./lib/SafeMath.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
-    using SafeMath for uint256;
-
     event MonitorReport(address indexed addr, uint256 tid, uint256 reportType);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_MONITOR);
         imports = [
             CONTRACT_TASK,
-            CONTRACT_NODE
+            CONTRACT_NODE,
+            CONTRACT_CHAIN_STORAGE
         ];
     }
 

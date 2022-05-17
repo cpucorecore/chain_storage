@@ -1,19 +1,17 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
+pragma experimental ABIEncoderV2; // use this can make contract size smaller
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/storages/INodeStorage.sol";
 import "./interfaces/ISetting.sol";
-import "./lib/SafeMath.sol";
-import "./lib/NodeSelector.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/IFile.sol";
+import "./lib/NodeSelector.sol";
 
 contract Node is Importable, ExternalStorable, INode {
     using NodeSelector for address;
-    using SafeMath for uint256;
 
     event NodeStatusChanged(address indexed addr, uint256 from, uint256 to);
 
@@ -22,7 +20,8 @@ contract Node is Importable, ExternalStorable, INode {
         imports = [
             CONTRACT_SETTING,
             CONTRACT_TASK,
-            CONTRACT_FILE
+            CONTRACT_FILE,
+            CONTRACT_CHAIN_STORAGE
         ];
     }
 
@@ -128,12 +127,7 @@ contract Node is Importable, ExternalStorable, INode {
     function finishTask(address addr, uint256 tid, uint256 size) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        address owner;
-        uint256 action;
-        address node;
-        string memory cid;
-
-        (owner, action, node, cid) = _Task().getTask(tid); // TODO check getTask
+        (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);
         require(addr == node, "N:node have no this task");
 
         if(Add == action) {

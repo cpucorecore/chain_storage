@@ -1,13 +1,12 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/IFile.sol";
 import "./interfaces/storages/IFileStorage.sol";
+import "./interfaces/IUser.sol";
 import "./interfaces/INode.sol";
 import "./interfaces/ITask.sol";
-import "./interfaces/IUser.sol";
 
 contract File is Importable, ExternalStorable, IFile {
     constructor(IResolver _resolver) public Importable(_resolver) {

@@ -1,20 +1,22 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/storages/ITaskStorage.sol";
-import "./lib/StatusTypes.sol";
 
 contract Task is Importable, ExternalStorable, ITask {
     event TaskIssued(address indexed node, uint256 indexed tid);
     event TaskStatusChanged(uint256 tid, address indexed node, uint256 action, uint256 from, uint256 to);
 
-    bytes32[] private ISSUEABLE_CONTRACTS = [CONTRACT_NODE, CONTRACT_FILE];
+    bytes32[] private ISSUABLE_CONTRACTS = [CONTRACT_NODE, CONTRACT_FILE];
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_TASK);
+        imports = [
+            CONTRACT_NODE,
+            CONTRACT_FILE
+        ];
     }
 
     function _Storage() private view returns(ITaskStorage) {
@@ -22,7 +24,7 @@ contract Task is Importable, ExternalStorable, ITask {
     }
 
     function issueTask(uint256 action, address owner, string calldata cid, address node) external returns (uint256) {
-        mustContainAddress(ISSUEABLE_CONTRACTS);
+        mustContainAddress(ISSUABLE_CONTRACTS);
         uint256 tid = _Storage().newTask(owner, action, cid, node);
         emit TaskIssued(node, tid);
         emit TaskStatusChanged(tid, node, action, DefaultStatus, TaskCreated);

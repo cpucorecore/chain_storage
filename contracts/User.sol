@@ -1,5 +1,4 @@
 pragma solidity ^0.5.2;
-pragma experimental ABIEncoderV2;
 
 import "./base/Importable.sol";
 import "./base/ExternalStorable.sol";
@@ -21,7 +20,8 @@ contract User is Importable, ExternalStorable, IUser {
         setContractName(CONTRACT_USER);
         imports = [
             CONTRACT_SETTING,
-            CONTRACT_FILE
+            CONTRACT_FILE,
+            CONTRACT_CHAIN_STORAGE
         ];
     }
 
