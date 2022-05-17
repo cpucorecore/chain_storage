@@ -133,6 +133,16 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         _Task().acceptTask(msg.sender, tid);
     }
 
+    function nodeReportAddFileProgressBySize(uint256 tid, uint256 size) external {
+        _mustOnline();
+        _Task().reportAddFileProgressBySize(msg.sender, tid, size);
+    }
+
+    function nodeReportAddFileProgressByPercentage(uint256 tid, uint256 percentage) external {
+        _mustOnline();
+        _Task().reportAddFileProgressByPercentage(msg.sender, tid, percentage);
+    }
+
     function nodeFinishTask(uint256 tid, uint256 size) external {
         _mustOnline();
         _Node().finishTask(msg.sender, tid, size);

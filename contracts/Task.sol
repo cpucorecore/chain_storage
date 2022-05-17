@@ -100,28 +100,28 @@ contract Task is Importable, ExternalStorable, ITask {
         emit TaskStatusChanged(tid, node, action, status, TaskTimeout);
     }
 
-    function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external { // TODO
-        mustAddress(CONTRACT_NODE);
+    function reportAddFileProgressBySize(address addr, uint256 tid, uint256 size) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         _checkTaskExist(tid);
 
         (,,address node,) = _Storage().getTask(tid);
         require(addr == node, "T:node have no this task");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
-        require(TaskAccepted == status, "T:task status is not Accepted");
+        require(TaskAccepted == status, "T:wrong task status,must TaskAccepted");
 
         _Storage().setAddFileTaskProgressBySize(tid, now, size);
     }
 
-    function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external { // TODO
-        mustAddress(CONTRACT_NODE);
+    function reportAddFileProgressByPercentage(address addr, uint256 tid, uint256 percentage) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         _checkTaskExist(tid);
 
         (,,address node,) = _Storage().getTask(tid);
         require(addr == node, "T:node have no this task");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
-        require(TaskAccepted == status, "T:task status is not Accepted");
+        require(TaskAccepted == status, "T:wrong task status,must TaskAccepted");
 
         _Storage().setAddFileTaskProgressByPercentage(tid, now, percentage);
     }

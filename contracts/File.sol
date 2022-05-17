@@ -54,6 +54,8 @@ contract File is Importable, ExternalStorable, IFile {
         if(_Storage().exist(cid)) {
             if(_Storage().nodeEmpty(cid)) {
                 _User().onAddFileFinish(owner, cid, size);
+                _Storage().setSize(cid, size);
+                _Storage().upTotalSize(size);
             }
 
             if(!_Storage().nodeExist(cid, node)) {
@@ -66,7 +68,6 @@ contract File is Importable, ExternalStorable, IFile {
 
     function onAddFileFail(address owner, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
-        // TODO check: if(!_File().ownerExist(cid, owner))?
         _User().onAddFileFail(owner, cid);
     }
 
@@ -83,6 +84,7 @@ contract File is Importable, ExternalStorable, IFile {
         if(_Storage().ownerEmpty(cid)) {
             if(_Storage().nodeEmpty(cid)) {
                 _Storage().deleteFile(cid);
+                _Storage().downTotalSize(_Storage().getSize(cid));
                 finish = true;
             } else {
                 address[] memory nodes = _Storage().getNodes(cid);

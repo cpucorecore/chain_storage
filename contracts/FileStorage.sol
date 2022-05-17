@@ -17,8 +17,8 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     mapping(string=>FileItem) private cid2fileItem;
-    uint256 private totalSize; // TODO: measure accurate
-    uint256 private totalFileNumber;  // TODO: measure accurate
+    uint256 private totalSize;
+    uint256 private totalFileNumber;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
@@ -38,10 +38,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
     function deleteFile(string calldata cid) external {
         mustManager(managerName);
-
-        totalSize = totalSize.sub(cid2fileItem[cid].size);
         totalFileNumber = totalFileNumber.sub(1);
-
         delete cid2fileItem[cid];
     }
 
@@ -133,6 +130,16 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function getTotalSize() external view returns (uint256) {
+        return totalSize;
+    }
+
+    function upTotalSize(uint256 size) external returns (uint256) {
+        totalSize = totalSize.add(size);
+        return totalSize;
+    }
+
+    function downTotalSize(uint256 size) external returns (uint256) {
+        totalSize = totalSize.sub(size);
         return totalSize;
     }
 

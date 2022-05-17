@@ -110,9 +110,10 @@ contract UserStorage is ExternalStorage, IUserStorage {
         files[addr][cidHash].duration = duration;
     }
 
-    function setInvalidAddFileCount(address addr, uint256 count) external {
+    function upInvalidAddFileCount(address addr) external returns (uint256) {
         mustManager(managerName);
-        users[addr].invalidAddFileCount = count;
+        users[addr].invalidAddFileCount = users[addr].invalidAddFileCount.add(1);
+        return users[addr].invalidAddFileCount;
     }
 
     function fileExist(address addr, string calldata cid) external view returns(bool) {

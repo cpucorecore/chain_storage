@@ -5,12 +5,9 @@ import "./base/ExternalStorable.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/ISetting.sol";
-import "./lib/SafeMath.sol";
 import "./interfaces/IFile.sol";
 
 contract User is Importable, ExternalStorable, IUser {
-    using SafeMath for uint256;
-
     event UserAction(address indexed addr, uint256 action, string cid);
     event FileAdded(address indexed owner, string cid);
     event FileAddFailed(address indexed owner, string cid);
@@ -99,8 +96,7 @@ contract User is Importable, ExternalStorable, IUser {
 
     function onAddFileFail(address owner, string calldata cid) external {
         mustAddress(CONTRACT_FILE);
-        uint256 invalidAddFileCount = _Storage().getInvalidAddFileCount(owner);
-        _Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
+        _Storage().upInvalidAddFileCount(owner);
         emit FileAddFailed(owner, cid);
     }
 

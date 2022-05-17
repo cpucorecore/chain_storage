@@ -170,12 +170,10 @@ contract Node is Importable, ExternalStorable, INode {
 
     function reportAcceptTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
-        // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        (, uint256 action, address node, string memory cid) = _Task().getTask(tid);
 
+        (, uint256 action, address node, string memory cid) = _Task().getTask(tid);
         _offline(node);
         _Task().acceptTaskTimeout(tid);
-
         if(Add == action) {
             _retryAddFileTask(owner, cid);
         }
@@ -183,9 +181,8 @@ contract Node is Importable, ExternalStorable, INode {
 
     function reportTaskTimeout(address addr, uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
-        // TODO: Node should verify the taskAcceptTimeout Report by Monitor
-        (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);
 
+        (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);
         _offline(node);
         _Task().taskTimeout(tid);
 
@@ -215,7 +212,7 @@ contract Node is Importable, ExternalStorable, INode {
     function _retryAddFileTask(address owner, string memory cid) private {
         address nodeStorageAddr = getStorage();
         (address[] memory nodes, bool success) = nodeStorageAddr.selectNodes(1);
-        require(success, "N:no available node"); // TODO check: no require?
+        require(success, "N:no available node");
         _Task().issueTask(Add, owner, cid, nodes[0]);
     }
 }

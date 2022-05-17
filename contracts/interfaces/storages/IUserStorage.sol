@@ -6,7 +6,7 @@ interface IUserStorage {
     function deleteUser(address addr) external;
     function setExt(address addr, string calldata ext) external;
     function setStorageTotal(address addr, uint256 size) external;
-    function setInvalidAddFileCount(address addr, uint256 count) external;
+    function upInvalidAddFileCount(address addr) external returns (uint256);
     function useStorage(address addr, uint256 size) external;
     function freeStorage(address addr, uint256 size) external;
     function exist(address addr) external view returns (bool);
