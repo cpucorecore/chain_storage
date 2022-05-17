@@ -2,10 +2,7 @@ const fs = require('fs');
 const Web3Utils = require('web3-utils');
 const {checkUndefined} = require('./util');
 
-
 const Resolver = artifacts.require("Resolver");
-const History = artifacts.require("History");
-
 const Setting = artifacts.require("Setting");
 const SettingStorage = artifacts.require("SettingStorage");
 const FileStorage = artifacts.require("FileStorage");
@@ -16,8 +13,8 @@ const NodeStorage = artifacts.require("NodeStorage");
 const Node = artifacts.require("Node");
 const TaskStorage = artifacts.require("TaskStorage");
 const Task = artifacts.require("Task");
-
 const ChainStorage = artifacts.require("ChainStorage");
+const NodeSelectorForTest = artifacts.require("NodeSelectorForTest");
 
 module.exports = function(deployer, _, accounts) {
     let contracts = {};
@@ -28,24 +25,10 @@ module.exports = function(deployer, _, accounts) {
         .then(() => {
             return deployer.deploy(Resolver);
         })
-
-        // History
         .then(resolver => {
             checkUndefined('resolver', resolver);
             contracts.resolver = resolver;
             contractAddrs.resolver = resolver.address;
-            return deployer.deploy(History, contractAddrs.resolver);
-        })
-        .then(history => {
-            checkUndefined('history', history);
-            contracts.history = history;
-            contractAddrs.history = history.address;
-            return contracts.resolver.setAddress(Web3Utils.fromAscii('History'), contracts.history.address);
-        })
-
-        //Setting and SettingStorage
-        .then(receipt => {
-            console.log('resolver.setAddress(History) receipts: ', receipt);
             return contracts.resolver.setAddress(Web3Utils.fromAscii('Admin'), adminAccount);
         })
         .then(receipt => {
@@ -159,6 +142,13 @@ module.exports = function(deployer, _, accounts) {
 
         .then(receipt => {
             console.log('resolver.setAddress(Task) receipts: ', receipt);
+            return deployer.deploy(NodeSelectorForTest);
+        })
+
+        .then(nodeSelectorForTest => {
+            checkUndefined('nodeSelectorForTest', nodeSelectorForTest);
+            contracts.nodeSelectorForTest = nodeSelectorForTest;
+            contractAddrs.nodeSelectorForTest = nodeSelectorForTest.address;
             return deployer.deploy(ChainStorage);
         })
 
@@ -171,6 +161,10 @@ module.exports = function(deployer, _, accounts) {
         })
         .then(receipt => {
             console.log('chainStorage.initialize receipt: ', receipt);
+            return contracts.resolver.setAddress(Web3Utils.fromAscii('ChainStorage'), contractAddrs.chainStorage);
+        })
+        .then(receipt => {
+            console.log('resolver.setAddress(ChainStorage) receipts: ', receipt);
             return contracts.file.refreshCache();
         })
         .then(receipt => {

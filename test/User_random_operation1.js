@@ -1,7 +1,6 @@
 const common = require('./common');
 
 const Setting = artifacts.require("Setting");
-const History = artifacts.require("History");
 const Node = artifacts.require("Node");
 const File = artifacts.require("File");
 const Task = artifacts.require("Task");
@@ -9,7 +8,6 @@ const User = artifacts.require("User");
 
 contract('User_random_operation1', accounts => {
     let settingInstance;
-    let historyInstance;
     let nodeInstance;
     let fileInstance;
     let taskInstance;
@@ -38,7 +36,6 @@ contract('User_random_operation1', accounts => {
 
     before(async () => {
         settingInstance = await Setting.deployed();
-        historyInstance = await History.deployed();
         nodeInstance = await Node.deployed();
         fileInstance = await File.deployed();
         taskInstance = await Task.deployed();
@@ -420,24 +417,5 @@ contract('User_random_operation1', accounts => {
 
         onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
         assert.equal(onlineNodeNumber, 4);
-
-        // check History
-        let userHistoryNumber = await historyInstance.getUserHistoryNumber.call();
-        assert.equal(userHistoryNumber, 3);
-        let userHistory = await historyInstance.getUserHistoryIndexesByUser.call(tom, 20, 1);
-        assert.lengthOf(userHistory[0], 2);
-        userHistory = await historyInstance.getUserHistoryIndexesByUser.call(bob, 20, 1);
-        assert.lengthOf(userHistory[0], 1);
-
-        let nodeHistoryNumber = await historyInstance.getNodeHistoryNumber.call();
-        assert.equal(nodeHistoryNumber, 12);
-        let nodeHistory = await historyInstance.getNodeHistoryIndexesByNode.call(node1, 20, 1);
-        assert.lengthOf(nodeHistory[0], 3);
-        nodeHistory = await historyInstance.getNodeHistoryIndexesByNode.call(node2, 20, 1);
-        assert.lengthOf(nodeHistory[0], 3);
-        nodeHistory = await historyInstance.getNodeHistoryIndexesByNode.call(node3, 20, 1);
-        assert.lengthOf(nodeHistory[0], 3);
-        nodeHistory = await historyInstance.getNodeHistoryIndexesByNode.call(node4, 20, 1);
-        assert.lengthOf(nodeHistory[0], 3);
     })
 })
