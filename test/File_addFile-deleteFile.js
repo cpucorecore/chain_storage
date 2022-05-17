@@ -1,48 +1,12 @@
 const common = require('./common');
 
-const ChainStorage = artifacts.require("ChainStorage");
-const Setting = artifacts.require("Setting");
-const NodeStorage = artifacts.require("NodeStorage");
-const FileStorage = artifacts.require("FileStorage");
-const TaskStorage = artifacts.require("TaskStorage");
-
 contract('File_addFile-deleteFile', accounts => {
     let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
 
-    let chainStorageInstance;
-    let settingInstance;
-    let nodeStorageInstance;
-    let fileStorageInstance;
-    let taskStorageInstance;
-
-    let node1 = accounts[5];
-    let node2 = accounts[6];
-
-    let tom = accounts[0];
-    let bob = accounts[1];
+    let context;
 
     before(async () => {
-        chainStorageInstance = await ChainStorage.deployed();
-        settingInstance = await Setting.deployed();
-        nodeStorageInstance = await NodeStorage.deployed();
-        fileStorageInstance = await FileStorage.deployed();
-        taskStorageInstance = await TaskStorage.deployed();
-
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxFileExtLength(common.maxFileExtLength);
-        await settingInstance.setInitSpace(common.initSpace);
-        await settingInstance.setMaxCidLength(common.maxCidLength);
-
-        await chainStorageInstance.userRegister(common.userExt, {from: tom});
-        await chainStorageInstance.userRegister(common.userExt, {from: bob});
-
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: node1});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: node2});
-
-        await chainStorageInstance.nodeOnline({from: node1});
-        await chainStorageInstance.nodeOnline({from: node2});
+        context = await common.prepareTestContext(accounts);
     })
 
     it('fileAdded', async () => {
@@ -50,78 +14,78 @@ contract('File_addFile-deleteFile', accounts => {
         let taskCount;
         let nodes;
 
-        await chainStorageInstance.userAddFile(cid, common.duration, common.fileExt, {from: tom});
-        await chainStorageInstance.userAddFile(cid, common.duration, common.fileExt, {from: bob});
+        await context.chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: context.tom});
+        await context.chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: context.bob});
 
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node1);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node1);
         assert.equal(nodeExist, false);
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node2);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node2);
         assert.equal(nodeExist, false);
-        nodes = await fileStorageInstance.getNodes.call(cid);
+        nodes = await context.fileStorage.getNodes.call(cid);
         assert.lengthOf(nodes, 0);
 
-        taskCount = await taskStorageInstance.getCurrentTid.call();
+        taskCount = await context.taskStorage.getCurrentTid.call();
         assert.equal(taskCount, 2);
 
-        await chainStorageInstance.nodeAcceptTask(1, {from: node1});
-        await chainStorageInstance.nodeAcceptTask(2, {from :node2});
+        await context.chainStorage.nodeAcceptTask(1, {from: context.node1});
+        await context.chainStorage.nodeAcceptTask(2, {from: context.node2});
 
-        await chainStorageInstance.nodeFinishTask(1, common.fileSize, {from: node1});
-        nodes = await fileStorageInstance.getNodes.call(cid);
+        await context.chainStorage.nodeFinishTask(1, common.fileSize, {from: context.node1});
+        nodes = await context.fileStorage.getNodes.call(cid);
         assert.lengthOf(nodes, 1);
         console.log(nodes);
 
-        await chainStorageInstance.nodeFinishTask(2, common.fileSize, {from: node2});
-        nodes = await fileStorageInstance.getNodes.call(cid);
+        await context.chainStorage.nodeFinishTask(2, common.fileSize, {from: context.node2});
+        nodes = await context.fileStorage.getNodes.call(cid);
         assert.lengthOf(nodes, 2);
         console.log(nodes);
 
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node1);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node1);
         assert.equal(nodeExist, true);
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node2);
-        assert.equal(nodeExist, true);
-
-        await chainStorageInstance.userDeleteFile(cid, {from: tom});
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node1);
-        assert.equal(nodeExist, true);
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node2);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node2);
         assert.equal(nodeExist, true);
 
-        await chainStorageInstance.userDeleteFile(cid, {from: bob});
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node1);
+        await context.chainStorage.userDeleteFile(cid, {from: context.tom});
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node1);
         assert.equal(nodeExist, true);
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node2);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node2);
         assert.equal(nodeExist, true);
 
-        await chainStorageInstance.nodeAcceptTask(3, {from: node1});
-        await chainStorageInstance.nodeAcceptTask(4, {from: node2});
+        await context.chainStorage.userDeleteFile(cid, {from: context.bob});
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node1);
+        assert.equal(nodeExist, true);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node2);
+        assert.equal(nodeExist, true);
 
-        let storageInfo = await nodeStorageInstance.getStorageInfo.call(node1);
+        await context.chainStorage.nodeAcceptTask(3, {from: context.node1});
+        await context.chainStorage.nodeAcceptTask(4, {from: context.node2});
+
+        let storageInfo = await context.nodeStorage.getStorageInfo.call(context.node1);
         console.log(storageInfo[0].toString());
-        storageInfo = await nodeStorageInstance.getStorageInfo.call(node2);
+        storageInfo = await context.nodeStorage.getStorageInfo.call(context.node2);
         console.log(storageInfo[0].toString());
 
-        await chainStorageInstance.nodeFinishTask(4, common.fileSize, {from: node2});
-        let fileExist = await fileStorageInstance.exist(cid);
+        await context.chainStorage.nodeFinishTask(4, common.fileSize, {from: context.node2});
+        let fileExist = await context.fileStorage.exist(cid);
         assert.equal(fileExist, true);
 
-        storageInfo = await nodeStorageInstance.getStorageInfo.call(node1);
+        storageInfo = await context.nodeStorage.getStorageInfo.call(context.node1);
         console.log(storageInfo[0].toString());
-        storageInfo = await nodeStorageInstance.getStorageInfo.call(node2);
+        storageInfo = await context.nodeStorage.getStorageInfo.call(context.node2);
         console.log(storageInfo[0].toString());
 
-        let task = await taskStorageInstance.getTask(3);
+        let task = await context.taskStorage.getTask.call(3);
         console.log(task);
-        task = await taskStorageInstance.getTask(4);
+        task = await context.taskStorage.getTask.call(4);
         console.log(task);
-        await chainStorageInstance.nodeFinishTask(3, common.fileSize, {from: node1});
+        await context.chainStorage.nodeFinishTask(3, common.fileSize, {from: context.node1});
 
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node1);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node1);
         assert.equal(nodeExist, false);
-        nodeExist = await fileStorageInstance.nodeExist.call(cid, node2);
+        nodeExist = await context.fileStorage.nodeExist.call(cid, context.node2);
         assert.equal(nodeExist, false);
 
-        fileExist = await fileStorageInstance.exist(cid);
+        fileExist = await context.fileStorage.exist(cid);
         assert.equal(fileExist, false);
     })
 });
