@@ -179,12 +179,12 @@ contract ChainStorage is Proxyable, Pausable, Importable {
         _Monitor().resetCurrentTid(msg.sender, tid);
     }
 
-    function monitorReportTaskAcceptTimeout(address addr, uint256 tid) external {
+    function monitorReportTaskAcceptTimeout(uint256 tid) external {
         _mustOnline();
         _Monitor().reportTaskAcceptTimeout(msg.sender, tid);
     }
 
-    function monitorReportTaskTimeout(address addr, uint256 tid) external {
+    function monitorReportTaskTimeout(uint256 tid) external {
         _mustOnline();
         _Monitor().reportTaskTimeout(msg.sender, tid);
     }

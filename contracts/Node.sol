@@ -168,7 +168,7 @@ contract Node is Importable, ExternalStorable, INode {
         _Task().failTask(tid);
     }
 
-    function reportAcceptTaskTimeout(address addr, uint256 tid) external {
+    function reportAcceptTaskTimeout(uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
 
         (, uint256 action, address node, string memory cid) = _Task().getTask(tid);
@@ -179,7 +179,7 @@ contract Node is Importable, ExternalStorable, INode {
         }
     }
 
-    function reportTaskTimeout(address addr, uint256 tid) external {
+    function reportTaskTimeout(uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
 
         (address owner, uint256 action, address node, string memory cid) = _Task().getTask(tid);

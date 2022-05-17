@@ -14,6 +14,6 @@ interface INode {
     function finishTask(address addr, uint256 tid, uint256 size) external;
     function failTask(address addr, uint256 tid) external;
 
-    function reportAcceptTaskTimeout(address addr, uint256 tid) external;
-    function reportTaskTimeout(address addr, uint256 tid) external;
+    function reportAcceptTaskTimeout(uint256 tid) external;
+    function reportTaskTimeout(uint256 tid) external;
 }

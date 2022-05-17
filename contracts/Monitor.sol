@@ -82,7 +82,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         // TODO: should verify the taskAcceptTimeout Report by this monitor
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _Storage().addReport(addr, tid, ReportAcceptTimeout, now);
-        _Node().reportAcceptTaskTimeout(addr, tid);
+        _Node().reportAcceptTaskTimeout(tid);
         emit MonitorReport(addr, tid, ReportAcceptTimeout);
     }
 
@@ -90,7 +90,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         // TODO: Node should verify the taskTimeout Report by this monitor
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _Storage().addReport(addr, tid, ReportTimeout, now);
-        _Node().reportTaskTimeout(addr, tid);
+        _Node().reportTaskTimeout(tid);
         emit MonitorReport(addr, tid, ReportTimeout);
     }
 
