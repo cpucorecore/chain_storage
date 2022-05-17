@@ -62,6 +62,7 @@ contract User is Importable, ExternalStorable, IUser {
 
     function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(addr), "U:user not exist");
         require(!_Storage().fileExist(addr, cid), "U:file exist");
         emit UserAction(addr, Add, cid);
         _File().addFile(cid, addr);
@@ -84,6 +85,7 @@ contract User is Importable, ExternalStorable, IUser {
 
     function deleteFile(address addr, string calldata cid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(addr), "U:user not exist");
         require(_Storage().fileExist(addr, cid), "U:file not exist");
         emit UserAction(addr, Add, cid);
         _File().deleteFile(cid, addr);

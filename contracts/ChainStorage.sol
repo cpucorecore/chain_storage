@@ -73,7 +73,7 @@ contract ChainStorage is Proxyable, Pausable, Importable {
 
     function userAddFile(string calldata cid, uint256 duration, string calldata ext) external {
         _mustOnline();
-        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:file ext too long");
+        require(bytes(ext).length <= _Setting().getMaxFileExtLength(), "CS:file ext too long");
         require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
         _User().addFile(msg.sender, cid, duration, ext);
     }

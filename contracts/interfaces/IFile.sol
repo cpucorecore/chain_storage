@@ -8,4 +8,6 @@ interface IFile {
 
     function deleteFile(string calldata cid, address owner) external returns (bool finish);
     function onNodeDeleteFileFinish(address node, address owner, string calldata cid) external;
+
+    function getSize(string calldata cid) external view returns (uint256);
 }

@@ -15,7 +15,8 @@ contract Task is Importable, ExternalStorable, ITask {
         setContractName(CONTRACT_TASK);
         imports = [
             CONTRACT_NODE,
-            CONTRACT_FILE
+            CONTRACT_FILE,
+            CONTRACT_CHAIN_STORAGE
         ];
     }
 

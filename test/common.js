@@ -7,6 +7,9 @@ const maxCidLength = 512;
 const replica = 2;
 const nodeExt = '{"geteway":"https://gateway.chainstorage.ac.com"}';
 const userExt = '{"name":"bob"}';
+const duration = 3600;
+const fileSize = 1111;
+const fileExt = 'fileExt';
 
 exports.nodeTotalSpace = nodeTotalSpace;
 exports.nodeExt = nodeExt;
@@ -17,4 +20,6 @@ exports.replica = replica;
 exports.userExt = userExt;
 exports.maxFileExtLength = maxFileExtLength;
 exports.maxCidLength = maxCidLength;
-
+exports.duration = duration;
+exports.fileSize = fileSize;
+exports.fileExt = fileExt;
