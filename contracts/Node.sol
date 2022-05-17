@@ -49,18 +49,6 @@ contract Node is Importable, ExternalStorable, INode {
         emit NodeStatusChanged(addr, DefaultStatus, NodeRegistered);
     }
 
-    function deRegister(address addr) external {
-        // TODO node should delete cids and report the cids before deRegister
-        mustAddress(CONTRACT_CHAIN_STORAGE);
-
-        _nodeMustExist(addr);
-        uint256 status = _Storage().getStatus(addr);
-        require(NodeRegistered == status || NodeMaintain == status, "N:wrong status must[RM]");
-        _Storage().deleteNode(addr);
-
-        emit NodeStatusChanged(addr, status, DefaultStatus);
-    }
-
     function setExt(address addr, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _nodeMustExist(addr);
@@ -72,6 +60,18 @@ contract Node is Importable, ExternalStorable, INode {
         _nodeMustExist(addr);
         require(storageTotal >= _Storage().getStorageUsed(addr), "N:too small");
         _Storage().setStorageTotal(addr, storageTotal);
+    }
+
+    function deRegister(address addr) external {
+        // TODO node should delete cids and report the cids before deRegister
+        mustAddress(CONTRACT_CHAIN_STORAGE);
+
+        _nodeMustExist(addr);
+        uint256 status = _Storage().getStatus(addr);
+        require(NodeRegistered == status || NodeMaintain == status, "N:wrong status must[RM]");
+        _Storage().deleteNode(addr);
+
+        emit NodeStatusChanged(addr, status, DefaultStatus);
     }
 
     function online(address addr) external {

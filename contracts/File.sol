@@ -35,10 +35,6 @@ contract File is Importable, ExternalStorable, IFile {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function exist(string calldata cid) external view returns (bool) {
-        return _Storage().exist(cid);
-    }
-
     function addFile(string calldata cid, address owner) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
@@ -61,7 +57,7 @@ contract File is Importable, ExternalStorable, IFile {
                 _User().onAddFileFinish(owner, cid, size);
             }
 
-            if(!nodeExist(cid, node)) {
+            if(!_Storage().nodeExist(cid, node)) {
                 _Storage().addNode(cid, node);
             }
         } else {
@@ -70,6 +66,8 @@ contract File is Importable, ExternalStorable, IFile {
     }
 
     function onAddFileFail(address owner, string calldata cid) external {
+        mustAddress(CONTRACT_NODE);
+        // TODO check: if(!_File().ownerExist(cid, owner))?
         _User().onAddFileFail(owner, cid);
     }
 
@@ -109,41 +107,5 @@ contract File is Importable, ExternalStorable, IFile {
                 _Storage().deleteFile(cid);
             }
         }
-    }
-
-    function getSize(string calldata cid) external view returns (uint256) {
-        return _Storage().getSize(cid);
-    }
-
-    function ownerExist(string memory cid, address owner) public view returns (bool) {
-        return _Storage().ownerExist(cid, owner);
-    }
-
-    function getOwners(string calldata cid) external view returns (address[] memory) {
-        return _Storage().getOwners(cid);
-    }
-
-    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        return _Storage().getOwners(cid, pageSize, pageNumber);
-    }
-
-    function nodeExist(string memory cid, address node) public view returns (bool) {
-        return _Storage().nodeExist(cid, node);
-    }
-
-    function getNodes(string calldata cid) external view returns (address[] memory) {
-        return _Storage().getNodes(cid);
-    }
-
-    function getNodes(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        return _Storage().getNodes(cid, pageSize, pageNumber);
-    }
-
-    function getTotalSize() external view returns (uint256) {
-        return _Storage().getTotalSize();
-    }
-
-    function getTotalFileNumber() external view returns (uint256) {
-        return _Storage().getTotalFileNumber();
     }
 }

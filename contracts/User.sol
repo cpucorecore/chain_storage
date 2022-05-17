@@ -6,8 +6,8 @@ import "./base/ExternalStorable.sol";
 import "./interfaces/IUser.sol";
 import "./interfaces/storages/IUserStorage.sol";
 import "./interfaces/ISetting.sol";
-import "./interfaces/IFile.sol";
 import "./lib/SafeMath.sol";
+import "./interfaces/IFile.sol";
 
 contract User is Importable, ExternalStorable, IUser {
     using SafeMath for uint256;
@@ -43,6 +43,19 @@ contract User is Importable, ExternalStorable, IUser {
         _Storage().newUser(addr, _Setting().getInitSpace(), ext);
     }
 
+    function setExt(address addr, string calldata ext) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(addr), "U:user not exist");
+        _Storage().setExt(addr, ext);
+    }
+
+    function setStorageTotal(address addr, uint256 size) external {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(addr), "U:user not exist");
+        require(size >= _Storage().getStorageUsed(addr), "U:storage space too small");
+        _Storage().setStorageTotal(addr, size);
+    }
+
     function deRegister(address addr) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(_Storage().exist(addr), "U:user not exist");
@@ -50,17 +63,12 @@ contract User is Importable, ExternalStorable, IUser {
         _Storage().deleteUser(addr);
     }
 
-    function setExt(address addr, string calldata ext) external {
+    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), "U:user not exist");
-        _Storage().setExt(addr, ext);
-    }
-
-    function changeSpace(address addr, uint256 size) external {
-        mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), "U:user not exist");
-        require(size >= _Storage().getStorageUsed(addr), "U:storage space too small");
-        _Storage().setStorageTotal(addr, size);
+        require(!_Storage().fileExist(addr, cid), "U:file exist");
+        emit UserAction(addr, Add, cid);
+        _File().addFile(cid, addr);
+        _Storage().addFile(addr, cid, duration, ext, now);
     }
 
     function setFileExt(address addr, string calldata cid, string calldata ext) external {
@@ -77,14 +85,6 @@ contract User is Importable, ExternalStorable, IUser {
         _Storage().setFileDuration(addr, cid, duration);
     }
 
-    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext) external {
-        mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(!_Storage().fileExist(addr, cid), "U:file exist");
-        emit UserAction(addr, Add, cid);
-        _File().addFile(cid, addr);
-        _Storage().addFile(addr, cid, duration, ext, now);
-    }
-
     function deleteFile(address addr, string calldata cid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(_Storage().fileExist(addr, cid), "U:file not exist");
@@ -98,12 +98,10 @@ contract User is Importable, ExternalStorable, IUser {
     }
 
     function onAddFileFail(address owner, string calldata cid) external {
-        mustAddress(CONTRACT_NODE);
-        if(!_File().ownerExist(cid, owner)) {
-            uint256 invalidAddFileCount = _Storage().getInvalidAddFileCount(owner);
-            _Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
-            emit FileAddFailed(owner, cid);
-        }
+        mustAddress(CONTRACT_FILE);
+        uint256 invalidAddFileCount = _Storage().getInvalidAddFileCount(owner);
+        _Storage().setInvalidAddFileCount(owner, invalidAddFileCount.add(1));
+        emit FileAddFailed(owner, cid);
     }
 
     function onDeleteFileFinish(address owner, string calldata cid, uint256 size) external {

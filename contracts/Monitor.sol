@@ -36,20 +36,16 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     }
 
     function register(address addr, string calldata ext) external {
-        mustAddress(CONTRACT_MONITOR);
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         require(!_Storage().exist(addr), "M:monitor exist");
         _Storage().newMonitor(addr, ext);
     }
 
     function deRegister(address addr) external {
-        mustAddress(CONTRACT_MONITOR);
+        mustAddress(CONTRACT_CHAIN_STORAGE);
         require(_Storage().exist(addr), "M:monitor not exist");
         require(MonitorMaintain == _Storage().getStatus(addr), "M:must in maintain");
         _Storage().deleteMonitor(addr);
-    }
-
-    function exist(address addr) external view returns (bool) {
-        return _Storage().exist(addr);
     }
 
     function online(address addr) external {
@@ -74,10 +70,6 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         require(MonitorOnline == status, "M:wrong status");
         _Storage().setStatus(addr, MonitorMaintain);
         _Storage().deleteOnlineMonitor(addr);
-    }
-
-    function loadCurrentTid(address addr) external view returns (uint256) {
-        return _Storage().getCurrentTid(addr);
     }
 
     function resetCurrentTid(address addr, uint256 tid) external {

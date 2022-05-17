@@ -49,124 +49,138 @@ contract ChainStorage is Proxyable, Pausable, Importable {
     }
 
     function userRegister(string calldata ext) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:user ext too long");
         _User().register(msg.sender, ext);
     }
 
+    function userSetExt(string calldata ext) external {
+        _mustOnline();
+        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:user ext too long");
+        _User().setExt(msg.sender, ext);
+    }
+
+    function userSetStorageTotal(address addr, uint256 storageTotal) external {
+        _mustOnline();
+        mustAddress(ACCOUNT_ADMIN);
+        _User().setStorageTotal(addr, storageTotal);
+    }
+
+    function userDeRegister() external {
+        _mustOnline();
+        _User().deRegister(msg.sender);
+    }
+
     function userAddFile(string calldata cid, uint256 duration, string calldata ext) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:file ext too long");
         require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
         _User().addFile(msg.sender, cid, duration, ext);
     }
 
-    function userDeleteFile(string calldata cid) external {
-        mustInitialized();
-        mustNotPaused();
-        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
-        _User().deleteFile(msg.sender, cid);
-    }
-
-    function userSetExt(string calldata ext) external {
-        mustInitialized();
-        mustNotPaused();
-        require(bytes(ext).length <= _Setting().getMaxUserExtLength(), "CS:user ext too long");
-        _User().setExt(msg.sender, ext);
-    }
-
     function userSetFileExt(string calldata cid, string calldata ext) external {
-        mustInitialized();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxFileExtLength(), "CS:file ext too long");
         _User().setFileExt(msg.sender, cid, ext);
     }
 
     function userSetFileDuration(string calldata cid, uint256 duration) external {
-        mustInitialized();
+        _mustOnline();
         _User().setFileDuration(msg.sender, cid, duration);
     }
 
-    function changeUserSpace(address addr, uint256 space) external {
-        mustInitialized();
-        mustNotPaused();
-        mustAddress(ACCOUNT_ADMIN);
-        _User().changeSpace(addr, space);
+    function userDeleteFile(string calldata cid) external {
+        _mustOnline();
+        require(bytes(cid).length <= _Setting().getMaxCidLength(), "CS:cid too long");
+        _User().deleteFile(msg.sender, cid);
     }
 
     function nodeRegister(uint256 storageTotal, string calldata ext) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:node ext too long");
         require(storageTotal > 0, "CS:node storageTotal must>0");
         _Node().register(msg.sender, storageTotal, ext);
     }
 
     function nodeSetExt(string calldata ext) external {
-        mustInitialized();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxNodeExtLength(), "CS:node ext too long");
         _Node().setExt(msg.sender, ext);
     }
 
+    function nodeSetStorageTotal(uint256 storageTotal) external {
+        _mustOnline();
+        _Node().setStorageTotal(msg.sender, storageTotal);
+    }
+
+    function nodeDeRegister() external {
+        _mustOnline();
+        _Node().deRegister(msg.sender);
+    }
+
     function nodeOnline() external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Node().online(msg.sender);
     }
 
     function nodeMaintain() external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Node().maintain(msg.sender);
     }
 
     function nodeAcceptTask(uint256 tid) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Task().acceptTask(msg.sender, tid);
     }
 
     function nodeFinishTask(uint256 tid, uint256 size) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Node().finishTask(msg.sender, tid, size);
     }
 
     function nodeFailTask(uint256 tid) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Node().failTask(msg.sender, tid);
     }
 
-    function nodeSetStorageTotal(uint256 storageTotal) external {
-        mustInitialized();
-        mustNotPaused();
-        _Node().setStorageTotal(msg.sender, storageTotal);
-    }
-
     function monitorRegister(string calldata ext) external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         require(bytes(ext).length <= _Setting().getMaxMonitorExtLength(), "CS:monitor ext too long");
         _Monitor().register(msg.sender, ext);
     }
 
+    function monitorDeRegister() external {
+        _mustOnline();
+        _Monitor().deRegister(msg.sender);
+    }
+
     function monitorOnline() external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Monitor().online(msg.sender);
     }
 
     function monitorMaintain() external {
-        mustInitialized();
-        mustNotPaused();
+        _mustOnline();
         _Monitor().maintain(msg.sender);
     }
 
     function monitorResetCurrentTid(uint256 tid) external {
+        _mustOnline();
+        _Monitor().resetCurrentTid(msg.sender, tid);
+    }
+
+    function monitorReportTaskAcceptTimeout(address addr, uint256 tid) external {
+        _mustOnline();
+        _Monitor().reportTaskAcceptTimeout(msg.sender, tid);
+    }
+
+    function monitorReportTaskTimeout(address addr, uint256 tid) external {
+        _mustOnline();
+        _Monitor().reportTaskTimeout(msg.sender, tid);
+    }
+
+    function _mustOnline() private {
         mustInitialized();
         mustNotPaused();
-        _Monitor().resetCurrentTid(msg.sender, tid);
     }
 }
