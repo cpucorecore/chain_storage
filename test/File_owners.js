@@ -90,7 +90,7 @@ contract('File owners', accounts => {
         userExist = await fileStorage.userExist.call(cid, user2);
         assert.equal(userExist, false);
 
-        
+
         await chainStorage.nodeAcceptTask(4, {from: node2});
         await chainStorage.nodeFinishTask(4, common.fileSize, {from: node2});
         await dumpState(ctx, "node2.finishTask(4)");
