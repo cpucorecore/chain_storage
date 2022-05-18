@@ -18,7 +18,7 @@ interface IUserStorage {
     function getCids(address userAddress, uint256 pageSize, uint256 pageNumber) external view returns (string[] memory, bool);
     function getInvalidAddFileCount(address userAddress) external view returns (uint256);
 
-    function addFile(address userAddress, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external;
+    function addFile(address userAddress, string calldata cid, uint256 duration, string calldata ext) external;
     function deleteFile(address userAddress, string calldata cid) external;
     function setFileExt(address userAddress, string calldata cid, string calldata ext) external;
     function setFileDuration(address userAddress, string calldata cid, uint256 duration) external;

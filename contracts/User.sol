@@ -75,7 +75,7 @@ contract User is Importable, ExternalStorable, IUser {
             _Storage().useStorage(userAddress, size);
             emit FileAdded(userAddress, cid);
         }
-        _Storage().addFile(userAddress, cid, duration, ext, now);
+        _Storage().addFile(userAddress, cid, duration, ext);
     }
 
     function onAddFileFinish(address userAddress, string calldata cid, uint256 size) external {

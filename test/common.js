@@ -10,6 +10,7 @@ const userExt = '{"name":"bob"}';
 const duration = 3600;
 const fileSize = 1111;
 const fileExt = 'fileExt';
+const cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
 
 const ChainStorage = artifacts.require("ChainStorage");
 const Setting = artifacts.require("Setting");
@@ -35,10 +36,10 @@ async function prepareTestContext(accounts) {
     await context.setting.setInitSpace(initSpace);
     await context.setting.setMaxCidLength(maxCidLength);
 
-    context.tom = accounts[0];
-    context.bob = accounts[1];
-    await context.chainStorage.userRegister(userExt, {from: context.tom});
-    await context.chainStorage.userRegister(userExt, {from: context.bob});
+    context.user1 = accounts[0];
+    context.user2 = accounts[1];
+    await context.chainStorage.userRegister(userExt, {from: context.user1});
+    await context.chainStorage.userRegister(userExt, {from: context.user2});
 
     context.node1 = accounts[8];
     context.node2 = accounts[9];
@@ -48,9 +49,38 @@ async function prepareTestContext(accounts) {
     await context.chainStorage.nodeOnline({from: context.node1});
     await context.chainStorage.nodeOnline({from: context.node2});
 
+    console.log("user1:" + context.user1);
+    console.log("user2:" + context.user2);
     console.log("node1:" + context.node1);
     console.log("node2:" + context.node2);
     return context;
+}
+
+async function dumpState(ctx, what) {
+    console.log("================after: " + what + "================");
+
+    // user
+    let userStorageUsed = await ctx.userStorage.getStorageUsed.call(ctx.user1);
+    console.log("user1.storageUsed=" + userStorageUsed.toString());
+
+    userStorageUsed = await ctx.userStorage.getStorageUsed.call(ctx.user2);
+    console.log("user2.storageUsed=" + userStorageUsed.toString());
+
+    // node
+    let nodeStorageUsed = await ctx.nodeStorage.getStorageUsed.call(ctx.node1);
+    console.log("node1.storageUsed=" + nodeStorageUsed.toString());
+
+    nodeStorageUsed = await ctx.nodeStorage.getStorageUsed.call(ctx.node1);
+    console.log("node2.storageUsed=" + nodeStorageUsed.toString());
+
+    // file
+    let fileTotal = await ctx.fileStorage.getTotalSize.call();
+    console.log("file.totalSize=" + fileTotal.toString());
+
+    let totalFileNumber = await ctx.fileStorage.getTotalFileNumber.call();
+    console.log("file.totalFileNumber=" + totalFileNumber.toString());
+
+    console.log("--------------------------------\n");
 }
 
 exports.nodeTotalSpace = nodeTotalSpace;
@@ -65,4 +95,6 @@ exports.maxCidLength = maxCidLength;
 exports.duration = duration;
 exports.fileSize = fileSize;
 exports.fileExt = fileExt;
+exports.cid = cid;
 exports.prepareTestContext = prepareTestContext;
+exports.dumpState = dumpState;

@@ -84,10 +84,10 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[userAddress].storageSpace.used;
     }
 
-    function addFile(address userAddress, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
+    function addFile(address userAddress, string calldata cid, uint256 duration, string calldata ext) external {
         mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
-        files[userAddress][cidHash] = FileItem(cid, createTime, duration, ext);
+        files[userAddress][cidHash] = FileItem(cid, now, duration, ext);
         users[userAddress].cidHashes.add(cidHash);
     }
 
@@ -116,7 +116,7 @@ contract UserStorage is ExternalStorage, IUserStorage {
         return users[userAddress].invalidAddFileCount;
     }
 
-    function fileExist(address userAddress, string calldata cid) external view returns(bool) {
+    function fileExist(address userAddress, string calldata cid) external view returns (bool) {
         bytes32 cidHash = keccak256(bytes(cid));
         return users[userAddress].cidHashes.contains(cidHash);
     }
