@@ -78,7 +78,13 @@ async function dumpState(ctx, what) {
     console.log("file.totalSize=" + fileTotal.toString());
 
     let totalFileNumber = await ctx.fileStorage.getTotalFileNumber.call();
-    console.log("file.totalFileNumber=" + totalFileNumber.toString());
+    console.log("file.totalFileNumber=" + totalFileNumber.toString() + "\n");
+
+    let nodes = await ctx.fileStorage.getNodes.call(cid);
+    console.log("nodes:[" + nodes + "]");
+
+    let users = await ctx.fileStorage.getUsers.call(cid);
+    console.log("users:[" + users + "]");
 
     console.log("--------------------------------\n");
 }
