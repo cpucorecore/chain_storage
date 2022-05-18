@@ -40,11 +40,12 @@ contract File is Importable, ExternalStorable, IFile {
         if(!_Storage().exist(cid)) {
             _Storage().newFile(cid);
             _Node().addFile(owner, cid);
+        } else {
+            finish = true;
         }
 
         if(!_Storage().ownerExist(cid, owner)) {
             _Storage().addOwner(cid, owner);
-            finish = true;
         }
     }
 
@@ -78,7 +79,6 @@ contract File is Importable, ExternalStorable, IFile {
 
         if(_Storage().ownerExist(cid, owner)) {
             _Storage().deleteOwner(cid, owner);
-            finish = true;
         }
 
         if(_Storage().ownerEmpty(cid)) {
@@ -92,6 +92,8 @@ contract File is Importable, ExternalStorable, IFile {
                     _Task().issueTask(Delete, owner, cid, nodes[i]);
                 }
             }
+        } else {
+            finish = true;
         }
     }
 
