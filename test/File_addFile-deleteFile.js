@@ -7,11 +7,12 @@ contract('File_addFile-deleteFile', accounts => {
     let nodeStorage;
     let fileStorage;
     let taskStorage;
-    
-    let tom;
-    let bob;
+
     let node1;
     let node2;
+
+    let user1;
+    let user2;
 
     let dumpState;
     
@@ -22,10 +23,13 @@ contract('File_addFile-deleteFile', accounts => {
         nodeStorage = ctx.nodeStorage;
         fileStorage = ctx.fileStorage;
         taskStorage = ctx.taskStorage;
-        tom = ctx.user1;
-        bob = ctx.user2;
+
         node1 = ctx.node1;
         node2 = ctx.node2;
+
+        user1 = ctx.user1;
+        user2 = ctx.user2;
+
         dumpState = common.dumpState;
     })
 
@@ -36,7 +40,7 @@ contract('File_addFile-deleteFile', accounts => {
         let taskCount;
         let nodes;
 
-        await chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: tom});
+        await chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: user1});
 
         taskCount = await taskStorage.getCurrentTid.call();
         assert.equal(taskCount, 2);
@@ -48,8 +52,8 @@ contract('File_addFile-deleteFile', accounts => {
         await chainStorage.nodeFinishTask(2, common.fileSize, {from: node2});
         await dumpState(ctx, "node2.finishTask(2)");
 
-        await chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: bob});
-        await dumpState(ctx, "bob.addFile()");
+        await chainStorage.userAddFile(cid, common.duration, common.fileExt, {from: user2});
+        await dumpState(ctx, "user2.addFile()");
         nodes = await fileStorage.getNodes.call(cid);
         assert.lengthOf(nodes, 2);
         console.log(nodes);
@@ -59,19 +63,19 @@ contract('File_addFile-deleteFile', accounts => {
         nodeExist = await fileStorage.nodeExist.call(cid, node2);
         assert.equal(nodeExist, true);
 
-        await chainStorage.userDeleteFile(cid, {from: tom});
+        await chainStorage.userDeleteFile(cid, {from: user1});
         nodeExist = await fileStorage.nodeExist.call(cid, node1);
         assert.equal(nodeExist, true);
         nodeExist = await fileStorage.nodeExist.call(cid, node2);
         assert.equal(nodeExist, true);
-        await dumpState(ctx, "tom.deleteFile()");
+        await dumpState(ctx, "user1.deleteFile()");
 
-        await chainStorage.userDeleteFile(cid, {from: bob});
+        await chainStorage.userDeleteFile(cid, {from: user2});
         nodeExist = await fileStorage.nodeExist.call(cid, node1);
         assert.equal(nodeExist, true);
         nodeExist = await fileStorage.nodeExist.call(cid, node2);
         assert.equal(nodeExist, true);
-        await dumpState(ctx, "bob.deleteFile()");
+        await dumpState(ctx, "user2.deleteFile()");
 
         await chainStorage.nodeAcceptTask(3, {from: node1});
         await chainStorage.nodeAcceptTask(4, {from: node2});

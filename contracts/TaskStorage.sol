@@ -8,6 +8,7 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         address user;
         uint256 action;
         address node;
+        bool noCallback;
         string cid;
     }
 
@@ -39,11 +40,11 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newTask(address userAddress, uint256 action, string calldata cid, address nodeAddress) external returns (uint256) {
+    function newTask(address userAddress, uint256 action, string calldata cid, address nodeAddress, bool noCallback) external returns (uint256) {
         mustManager(managerName);
         currentTid = currentTid.add(1);
 
-        tid2taskItem[currentTid] = TaskItem(userAddress, action, nodeAddress, cid);
+        tid2taskItem[currentTid] = TaskItem(userAddress, action, nodeAddress, noCallback, cid);
         tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0);
         if(Add == action) {
             tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0);
@@ -54,9 +55,9 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
         return currentTid;
     }
 
-    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
+    function getTask(uint256 tid) external view returns (address, uint256, address, bool, string memory) {
         TaskItem storage task = tid2taskItem[tid];
-        return (task.user, task.action, task.node, task.cid);
+        return (task.user, task.action, task.node, task.noCallback, task.cid);
     }
 
     function exist(uint256 tid) external view returns (bool) {

@@ -24,9 +24,9 @@ contract Task is Importable, ExternalStorable, ITask {
         return ITaskStorage(getStorage());
     }
 
-    function issueTask(uint256 action, address userAddress, string calldata cid, address nodeAddress) external returns (uint256) {
+    function issueTask(uint256 action, address userAddress, string calldata cid, address nodeAddress, bool noCallback) external returns (uint256) {
         mustContainAddress(ISSUABLE_CONTRACTS);
-        uint256 tid = _Storage().newTask(userAddress, action, cid, nodeAddress);
+        uint256 tid = _Storage().newTask(userAddress, action, cid, nodeAddress, noCallback);
         emit TaskIssued(nodeAddress, tid);
         emit TaskStatusChanged(tid, nodeAddress, action, DefaultStatus, TaskCreated);
         return tid;
@@ -36,7 +36,7 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _checkTaskExist(tid);
 
-        (, uint256 action, address taskNodeAddress,) = _Storage().getTask(tid);
+        (, uint256 action, address taskNodeAddress,,) = _Storage().getTask(tid);
         require(nodeAddress == taskNodeAddress, "T:node have no this task");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
@@ -55,7 +55,7 @@ contract Task is Importable, ExternalStorable, ITask {
         _checkTaskExist(tid);
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
-        (,uint256 action, address taskNodeAddress,) = _Storage().getTask(tid);
+        (,uint256 action, address taskNodeAddress,,) = _Storage().getTask(tid);
         require(TaskAccepted == status, "T:task status is not Accepted");
 
         _Storage().setStatusAndTime(tid, TaskFinished, now);
@@ -66,7 +66,7 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         _checkTaskExist(tid);
 
-        (,uint256 action, address taskNodeAddress,) = _Storage().getTask(tid);
+        (,uint256 action, address taskNodeAddress,,) = _Storage().getTask(tid);
         require(Add == action, "T:only add file task can fail");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
@@ -80,7 +80,7 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_NODE);
         _checkTaskExist(tid);
 
-        (,uint256 action, address taskNodeAddress,) = _Storage().getTask(tid);
+        (,uint256 action, address taskNodeAddress,,) = _Storage().getTask(tid);
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
         require(TaskCreated == status, "T:task status is not Created");
 
@@ -93,7 +93,7 @@ contract Task is Importable, ExternalStorable, ITask {
         _checkTaskExist(tid);
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
-        (,uint256 action, address taskNodeAddress,) = _Storage().getTask(tid);
+        (,uint256 action, address taskNodeAddress,,) = _Storage().getTask(tid);
         require(TaskAccepted == status, "T:task status is not Accepted");
 
         _Storage().setStatusAndTime(tid, TaskTimeout, now);
@@ -105,7 +105,7 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _checkTaskExist(tid);
 
-        (,,address taskNodeAddress,) = _Storage().getTask(tid);
+        (,,address taskNodeAddress,,) = _Storage().getTask(tid);
         require(nodeAddress == taskNodeAddress, "T:node have no this task");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
@@ -118,7 +118,7 @@ contract Task is Importable, ExternalStorable, ITask {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         _checkTaskExist(tid);
 
-        (,,address taskNodeAddress,) = _Storage().getTask(tid);
+        (,,address taskNodeAddress,,) = _Storage().getTask(tid);
         require(nodeAddress == taskNodeAddress, "T:node have no this task");
 
         (uint256 status,,,,,,,) = _Storage().getTaskState(tid);
@@ -139,7 +139,7 @@ contract Task is Importable, ExternalStorable, ITask {
         return _Storage().getNodeMaxTid(nodeAddress);
     }
 
-    function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
+    function getTask(uint256 tid) external view returns (address, uint256, address, bool, string memory) {
         return _Storage().getTask(tid);
     }
 }

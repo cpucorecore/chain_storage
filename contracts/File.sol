@@ -63,7 +63,7 @@ contract File is Importable, ExternalStorable, IFile {
                 _Storage().addNode(cid, nodeAddress);
             }
         } else {
-            _Task().issueTask(Delete, userAddress, cid, nodeAddress);
+            _Task().issueTask(Delete, userAddress, cid, nodeAddress, true);
         }
     }
 
@@ -89,7 +89,7 @@ contract File is Importable, ExternalStorable, IFile {
             } else {
                 address[] memory nodeAddresses = _Storage().getNodes(cid);
                 for(uint i=0; i< nodeAddresses.length; i++) {
-                    _Task().issueTask(Delete, userAddress, cid, nodeAddresses[i]);
+                    _Task().issueTask(Delete, userAddress, cid, nodeAddresses[i], false);
                 }
             }
         } else {

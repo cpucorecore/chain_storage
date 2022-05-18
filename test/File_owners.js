@@ -1,94 +1,79 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-
 contract('File owners', accounts => {
-    let size = 10000;
-    let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
-    let nodeSpace = 1024*1024*1024*1024;
-    let initSpace = 1024*1024*1024*5;
-    let nodeExt = '{"key":"value"}';
+    let ctx;
 
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
+    let chainStorage;
+    let fileStorage;
 
-    let node1 = accounts[5];
-    let node2 = accounts[6];
+    let node1;
+    let node2;
 
-    let tom = accounts[0];
-    let bob = accounts[1];
+    let user1;
+    let user2;
+
+    let dumpState;
 
     before(async () => {
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
+        ctx = await common.prepareTestContext(accounts);
 
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setInitSpace(initSpace);
+        chainStorage = ctx.chainStorage;
+        fileStorage = ctx.fileStorage;
 
-        await nodeInstance.register(node1, nodeSpace, nodeExt);
-        await nodeInstance.register(node2, nodeSpace, nodeExt);
+        node1 = ctx.node1;
+        node2 = ctx.node2;
 
-        await nodeInstance.online(node1);
-        await nodeInstance.online(node2);
+        user1 = ctx.user1;
+        user2 = ctx.user2;
+
+        dumpState = common.dumpState;
     })
 
     it('owners', async () => {
-        let owners;
-        let ownerExist;
+        const cid = common.cid;
+        const duration = common.duration;
+        const fileExt = common.fileExt;
 
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 0);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, false);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, false);
+        await chainStorage.userAddFile(cid, duration, fileExt, {from: user1});
+        await dumpState(ctx, "user1 addFile");
 
-        await fileInstance.addFile(cid, size, tom);
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 1);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, true);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, false);
+        let userExist = await fileStorage.userExist.call(cid, user1);
+        assert.equal(userExist, true);
+        userExist = await fileStorage.userExist.call(cid, user2);
+        assert.equal(userExist, false);
 
-        await fileInstance.addFile(cid, size, bob);
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 2);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, true);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, true);
+        await chainStorage.nodeAcceptTask(1, {from: node1});
+        await chainStorage.nodeFinishTask(1, common.fileSize, {from: node1});
+        await dumpState(ctx, "node1 finish task");
+        await chainStorage.userAddFile(cid, duration, fileExt, {from: user2});
+        await dumpState(ctx, "user2 addFile");
 
-        await fileInstance.addFile(cid, size, tom); // tom add duplicate file
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 2);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, true);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, true);
+        userExist = await fileStorage.userExist.call(cid, user1);
+        assert.equal(userExist, true);
+        userExist = await fileStorage.userExist.call(cid, user2);
+        assert.equal(userExist, true);
 
-        await fileInstance.deleteFile(cid, tom);
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 1);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, false);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, true);
+        await chainStorage.userDeleteFile(cid, {from: user1});
 
-        await fileInstance.deleteFile(cid, bob);
-        owners = await fileInstance.getOwners.call(cid);
-        assert.lengthOf(owners, 0);
-        ownerExist = await fileInstance.ownerExist.call(cid, tom);
-        assert.equal(ownerExist, false);
-        ownerExist = await fileInstance.ownerExist.call(cid, bob);
-        assert.equal(ownerExist, false);
+        userExist = await fileStorage.userExist.call(cid, user1);
+        assert.equal(userExist, false);
+        userExist = await fileStorage.userExist.call(cid, user2);
+        assert.equal(userExist, true);
+
+        await chainStorage.userDeleteFile(cid, {from: user2});
+        await dumpState(ctx, "user2 deleteFile");
+
+        userExist = await fileStorage.userExist.call(cid, user1);
+        assert.equal(userExist, false);
+        userExist = await fileStorage.userExist.call(cid, user2);
+        assert.equal(userExist, true);
+
+        await chainStorage.nodeAcceptTask(3, {from: node1});
+        await chainStorage.nodeFinishTask(3, common.fileSize, {from: node1});
+
+        userExist = await fileStorage.userExist.call(cid, user1);
+        assert.equal(userExist, false);
+        userExist = await fileStorage.userExist.call(cid, user2);
+        assert.equal(userExist, false);
     })
 });

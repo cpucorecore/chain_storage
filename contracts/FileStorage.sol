@@ -10,13 +10,13 @@ contract FileStorage is ExternalStorage, IFileStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     struct FileItem {
-        uint256 size;
         bool exist;
         EnumerableSet.AddressSet users;
         EnumerableSet.AddressSet nodes;
     }
 
     mapping(string=>FileItem) private cid2fileItem;
+    mapping(string=>uint256) private cid2size;
     uint256 private totalSize;
     uint256 private totalFileNumber;
 
@@ -31,7 +31,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
 
         EnumerableSet.AddressSet memory users;
         EnumerableSet.AddressSet memory nodes;
-        cid2fileItem[cid] = FileItem(0, true, users, nodes);
+        cid2fileItem[cid] = FileItem(true, users, nodes);
 
         totalFileNumber = totalFileNumber.add(1);
     }
@@ -43,12 +43,12 @@ contract FileStorage is ExternalStorage, IFileStorage {
     }
 
     function getSize(string calldata cid) external view returns (uint256) {
-        return cid2fileItem[cid].size;
+        return cid2size[cid];
     }
 
     function setSize(string calldata cid, uint256 size) external {
         mustManager(managerName);
-        cid2fileItem[cid].size = size;
+        cid2size[cid] = size;
     }
 
     function userExist(string calldata cid, address userAddress) external view returns (bool) {

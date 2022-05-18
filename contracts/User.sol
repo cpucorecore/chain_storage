@@ -97,7 +97,9 @@ contract User is Importable, ExternalStorable, IUser {
         mustAddress(CONTRACT_CHAIN_STORAGE);
         require(_Storage().exist(userAddress), "U:user not exist");
         require(_Storage().fileExist(userAddress, cid), "U:file not exist");
+
         emit UserAction(userAddress, Delete, cid);
+
         uint256 size = _File().getSize(cid);
         bool finish = _File().deleteFile(cid, userAddress);
         if(finish) {

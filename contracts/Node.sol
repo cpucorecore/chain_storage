@@ -113,7 +113,7 @@ contract Node is Importable, ExternalStorable, INode {
         require(success, "N:no available node");
 
         for(uint256 i=0; i< nodeAddresses.length; i++) {
-            _Task().issueTask(Add, userAddress, cid, nodeAddresses[i]);
+            _Task().issueTask(Add, userAddress, cid, nodeAddresses[i], false);
         }
     }
 
@@ -124,7 +124,7 @@ contract Node is Importable, ExternalStorable, INode {
     function finishTask(address nodeAddress, uint256 tid, uint256 size) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        (address userAddress, uint256 action, address _nodeAddress, string memory cid) = _Task().getTask(tid);
+        (address userAddress, uint256 action, address _nodeAddress, bool noCallback, string memory cid) = _Task().getTask(tid);
         require(nodeAddress == _nodeAddress, "N:node have no this task");
 
         if(Add == action) {
@@ -133,7 +133,9 @@ contract Node is Importable, ExternalStorable, INode {
             _Storage().resetAddFileFailedCount(cid);
         } else if(Delete == action) {
             _Storage().freeStorage(nodeAddress, _File().getSize(cid)); // this must done before next code, for _File().getSize(cid) may 0
-            _File().onNodeDeleteFileFinish(nodeAddress, userAddress, cid);
+            if(!noCallback) {
+                _File().onNodeDeleteFileFinish(nodeAddress, userAddress, cid);
+            }
         }
 
         uint256 currentTid = _Storage().getMaxFinishedTid(nodeAddress);
@@ -147,7 +149,7 @@ contract Node is Importable, ExternalStorable, INode {
     function failTask(address nodeAddress, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
 
-        (address userAddress, uint256 action, address _nodeAddress, string memory cid) = _Task().getTask(tid);
+        (address userAddress, uint256 action, address _nodeAddress, , string memory cid) = _Task().getTask(tid);
         require(nodeAddress == _nodeAddress, "N:node have no this task");
         require(Add == action, "N:only Add can fail");
 
@@ -168,7 +170,7 @@ contract Node is Importable, ExternalStorable, INode {
     function reportAcceptTaskTimeout(uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
 
-        (address userAddress, uint256 action, address nodeAddress, string memory cid) = _Task().getTask(tid);
+        (address userAddress, uint256 action, address nodeAddress, , string memory cid) = _Task().getTask(tid);
         _offline(nodeAddress);
         _Task().acceptTaskTimeout(tid);
         if(Add == action) {
@@ -179,7 +181,7 @@ contract Node is Importable, ExternalStorable, INode {
     function reportTaskTimeout(uint256 tid) external {
         mustAddress(CONTRACT_MONITOR);
 
-        (address userAddress, uint256 action, address nodeAddress, string memory cid) = _Task().getTask(tid);
+        (address userAddress, uint256 action, address nodeAddress, , string memory cid) = _Task().getTask(tid);
         _offline(nodeAddress);
         _Task().taskTimeout(tid);
 
@@ -210,6 +212,6 @@ contract Node is Importable, ExternalStorable, INode {
         address nodeStorageAddress = getStorage();
         (address[] memory nodes, bool success) = nodeStorageAddress.selectNodes(1);
         require(success, "N:no available node");
-        _Task().issueTask(Add, userAddress, cid, nodes[0]);
+        _Task().issueTask(Add, userAddress, cid, nodes[0], false);
     }
 }

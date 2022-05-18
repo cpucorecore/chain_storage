@@ -1,7 +1,7 @@
 pragma solidity ^0.5.2;
 
 interface ITask {
-    function issueTask(uint256 action, address userAddress, string calldata cid, address nodeAddress) external returns (uint256);
+    function issueTask(uint256 action, address userAddress, string calldata cid, address nodeAddress, bool noCallback) external returns (uint256);
     function acceptTask(address nodeAddress, uint256 tid) external;
     function finishTask(uint256 tid) external;
     function failTask(uint256 tid) external;
@@ -12,5 +12,5 @@ interface ITask {
 
     function getCurrentTid() external view returns (uint256);
     function getNodeMaxTid(address nodeAddress) external view returns (uint256);
-    function getTask(uint256 tid) external view returns (address, uint256, address, string memory);
+    function getTask(uint256 tid) external view returns (address, uint256, address, bool, string memory);
 }

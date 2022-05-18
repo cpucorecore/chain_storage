@@ -64,14 +64,14 @@ async function dumpState(ctx, what) {
     console.log("user1.storageUsed=" + userStorageUsed.toString());
 
     userStorageUsed = await ctx.userStorage.getStorageUsed.call(ctx.user2);
-    console.log("user2.storageUsed=" + userStorageUsed.toString());
+    console.log("user2.storageUsed=" + userStorageUsed.toString() + "\n");
 
     // node
     let nodeStorageUsed = await ctx.nodeStorage.getStorageUsed.call(ctx.node1);
     console.log("node1.storageUsed=" + nodeStorageUsed.toString());
 
-    nodeStorageUsed = await ctx.nodeStorage.getStorageUsed.call(ctx.node1);
-    console.log("node2.storageUsed=" + nodeStorageUsed.toString());
+    nodeStorageUsed = await ctx.nodeStorage.getStorageUsed.call(ctx.node2);
+    console.log("node2.storageUsed=" + nodeStorageUsed.toString() + "\n");
 
     // file
     let fileTotal = await ctx.fileStorage.getTotalSize.call();
