@@ -5,7 +5,7 @@ import "./interfaces/storages/ITaskStorage.sol";
 
 contract TaskStorage is ExternalStorage, ITaskStorage {
     struct TaskItem {
-        address owner;
+        address user;
         uint256 action;
         address node;
         string cid;
@@ -39,36 +39,36 @@ contract TaskStorage is ExternalStorage, ITaskStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newTask(address owner, uint256 action, string calldata cid, address node) external returns (uint256) {
+    function newTask(address userAddress, uint256 action, string calldata cid, address nodeAddress) external returns (uint256) {
         mustManager(managerName);
         currentTid = currentTid.add(1);
 
-        tid2taskItem[currentTid] = TaskItem(owner, action, node, cid);
+        tid2taskItem[currentTid] = TaskItem(userAddress, action, nodeAddress, cid);
         tid2taskState[currentTid] = TaskState(TaskCreated, block.number, now, 0, 0, 0, 0, 0);
         if(Add == action) {
             tid2addFileProgress[currentTid] = AddFileTaskProgress(0, 0, 0, 0, 0, 0);
         }
 
-        node2nodeMaxTid[node] = currentTid;
+        node2nodeMaxTid[nodeAddress] = currentTid;
 
         return currentTid;
     }
 
     function getTask(uint256 tid) external view returns (address, uint256, address, string memory) {
         TaskItem storage task = tid2taskItem[tid];
-        return (task.owner, task.action, task.node, task.cid);
+        return (task.user, task.action, task.node, task.cid);
     }
 
     function exist(uint256 tid) external view returns (bool) {
-        return tid2taskItem[tid].owner != address(0);
+        return tid2taskItem[tid].user != address(0);
     }
 
     function getCurrentTid() external view returns (uint256) {
         return currentTid;
     }
 
-    function getNodeMaxTid(address addr) external view returns (uint256) {
-        return node2nodeMaxTid[addr];
+    function getNodeMaxTid(address nodeAddress) external view returns (uint256) {
+        return node2nodeMaxTid[nodeAddress];
     }
 
     function isOver(uint256 tid) external view returns (bool) {

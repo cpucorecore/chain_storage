@@ -12,7 +12,7 @@ contract FileStorage is ExternalStorage, IFileStorage {
     struct FileItem {
         uint256 size;
         bool exist;
-        EnumerableSet.AddressSet owners;
+        EnumerableSet.AddressSet users;
         EnumerableSet.AddressSet nodes;
     }
 
@@ -29,9 +29,9 @@ contract FileStorage is ExternalStorage, IFileStorage {
     function newFile(string calldata cid) external {
         mustManager(managerName);
 
-        EnumerableSet.AddressSet memory owners;
+        EnumerableSet.AddressSet memory users;
         EnumerableSet.AddressSet memory nodes;
-        cid2fileItem[cid] = FileItem(0, true, owners, nodes);
+        cid2fileItem[cid] = FileItem(0, true, users, nodes);
 
         totalFileNumber = totalFileNumber.add(1);
     }
@@ -51,61 +51,61 @@ contract FileStorage is ExternalStorage, IFileStorage {
         cid2fileItem[cid].size = size;
     }
 
-    function ownerExist(string calldata cid, address owner) external view returns (bool) {
-        return cid2fileItem[cid].owners.contains(owner);
+    function userExist(string calldata cid, address userAddress) external view returns (bool) {
+        return cid2fileItem[cid].users.contains(userAddress);
     }
 
-    function ownerEmpty(string calldata cid) external view returns (bool) {
-        return 0 == cid2fileItem[cid].owners.length();
+    function userEmpty(string calldata cid) external view returns (bool) {
+        return 0 == cid2fileItem[cid].users.length();
     }
 
-    function addOwner(string calldata cid, address owner) external {
+    function addUser(string calldata cid, address userAddress) external {
         mustManager(managerName);
-        cid2fileItem[cid].owners.add(owner);
+        cid2fileItem[cid].users.add(userAddress);
     }
 
-    function deleteOwner(string calldata cid, address owner) external {
+    function deleteUser(string calldata cid, address userAddress) external {
         mustManager(managerName);
-        cid2fileItem[cid].owners.remove(owner);
+        cid2fileItem[cid].users.remove(userAddress);
     }
 
-    function getOwners(string calldata cid) external view returns (address[] memory) {
-        EnumerableSet.AddressSet storage owners = cid2fileItem[cid].owners;
-        uint256 count = owners.length();
+    function getUsers(string calldata cid) external view returns (address[] memory) {
+        EnumerableSet.AddressSet storage users = cid2fileItem[cid].users;
+        uint256 count = users.length();
         address[] memory result = new address[](count);
         for(uint256 i=0; i<count; i++) {
-            result[i] = owners.at(i);
+            result[i] = users.at(i);
         }
         return result;
     }
 
-    function getOwners(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        EnumerableSet.AddressSet storage owners = cid2fileItem[cid].owners;
-        Paging.Page memory page = Paging.getPage(owners.length(), pageSize, pageNumber);
+    function getUsers(string calldata cid, uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
+        EnumerableSet.AddressSet storage users = cid2fileItem[cid].users;
+        Paging.Page memory page = Paging.getPage(users.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = owners.at(start+i);
+            result[i] = users.at(start+i);
         }
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function nodeExist(string calldata cid, address node) external view returns (bool) {
-        return cid2fileItem[cid].nodes.contains(node);
+    function nodeExist(string calldata cid, address nodeAddress) external view returns (bool) {
+        return cid2fileItem[cid].nodes.contains(nodeAddress);
     }
 
     function nodeEmpty(string calldata cid) external view returns (bool) {
         return 0 == cid2fileItem[cid].nodes.length();
     }
 
-    function addNode(string calldata cid, address node) external {
+    function addNode(string calldata cid, address nodeAddress) external {
         mustManager(managerName);
-        cid2fileItem[cid].nodes.add(node);
+        cid2fileItem[cid].nodes.add(nodeAddress);
     }
 
-    function deleteNode(string calldata cid, address node) external {
+    function deleteNode(string calldata cid, address nodeAddress) external {
         mustManager(managerName);
-        cid2fileItem[cid].nodes.remove(node);
+        cid2fileItem[cid].nodes.remove(nodeAddress);
     }
 
     function getNodes(string calldata cid) external view returns (address[] memory) {

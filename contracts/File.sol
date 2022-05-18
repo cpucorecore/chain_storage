@@ -34,62 +34,62 @@ contract File is Importable, ExternalStorable, IFile {
         return ITask(requireAddress(CONTRACT_TASK));
     }
 
-    function addFile(string calldata cid, address owner) external returns (bool finish) {
+    function addFile(string calldata cid, address userAddress) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
         if(!_Storage().exist(cid)) {
             _Storage().newFile(cid);
-            _Node().addFile(owner, cid);
+            _Node().addFile(userAddress, cid);
         } else {
             finish = true;
         }
 
-        if(!_Storage().ownerExist(cid, owner)) {
-            _Storage().addOwner(cid, owner);
+        if(!_Storage().userExist(cid, userAddress)) {
+            _Storage().addUser(cid, userAddress);
         }
     }
 
-    function onNodeAddFileFinish(address node, address owner, string calldata cid, uint256 size) external {
+    function onNodeAddFileFinish(address nodeAddress, address userAddress, string calldata cid, uint256 size) external {
         mustAddress(CONTRACT_NODE);
 
         if(_Storage().exist(cid)) {
             if(_Storage().nodeEmpty(cid)) {
-                _User().onAddFileFinish(owner, cid, size);
+                _User().onAddFileFinish(userAddress, cid, size);
                 _Storage().setSize(cid, size);
                 _Storage().upTotalSize(size);
             }
 
-            if(!_Storage().nodeExist(cid, node)) {
-                _Storage().addNode(cid, node);
+            if(!_Storage().nodeExist(cid, nodeAddress)) {
+                _Storage().addNode(cid, nodeAddress);
             }
         } else {
-            _Task().issueTask(Delete, owner, cid, node);
+            _Task().issueTask(Delete, userAddress, cid, nodeAddress);
         }
     }
 
-    function onAddFileFail(address owner, string calldata cid) external {
+    function onAddFileFail(address userAddress, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
-        _User().onAddFileFail(owner, cid);
+        _User().onAddFileFail(userAddress, cid);
     }
 
-    function deleteFile(string calldata cid, address owner) external returns (bool finish) {
+    function deleteFile(string calldata cid, address userAddress) external returns (bool finish) {
         mustAddress(CONTRACT_USER);
 
         require(_Storage().exist(cid), "F:file not exist");
 
-        if(_Storage().ownerExist(cid, owner)) {
-            _Storage().deleteOwner(cid, owner);
+        if(_Storage().userExist(cid, userAddress)) {
+            _Storage().deleteUser(cid, userAddress);
         }
 
-        if(_Storage().ownerEmpty(cid)) {
+        if(_Storage().userEmpty(cid)) {
             if(_Storage().nodeEmpty(cid)) {
                 _Storage().deleteFile(cid);
                 _Storage().downTotalSize(_Storage().getSize(cid));
                 finish = true;
             } else {
-                address[] memory nodes = _Storage().getNodes(cid);
-                for(uint i=0; i<nodes.length; i++) {
-                    _Task().issueTask(Delete, owner, cid, nodes[i]);
+                address[] memory nodeAddresses = _Storage().getNodes(cid);
+                for(uint i=0; i< nodeAddresses.length; i++) {
+                    _Task().issueTask(Delete, userAddress, cid, nodeAddresses[i]);
                 }
             }
         } else {
@@ -97,17 +97,19 @@ contract File is Importable, ExternalStorable, IFile {
         }
     }
 
-    function onNodeDeleteFileFinish(address node, address owner, string calldata cid) external {
+    function onNodeDeleteFileFinish(address nodeAddress, address userAddress, string calldata cid) external {
         mustAddress(CONTRACT_NODE);
 
-        if(_Storage().nodeExist(cid, node)) {
-            _Storage().deleteNode(cid, node);
+        if(_Storage().nodeExist(cid, nodeAddress)) {
+            _Storage().deleteNode(cid, nodeAddress);
         }
 
         if(_Storage().nodeEmpty(cid)) {
-            _User().onDeleteFileFinish(owner, cid, _Storage().getSize(cid));
-            if(_Storage().ownerEmpty(cid)) {
+            uint256 size = _Storage().getSize(cid);
+            _User().onDeleteFileFinish(userAddress, cid, size);
+            if(_Storage().userEmpty(cid)) {
                 _Storage().deleteFile(cid);
+                _Storage().downTotalSize(size);
             }
         }
     }

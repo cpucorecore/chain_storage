@@ -8,7 +8,7 @@ import "./interfaces/ITask.sol";
 import "./interfaces/INode.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
-    event MonitorReport(address indexed addr, uint256 tid, uint256 reportType);
+    event MonitorReport(address indexed monitorAddress, uint256 tid, uint256 reportType);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
         setContractName(CONTRACT_MONITOR);
@@ -31,73 +31,73 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         return INode(requireAddress(CONTRACT_NODE));
     }
 
-    function register(address addr, string calldata ext) external {
+    function register(address monitorAddress, string calldata ext) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(!_Storage().exist(addr), "M:monitor exist");
-        _Storage().newMonitor(addr, ext);
+        require(!_Storage().exist(monitorAddress), "M:monitor exist");
+        _Storage().newMonitor(monitorAddress, ext);
     }
 
-    function deRegister(address addr) external {
+    function deRegister(address monitorAddress) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), "M:monitor not exist");
-        require(MonitorMaintain == _Storage().getStatus(addr), "M:must in maintain");
-        _Storage().deleteMonitor(addr);
+        require(_Storage().exist(monitorAddress), "M:monitor not exist");
+        require(MonitorMaintain == _Storage().getStatus(monitorAddress), "M:status must be maintain");
+        _Storage().deleteMonitor(monitorAddress);
     }
 
-    function online(address addr) external {
+    function online(address monitorAddress) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), "M:monitor not exist");
-        uint256 status = _Storage().getStatus(addr);
+        require(_Storage().exist(monitorAddress), "M:monitor not exist");
+        uint256 status = _Storage().getStatus(monitorAddress);
         require(MonitorRegistered == status || MonitorMaintain == status, "M:wrong status");
 
-        _Storage().setStatus(addr, MonitorOnline);
-        _Storage().addOnlineMonitor(addr);
+        _Storage().setStatus(monitorAddress, MonitorOnline);
+        _Storage().addOnlineMonitor(monitorAddress);
 
         if(MonitorRegistered == status) {
             uint256 currentTid = _Task().getCurrentTid();
-            _Storage().setFirstOnlineTid(addr, currentTid);
+            _Storage().setFirstOnlineTid(monitorAddress, currentTid);
         }
     }
 
-    function maintain(address addr) external {
+    function maintain(address monitorAddress) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(addr), "M:monitor not exist");
-        uint256 status = _Storage().getStatus(addr);
+        require(_Storage().exist(monitorAddress), "M:monitor not exist");
+        uint256 status = _Storage().getStatus(monitorAddress);
         require(MonitorOnline == status, "M:wrong status");
-        _Storage().setStatus(addr, MonitorMaintain);
-        _Storage().deleteOnlineMonitor(addr);
+        _Storage().setStatus(monitorAddress, MonitorMaintain);
+        _Storage().deleteOnlineMonitor(monitorAddress);
     }
 
-    function resetCurrentTid(address addr, uint256 tid) external {
+    function resetCurrentTid(address monitorAddress, uint256 tid) external {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        uint256 firstOnlineTid = _Storage().getFirstOnlineTid(addr);
+        uint256 firstOnlineTid = _Storage().getFirstOnlineTid(monitorAddress);
         if(tid<firstOnlineTid) {
-            _Storage().setCurrentTid(addr, firstOnlineTid);
+            _Storage().setCurrentTid(monitorAddress, firstOnlineTid);
         } else {
-            _Storage().setCurrentTid(addr, tid);
+            _Storage().setCurrentTid(monitorAddress, tid);
         }
     }
 
-    function reportTaskAcceptTimeout(address addr, uint256 tid) public {
+    function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
         // TODO: should verify the taskAcceptTimeout Report by this monitor
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        _Storage().addReport(addr, tid, ReportAcceptTimeout, now);
+        _Storage().addReport(monitorAddress, tid, ReportAcceptTimeout, now);
         _Node().reportAcceptTaskTimeout(tid);
-        emit MonitorReport(addr, tid, ReportAcceptTimeout);
+        emit MonitorReport(monitorAddress, tid, ReportAcceptTimeout);
     }
 
-    function reportTaskTimeout(address addr, uint256 tid) public {
+    function reportTaskTimeout(address monitorAddress, uint256 tid) public {
         // TODO: Node should verify the taskTimeout Report by this monitor
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        _Storage().addReport(addr, tid, ReportTimeout, now);
+        _Storage().addReport(monitorAddress, tid, ReportTimeout, now);
         _Node().reportTaskTimeout(tid);
-        emit MonitorReport(addr, tid, ReportTimeout);
+        emit MonitorReport(monitorAddress, tid, ReportTimeout);
     }
 
-    function _saveCurrentTid(address addr, uint256 tid) private {
-        uint256 currentTid = _Storage().getCurrentTid(addr);
+    function _saveCurrentTid(address monitorAddress, uint256 tid) private {
+        uint256 currentTid = _Storage().getCurrentTid(monitorAddress);
         if(tid > currentTid) {
-            _Storage().setCurrentTid(addr, tid);
+            _Storage().setCurrentTid(monitorAddress, tid);
         }
     }
 }

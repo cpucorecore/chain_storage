@@ -40,14 +40,16 @@ async function prepareTestContext(accounts) {
     await context.chainStorage.userRegister(userExt, {from: context.tom});
     await context.chainStorage.userRegister(userExt, {from: context.bob});
 
-    context.node1 = accounts[0];
-    context.node2 = accounts[1];
+    context.node1 = accounts[8];
+    context.node2 = accounts[9];
     await context.chainStorage.nodeRegister(nodeTotalSpace, nodeExt, {from: context.node1});
     await context.chainStorage.nodeRegister(nodeTotalSpace, nodeExt, {from: context.node2});
 
     await context.chainStorage.nodeOnline({from: context.node1});
     await context.chainStorage.nodeOnline({from: context.node2});
 
+    console.log("node1:" + context.node1);
+    console.log("node2:" + context.node2);
     return context;
 }
 

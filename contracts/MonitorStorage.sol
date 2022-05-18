@@ -10,104 +10,104 @@ contract MonitorStorage is ExternalStorage, IMonitorStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     mapping(address=>MonitorItem) monitors;
-    EnumerableSet.AddressSet monitorAddrs;
-    EnumerableSet.AddressSet onlineMonitorAddrs;
+    EnumerableSet.AddressSet monitorAddresses;
+    EnumerableSet.AddressSet onlineMonitorAddresses;
 
     mapping(address=>uint256) monitor2rid; // rid=0: no report;
     mapping(address=>Report[]) monitor2reports;
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newMonitor(address addr, string calldata ext) external {
+    function newMonitor(address monitorAddress, string calldata ext) external {
         mustManager(managerName);
-        monitors[addr] = MonitorItem(MonitorRegistered, 0, 0, ext, true);
-        monitorAddrs.add(addr);
+        monitors[monitorAddress] = MonitorItem(MonitorRegistered, 0, 0, ext, true);
+        monitorAddresses.add(monitorAddress);
     }
 
-    function deleteMonitor(address addr) external {
+    function deleteMonitor(address monitorAddress) external {
         mustManager(managerName);
-        delete monitors[addr];
-        monitorAddrs.remove(addr);
+        delete monitors[monitorAddress];
+        monitorAddresses.remove(monitorAddress);
     }
 
-    function exist(address addr) external view returns (bool) {
-        return monitors[addr].exist;
+    function exist(address monitorAddress) external view returns (bool) {
+        return monitors[monitorAddress].exist;
     }
 
-    function getMonitor(address addr) external view returns (uint256, uint256, uint256, string memory) {
-        MonitorItem storage monitor = monitors[addr];
+    function getMonitor(address monitorAddress) external view returns (uint256, uint256, uint256, string memory) {
+        MonitorItem storage monitor = monitors[monitorAddress];
         return (monitor.status, monitor.firstOnlineTid, monitor.currentTid, monitor.ext);
     }
 
-    function getCurrentTid(address addr) external view returns (uint256) {
-        return monitors[addr].currentTid;
+    function getCurrentTid(address monitorAddress) external view returns (uint256) {
+        return monitors[monitorAddress].currentTid;
     }
 
-    function setCurrentTid(address addr, uint256 tid) external {
+    function setCurrentTid(address monitorAddress, uint256 tid) external {
         mustManager(managerName);
-        monitors[addr].currentTid = tid;
+        monitors[monitorAddress].currentTid = tid;
     }
 
-    function getFirstOnlineTid(address addr) external view returns (uint256) {
-        return monitors[addr].firstOnlineTid;
+    function getFirstOnlineTid(address monitorAddress) external view returns (uint256) {
+        return monitors[monitorAddress].firstOnlineTid;
     }
 
-    function setFirstOnlineTid(address addr, uint256 tid) external {
+    function setFirstOnlineTid(address monitorAddress, uint256 tid) external {
         mustManager(managerName);
-        monitors[addr].firstOnlineTid = tid;
+        monitors[monitorAddress].firstOnlineTid = tid;
     }
 
-    function getStatus(address addr) external view returns (uint256) {
-        return monitors[addr].status;
+    function getStatus(address monitorAddress) external view returns (uint256) {
+        return monitors[monitorAddress].status;
     }
 
-    function setStatus(address addr, uint256 status) external {
+    function setStatus(address monitorAddress, uint256 status) external {
         mustManager(managerName);
-        monitors[addr].status = status;
+        monitors[monitorAddress].status = status;
     }
 
-    function addOnlineMonitor(address addr) external {
+    function addOnlineMonitor(address monitorAddress) external {
         mustManager(managerName);
-        onlineMonitorAddrs.add(addr);
+        onlineMonitorAddresses.add(monitorAddress);
     }
 
-    function deleteOnlineMonitor(address addr) external {
+    function deleteOnlineMonitor(address monitorAddress) external {
         mustManager(managerName);
-        onlineMonitorAddrs.remove(addr);
+        onlineMonitorAddresses.remove(monitorAddress);
     }
 
     function getAllMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        Paging.Page memory page = Paging.getPage(monitorAddrs.length(), pageSize, pageNumber);
+        Paging.Page memory page = Paging.getPage(monitorAddresses.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = monitorAddrs.at(start+i);
+            result[i] = monitorAddresses.at(start+i);
         }
         return (result, page.pageNumber == page.totalPages);
     }
 
     function getAllOnlineMonitorAddresses(uint256 pageSize, uint256 pageNumber) external view returns (address[] memory, bool) {
-        Paging.Page memory page = Paging.getPage(onlineMonitorAddrs.length(), pageSize, pageNumber);
+        Paging.Page memory page = Paging.getPage(onlineMonitorAddresses.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         address[] memory result = new address[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = onlineMonitorAddrs.at(start+i);
+            result[i] = onlineMonitorAddresses.at(start+i);
         }
         return (result, page.pageNumber == page.totalPages);
     }
 
-    function addReport(address addr, uint256 tid, uint256 reportType, uint256 timestamp) external {
+    function addReport(address monitorAddress, uint256 tid, uint256 reportType, uint256 timestamp) external {
         mustManager(managerName);
-        uint256 index = monitor2reports[addr].push(Report(tid, reportType, timestamp));
-        monitor2rid[addr] = index;
+        uint256 index = monitor2reports[monitorAddress].push(Report(tid, reportType, timestamp));
+        monitor2rid[monitorAddress] = index;
     }
 
-    function getReportNumber(address addr) external view returns (uint256) {
-        return monitor2rid[addr];
+    function getReportNumber(address monitorAddress) external view returns (uint256) {
+        return monitor2rid[monitorAddress];
     }
 
-    function getReport(address addr, uint256 index) external view returns (uint256, uint256, uint256) {
-        Report storage report = monitor2reports[addr][index];
+    function getReport(address monitorAddress, uint256 index) external view returns (uint256, uint256, uint256) {
+        Report storage report = monitor2reports[monitorAddress][index];
         return (report.tid, report.reportType, report.timestamp);
     }
 }

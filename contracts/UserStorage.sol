@@ -31,129 +31,129 @@ contract UserStorage is ExternalStorage, IUserStorage {
 
     constructor(address _manager) public ExternalStorage(_manager) {}
 
-    function newUser(address addr, uint256 storageTotal, string calldata ext) external {
+    function newUser(address userAddress, uint256 storageTotal, string calldata ext) external {
         mustManager(managerName);
         EnumerableSet.Bytes32Set memory cidHashes;
-        users[addr] = UserItem(StorageSpaceManager.StorageSpace(0, storageTotal), cidHashes, 0, ext);
+        users[userAddress] = UserItem(StorageSpaceManager.StorageSpace(0, storageTotal), cidHashes, 0, ext);
         totalUserNumber = totalUserNumber.add(1);
     }
 
-    function deleteUser(address addr) external {
+    function deleteUser(address userAddress) external {
         mustManager(managerName);
-        delete users[addr];
+        delete users[userAddress];
         totalUserNumber = totalUserNumber.sub(1);
     }
 
-    function setExt(address addr, string calldata ext) external {
+    function setExt(address userAddress, string calldata ext) external {
         mustManager(managerName);
-        users[addr].ext = ext;
+        users[userAddress].ext = ext;
     }
 
-    function setStorageTotal(address addr, uint256 size) external {
+    function setStorageTotal(address userAddress, uint256 size) external {
         mustManager(managerName);
-        users[addr].storageSpace.total = size;
+        users[userAddress].storageSpace.total = size;
     }
 
-    function useStorage(address addr, uint256 size) external {
+    function useStorage(address userAddress, uint256 size) external {
         mustManager(managerName);
-        users[addr].storageSpace.useSpace(size);
+        users[userAddress].storageSpace.useSpace(size);
     }
 
-    function freeStorage(address addr, uint256 size) external {
+    function freeStorage(address userAddress, uint256 size) external {
         mustManager(managerName);
-        users[addr].storageSpace.unUseSpace(size);
+        users[userAddress].storageSpace.unUseSpace(size);
     }
 
-    function exist(address addr) public view returns (bool) {
-        return users[addr].storageSpace.total > 0;
+    function exist(address userAddress) public view returns (bool) {
+        return users[userAddress].storageSpace.total > 0;
     }
 
-    function getExt(address addr) external view returns (string memory) {
-        return users[addr].ext;
+    function getExt(address userAddress) external view returns (string memory) {
+        return users[userAddress].ext;
     }
 
-    function availableSpace(address addr) external view returns (uint256) {
-        return users[addr].storageSpace.availableSpace();
+    function availableSpace(address userAddress) external view returns (uint256) {
+        return users[userAddress].storageSpace.availableSpace();
     }
 
-    function getStorageTotal(address addr) external view returns (uint256) {
-        return users[addr].storageSpace.total;
+    function getStorageTotal(address userAddress) external view returns (uint256) {
+        return users[userAddress].storageSpace.total;
     }
 
-    function getStorageUsed(address addr) external view returns (uint256) {
-        return users[addr].storageSpace.used;
+    function getStorageUsed(address userAddress) external view returns (uint256) {
+        return users[userAddress].storageSpace.used;
     }
 
-    function addFile(address addr, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
-        mustManager(managerName);
-        bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash] = FileItem(cid, createTime, duration, ext);
-        users[addr].cidHashes.add(cidHash);
-    }
-
-    function deleteFile(address addr, string calldata cid) external {
+    function addFile(address userAddress, string calldata cid, uint256 duration, string calldata ext, uint256 createTime) external {
         mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
-        users[addr].cidHashes.remove(cidHash);
-        delete files[addr][cidHash];
+        files[userAddress][cidHash] = FileItem(cid, createTime, duration, ext);
+        users[userAddress].cidHashes.add(cidHash);
     }
 
-    function setFileExt(address addr, string calldata cid, string calldata ext) external {
+    function deleteFile(address userAddress, string calldata cid) external {
         mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash].ext = ext;
+        users[userAddress].cidHashes.remove(cidHash);
+        delete files[userAddress][cidHash];
     }
 
-    function setFileDuration(address addr, string calldata cid, uint256 duration) external {
+    function setFileExt(address userAddress, string calldata cid, string calldata ext) external {
         mustManager(managerName);
         bytes32 cidHash = keccak256(bytes(cid));
-        files[addr][cidHash].duration = duration;
+        files[userAddress][cidHash].ext = ext;
     }
 
-    function upInvalidAddFileCount(address addr) external returns (uint256) {
+    function setFileDuration(address userAddress, string calldata cid, uint256 duration) external {
         mustManager(managerName);
-        users[addr].invalidAddFileCount = users[addr].invalidAddFileCount.add(1);
-        return users[addr].invalidAddFileCount;
-    }
-
-    function fileExist(address addr, string calldata cid) external view returns(bool) {
         bytes32 cidHash = keccak256(bytes(cid));
-        return users[addr].cidHashes.contains(cidHash);
+        files[userAddress][cidHash].duration = duration;
     }
 
-    function getFileExt(address addr, string calldata cid) external view returns (string memory) {
+    function upInvalidAddFileCount(address userAddress) external returns (uint256) {
+        mustManager(managerName);
+        users[userAddress].invalidAddFileCount = users[userAddress].invalidAddFileCount.add(1);
+        return users[userAddress].invalidAddFileCount;
+    }
+
+    function fileExist(address userAddress, string calldata cid) external view returns(bool) {
         bytes32 cidHash = keccak256(bytes(cid));
-        return files[addr][cidHash].ext;
+        return users[userAddress].cidHashes.contains(cidHash);
     }
 
-    function getFileDuration(address addr, string calldata cid) external view returns (uint256) {
+    function getFileExt(address userAddress, string calldata cid) external view returns (string memory) {
         bytes32 cidHash = keccak256(bytes(cid));
-        return files[addr][cidHash].duration;
+        return files[userAddress][cidHash].ext;
     }
 
-    function getFileNumber(address addr) external view returns (uint256) {
-        return users[addr].cidHashes.length();
+    function getFileDuration(address userAddress, string calldata cid) external view returns (uint256) {
+        bytes32 cidHash = keccak256(bytes(cid));
+        return files[userAddress][cidHash].duration;
     }
 
-    function getCids(address addr, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, bool) {
-        EnumerableSet.Bytes32Set storage userCidHashes = users[addr].cidHashes;
+    function getFileNumber(address userAddress) external view returns (uint256) {
+        return users[userAddress].cidHashes.length();
+    }
+
+    function getCids(address userAddress, uint256 pageSize, uint256 pageNumber) public view returns (string[] memory, bool) {
+        EnumerableSet.Bytes32Set storage userCidHashes = users[userAddress].cidHashes;
         Paging.Page memory page = Paging.getPage(userCidHashes.length(), pageSize, pageNumber);
         uint256 start = page.pageNumber.sub(1).mul(page.pageSize);
         string[] memory result = new string[](page.pageRecords);
         for(uint256 i=0; i<page.pageRecords; i++) {
-            result[i] = files[addr][userCidHashes.at(start+i)].cid;
+            result[i] = files[userAddress][userCidHashes.at(start+i)].cid;
         }
         return (result, page.totalPages == page.pageNumber);
     }
 
-    function getFileItem(address addr, string calldata cid) external view returns (string memory, uint256, uint256, string memory) {
+    function getFileItem(address userAddress, string calldata cid) external view returns (string memory, uint256, uint256, string memory) {
         bytes32 cidHash = keccak256(bytes(cid));
-        FileItem storage file = files[addr][cidHash];
+        FileItem storage file = files[userAddress][cidHash];
         return (file.cid, file.createTime, file.duration, file.ext);
     }
 
-    function getInvalidAddFileCount(address addr) external view returns (uint256) {
-        return users[addr].invalidAddFileCount;
+    function getInvalidAddFileCount(address userAddress) external view returns (uint256) {
+        return users[userAddress].invalidAddFileCount;
     }
 
     function getTotalUserNumber() external view returns (uint256) {
