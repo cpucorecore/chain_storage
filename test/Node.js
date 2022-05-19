@@ -6,15 +6,11 @@ contract('Node', accounts => {
     let chainStorage;
     let nodeStorage;
 
-    let dumpState;
-
     before(async () => {
         ctx = await common.prepareTestContextWithoutNode(accounts);
 
         chainStorage = ctx.chainStorage;
         nodeStorage = ctx.nodeStorage;
-
-        dumpState = common.dumpState;
     })
 
     it('exist', async () => {
