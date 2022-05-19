@@ -1,13 +1,13 @@
 const common = require('./common');
 
-contract('Node', accounts => {
+contract('Node_allNode', accounts => {
     let ctx;
 
     let chainStorage;
     let nodeStorage;
 
     before(async () => {
-        ctx = await common.prepareTestContextWithoutNode(accounts);
+        ctx = await common.prepareTestContext(accounts, 0, 2, 2);
 
         chainStorage = ctx.chainStorage;
         nodeStorage = ctx.nodeStorage;

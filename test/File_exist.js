@@ -14,16 +14,16 @@ contract('File_exist', accounts => {
     let dumpState = common.dumpState;
 
     before(async () => {
-        ctx = await common.prepareTestContext(accounts);
+        ctx = await common.prepareTestContext(accounts, 2, 2, 2);
 
         chainStorage = ctx.chainStorage;
         fileStorage = ctx.fileStorage;
 
-        node1 = ctx.node1;
-        node2 = ctx.node2;
+        node1 = ctx.nodes[0];
+        node2 = ctx.nodes[1];
 
-        user1 = ctx.user1;
-        user2 = ctx.user2;
+        user1 = ctx.users[0];
+        user2 = ctx.users[1];
     })
 
     it('exist', async () => {

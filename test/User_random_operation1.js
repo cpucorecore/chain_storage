@@ -1,22 +1,46 @@
 const common = require('./common');
-
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-const User = artifacts.require("User");
+const {dumpTask} = require("./common");
 
 contract('User_random_operation1', accounts => {
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
-    let userInstance;
+    let ctx;
 
-    const fileSize = 1000;
-    const fileDuration = 3600;
-    const fileExt = 'test';
-    const replica = 4;
+    let chainStorage;
+    let taskStorage;
+    let fileStorage;
+    let userStorage;
+    let nodeStorage;
+
+    let user1;
+    let user2;
+
+    let node1;
+    let node2;
+    let node3;
+    let node4;
+
+    let dumpState;
+    let dumpTask;
+
+    before(async () => {
+        ctx = await common.prepareTestContext(accounts, 4, 2, 4);
+
+        chainStorage = ctx.chainStorage;
+        taskStorage = ctx.taskStorage;
+        fileStorage = ctx.fileStorage;
+        userStorage = ctx.userStorage;
+        nodeStorage = ctx.nodeStorage;
+
+        node1 = ctx.nodes[0];
+        node2 = ctx.nodes[1];
+        node3 = ctx.nodes[2];
+        node4 = ctx.nodes[3];
+
+        user1 = ctx.users[0];
+        user2 = ctx.users[1];
+
+        dumpState = common.dumpState;
+        dumpTask = common.dumpTask;
+    })
 
     const cids = [
         'QmWAJk3wmp8jqTWp2dQ3NRdoBjnmvupdL2GiBqt69FFk2H', // hash: 0xdda4e1efafe56f53f4025cd0708f6bdff673e1aa3995eea9f023c6eec2a7eb4a
@@ -25,42 +49,6 @@ contract('User_random_operation1', accounts => {
         'QmbZU93HjXLn5wseFjCLyw1tM5BDoitSiZfR5o3Jo6C6tN', // hash: 0x68fc51c0de0c0e6be1067b90862da21f2e796b933851e5aaecf9d1d6f6ff332b
         'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir' // hash: 0x5ef8d464eb9a1baaf9c52ccfef2262fda94bd65cc559526f90e9ea37e73b2068
     ];
-
-    const tom = accounts[0];
-    const bob = accounts[1];
-
-    const node1 = accounts[5];
-    const node2 = accounts[6];
-    const node3 = accounts[7];
-    const node4 = accounts[8];
-
-    before(async () => {
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
-        userInstance = await User.deployed();
-
-        await settingInstance.setReplica(replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setMaxFileExtLength(common.maxFileExtLength);
-        await settingInstance.setMaxCidLength(common.maxCidLength);
-        await settingInstance.setInitSpace(common.initSpace);
-
-        await userInstance.register(tom, common.userExt);
-        await userInstance.register(bob, common.userExt);
-
-        await nodeInstance.register(node1, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node2, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node3, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node4, common.nodeTotalSpace, common.nodeExt);
-
-        await nodeInstance.online(node1);
-        await nodeInstance.online(node2);
-        await nodeInstance.online(node3);
-        await nodeInstance.online(node4);
-    })
 
     /* random operations:
     user1.addFile(cid1)-->
@@ -81,6 +69,7 @@ contract('User_random_operation1', accounts => {
      */
 
     it('random operations1', async () => {
+        const fileSize = common.fileSize;
         /*
         user1.addFile(cid1)-->
         node1.finishAddFile-->
@@ -88,85 +77,70 @@ contract('User_random_operation1', accounts => {
         node3.finishAddFile-->
         node4.finishAddFile-->
          */
-        await userInstance.addFile(tom, cids[0], fileSize, fileDuration, fileExt);
+        const fileDuration = common.duration;
+        const fileExt = common.fileExt;
 
-        await taskInstance.acceptTask(node1, 1);
-        await taskInstance.acceptTask(node2, 2);
-        await taskInstance.acceptTask(node3, 3);
-        await taskInstance.acceptTask(node4, 4);
-        await nodeInstance.finishTask(node1, 1);
-        await nodeInstance.finishTask(node2, 2);
-        await nodeInstance.finishTask(node3, 3);
-        await nodeInstance.finishTask(node4, 4);
+        await chainStorage.userAddFile(cids[0], common.duration, common.fileExt, {from: user1});
+
+        await chainStorage.nodeAcceptTask(1, {from: node1});
+        await chainStorage.nodeAcceptTask(2, {from: node2});
+        await chainStorage.nodeAcceptTask(3, {from: node3});
+        await chainStorage.nodeAcceptTask(4, {from: node4});
+        await chainStorage.nodeFinishTask(1, common.fileSize, {from: node1});
+        await chainStorage.nodeFinishTask(2, common.fileSize, {from: node2});
+        await chainStorage.nodeFinishTask(3, common.fileSize, {from: node3});
+        await chainStorage.nodeFinishTask(4, common.fileSize, {from: node4});
 
         // check Task
         let currentTid;
         let nodeMaxTid;
-        let task;
-        let createTime;
-        let createBlock;
-        let taskStatus;
 
-        currentTid = await taskInstance.getCurrentTid.call();
+        currentTid = await taskStorage.getCurrentTid.call();
         assert.equal(currentTid, 4);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node1);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node1);
         assert.equal(nodeMaxTid, 1);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node2);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node2);
         assert.equal(nodeMaxTid, 2);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node3);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node3);
         assert.equal(nodeMaxTid, 3);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 4);
-        createTime = await taskInstance.getCreateTime.call(1);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(2);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(3);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(4);
-        console.log(createTime.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(1);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(2);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(3);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(4);
-        console.log(createBlock.toString());
+
+        await dumpTask(ctx, 1, 4);
 
         // check File
         let fileExist;
         let _fileSize;
-        let ownerExist;
+        let userExist;
         let nodeExist;
         let owners;
         let nodes
         let totalFileNumber;
         let totalSize;
 
-        fileExist = await fileInstance.exist.call(cids[0]);
+        fileExist = await fileStorage.exist.call(cids[0]);
         assert.equal(fileExist, true);
-        _fileSize = await fileInstance.getSize.call(cids[0]);
+        _fileSize = await fileStorage.getSize.call(cids[0]);
         assert.equal(_fileSize, fileSize);
-        ownerExist = await fileInstance.ownerExist.call(cids[0], tom);
-        assert.equal(ownerExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node1);
+        userExist = await fileStorage.userExist.call(cids[0], user1);
+        assert.equal(userExist, true);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node1);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node2);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node2);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node3);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node3);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node4);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node4);
         assert.equal(nodeExist, true);
-        owners = await fileInstance.getOwners.call(cids[0]);
+        owners = await fileStorage.getUsers.call(cids[0]);
         console.log(owners);
         assert.lengthOf(owners, 1);
-        nodes = await fileInstance.getNodes.call(cids[0]);
+        nodes = await fileStorage.getNodes.call(cids[0]);
         console.log(nodes);
         assert.lengthOf(nodes, 4);
-        totalFileNumber = await fileInstance.getTotalFileNumber.call();
+        totalFileNumber = await fileStorage.getTotalFileNumber.call();
         assert.equal(totalFileNumber, 1);
-        totalSize = await fileInstance.getTotalSize.call();
+        totalSize = await fileStorage.getTotalSize.call();
         assert.equal(totalSize, fileSize);
 
         // check User
@@ -175,13 +149,13 @@ contract('User_random_operation1', accounts => {
         let _cids;
         let userNumber;
 
-        _fileExt = await userInstance.getFileExt.call(tom, cids[0]);
+        _fileExt = await userStorage.getFileExt.call(user1, cids[0]);
         assert.equal(_fileExt, fileExt);
-        _fileDuration = await userInstance.getFileDuration.call(tom, cids[0]);
+        _fileDuration = await userStorage.getFileDuration.call(user1, cids[0]);
         assert.equal(_fileDuration, fileDuration);
-        _cids = await userInstance.getCids.call(tom, 50, 1);
+        _cids = await userStorage.getCids.call(user1, 50, 1);
         console.log(_cids);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
         // check Node
@@ -190,24 +164,12 @@ contract('User_random_operation1', accounts => {
         let nodeNumber;
         let onlineNodeNumber;
 
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node1);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node2);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node3);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node4);
-        assert.equal(nodeCidsNumber, 1);
+        // TODO check node cidNumbers
 
-        nodeCids = await nodeInstance.getNodeCids.call(node1);
-        console.log(nodeCids);
-        nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
-        console.log(nodeCids);
-
-        nodeNumber = await nodeInstance.getTotalNodeNumber.call();
+        nodeNumber = await nodeStorage.getTotalNodeNumber.call();
         assert.equal(nodeNumber, 4);
 
-        onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
+        onlineNodeNumber = await nodeStorage.getTotalOnlineNodeNumber.call();
         assert.equal(onlineNodeNumber, 4);
 
         /*
@@ -217,98 +179,68 @@ contract('User_random_operation1', accounts => {
         node3.finishDeleteFile-->
         node4.finishDeleteFile-->
          */
-        await userInstance.deleteFile(tom, cids[0]);
-        await taskInstance.acceptTask(node1, 5);
-        await taskInstance.acceptTask(node2, 6);
-        await taskInstance.acceptTask(node3, 7);
-        await taskInstance.acceptTask(node4, 8);
-        await nodeInstance.finishTask(node1, 5);
-        await nodeInstance.finishTask(node2, 6);
-        await nodeInstance.finishTask(node3, 7);
-        await nodeInstance.finishTask(node4, 8);
+        await chainStorage.userDeleteFile(cids[0], {from: user1});
+        await chainStorage.nodeAcceptTask(5, {from: node1});
+        await chainStorage.nodeAcceptTask(6, {from: node2});
+        await chainStorage.nodeAcceptTask(7, {from: node3});
+        await chainStorage.nodeAcceptTask(8, {from: node4});
+        await chainStorage.nodeFinishTask(5, common.fileSize, {from: node1});
+        await chainStorage.nodeFinishTask(6, common.fileSize, {from: node2});
+        await chainStorage.nodeFinishTask(7, common.fileSize, {from: node3});
+        await chainStorage.nodeFinishTask(8, common.fileSize, {from: node4});
 
         // check Task
-        currentTid = await taskInstance.getCurrentTid.call();
+        currentTid = await taskStorage.getCurrentTid.call();
         assert.equal(currentTid, 8);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node1);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node1);
         assert.equal(nodeMaxTid, 5);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node2);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node2);
         assert.equal(nodeMaxTid, 6);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node3);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node3);
         assert.equal(nodeMaxTid, 7);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 8);
-        createTime = await taskInstance.getCreateTime.call(5);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(6);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(7);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(8);
-        console.log(createTime.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(5);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(6);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(7);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(8);
-        console.log(createBlock.toString());
+
+        await dumpTask(ctx, 5, 8);
 
         // check File
-        fileExist = await fileInstance.exist.call(cids[0]);
+        fileExist = await fileStorage.exist.call(cids[0]);
         assert.equal(fileExist, false);
-        _fileSize = await fileInstance.getSize.call(cids[0]);
-        assert.equal(_fileSize, 0);
-        ownerExist = await fileInstance.ownerExist.call(cids[0], tom);
-        assert.equal(ownerExist, false);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node1);
+        userExist = await fileStorage.userExist.call(cids[0], user1);
+        assert.equal(userExist, false);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node1);
         assert.equal(nodeExist, false);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node2);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node2);
         assert.equal(nodeExist, false);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node3);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node3);
         assert.equal(nodeExist, false);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node4);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node4);
         assert.equal(nodeExist, false);
-        owners = await fileInstance.getOwners.call(cids[0]);
+        owners = await fileStorage.getUsers.call(cids[0]);
         assert.lengthOf(owners, 0);
-        nodes = await fileInstance.getNodes.call(cids[0]);
+        nodes = await fileStorage.getNodes.call(cids[0]);
         assert.lengthOf(nodes, 0);
-        totalFileNumber = await fileInstance.getTotalFileNumber.call();
+        totalFileNumber = await fileStorage.getTotalFileNumber.call();
         assert.equal(totalFileNumber, 0);
-        totalSize = await fileInstance.getTotalSize.call();
+        totalSize = await fileStorage.getTotalSize.call();
         assert.equal(totalSize, 0);
 
         // check User
-        _fileExt = await userInstance.getFileExt.call(tom, cids[0]);
+        _fileExt = await userStorage.getFileExt.call(user1, cids[0]);
         assert.equal(_fileExt, '');
-        _fileDuration = await userInstance.getFileDuration.call(tom, cids[0]);
+        _fileDuration = await userStorage.getFileDuration.call(user1, cids[0]);
         assert.equal(_fileDuration, 0);
-        _cids = await userInstance.getCids.call(tom, 50, 1);
+        _cids = await userStorage.getCids.call(user1, 50, 1);
         console.log(_cids);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
         // check Node
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node1);
-        assert.equal(nodeCidsNumber, 0);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node2);
-        assert.equal(nodeCidsNumber, 0);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node3);
-        assert.equal(nodeCidsNumber, 0);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node4);
-        assert.equal(nodeCidsNumber, 0);
 
-        nodeCids = await nodeInstance.getNodeCids.call(node1);
-        console.log(nodeCids);
-        assert.lengthOf(nodeCids, 0);
-        nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
-        console.log(nodeCids);
-
-        nodeNumber = await nodeInstance.getTotalNodeNumber.call();
+        nodeNumber = await nodeStorage.getTotalNodeNumber.call();
         assert.equal(nodeNumber, 4);
 
-        onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
+        onlineNodeNumber = await nodeStorage.getTotalOnlineNodeNumber.call();
         assert.equal(onlineNodeNumber, 4);
 
         /*
@@ -318,104 +250,76 @@ contract('User_random_operation1', accounts => {
         node3.finishAddFile-->
         node4.finishAddFile
          */
-        await userInstance.addFile(bob, cids[0], fileSize, fileDuration, fileExt);
-        await taskInstance.acceptTask(node1, 9);
-        await taskInstance.acceptTask(node2, 10);
-        await taskInstance.acceptTask(node3, 11);
-        await taskInstance.acceptTask(node4, 12);
-        await nodeInstance.finishTask(node1, 9);
-        await nodeInstance.finishTask(node2, 10);
-        await nodeInstance.finishTask(node3, 11);
-        await nodeInstance.finishTask(node4, 12);
+        await chainStorage.userAddFile(cids[0], fileDuration, fileExt, {from: user2});
+        await chainStorage.nodeAcceptTask(9, {from: node1});
+        await chainStorage.nodeAcceptTask(10, {from: node2});
+        await chainStorage.nodeAcceptTask(11, {from: node3});
+        await chainStorage.nodeAcceptTask(12, {from: node4});
+        await chainStorage.nodeFinishTask(9, common.fileSize, {from: node1});
+        await chainStorage.nodeFinishTask(10, common.fileSize, {from: node2});
+        await chainStorage.nodeFinishTask(11, common.fileSize, {from: node3});
+        await chainStorage.nodeFinishTask(12, common.fileSize, {from: node4});
 
         // check Task
-        currentTid = await taskInstance.getCurrentTid.call();
+        currentTid = await taskStorage.getCurrentTid.call();
         assert.equal(currentTid, 12);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node1);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node1);
         assert.equal(nodeMaxTid, 9);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node2);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node2);
         assert.equal(nodeMaxTid, 10);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node3);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node3);
         assert.equal(nodeMaxTid, 11);
-        nodeMaxTid = await taskInstance.getNodeMaxTid.call(node4);
+        nodeMaxTid = await taskStorage.getNodeMaxTid.call(node4);
         assert.equal(nodeMaxTid, 12);
-        createTime = await taskInstance.getCreateTime.call(9);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(10);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(11);
-        console.log(createTime.toString());
-        createTime = await taskInstance.getCreateTime.call(12);
-        console.log(createTime.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(9);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(10);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(11);
-        console.log(createBlock.toString());
-        createBlock = await taskInstance.getCreateBlockNumber.call(12);
-        console.log(createBlock.toString());
+        
+        dumpTask(ctx, 9, 12);
 
         // check File
-        fileExist = await fileInstance.exist.call(cids[0]);
+        fileExist = await fileStorage.exist.call(cids[0]);
         assert.equal(fileExist, true);
-        _fileSize = await fileInstance.getSize.call(cids[0]);
+        _fileSize = await fileStorage.getSize.call(cids[0]);
         assert.equal(_fileSize, fileSize);
-        ownerExist = await fileInstance.ownerExist.call(cids[0], tom);
-        assert.equal(ownerExist, false);
-        ownerExist = await fileInstance.ownerExist.call(cids[0], bob);
-        assert.equal(ownerExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node1);
+        userExist = await fileStorage.userExist.call(cids[0], user1);
+        assert.equal(userExist, false);
+        userExist = await fileStorage.userExist.call(cids[0], user2);
+        assert.equal(userExist, true);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node1);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node2);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node2);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node3);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node3);
         assert.equal(nodeExist, true);
-        nodeExist = await fileInstance.nodeExist.call(cids[0], node4);
+        nodeExist = await fileStorage.nodeExist.call(cids[0], node4);
         assert.equal(nodeExist, true);
-        owners = await fileInstance.getOwners.call(cids[0]);
+        owners = await fileStorage.getUsers.call(cids[0]);
         assert.lengthOf(owners, 1);
-        nodes = await fileInstance.getNodes.call(cids[0]);
+        nodes = await fileStorage.getNodes.call(cids[0]);
         assert.lengthOf(nodes, 4);
-        totalFileNumber = await fileInstance.getTotalFileNumber.call();
+        totalFileNumber = await fileStorage.getTotalFileNumber.call();
         assert.equal(totalFileNumber, 1);
-        totalSize = await fileInstance.getTotalSize.call();
+        totalSize = await fileStorage.getTotalSize.call();
         assert.equal(totalSize, fileSize);
 
         // check User
-        _fileExt = await userInstance.getFileExt.call(tom, cids[0]);
+        _fileExt = await userStorage.getFileExt.call(user1, cids[0]);
         assert.equal(_fileExt, '');
-        _fileExt = await userInstance.getFileExt.call(bob, cids[0]);
+        _fileExt = await userStorage.getFileExt.call(user2, cids[0]);
         assert.equal(_fileExt, fileExt);
-        _fileDuration = await userInstance.getFileDuration.call(tom, cids[0]);
+        _fileDuration = await userStorage.getFileDuration.call(user1, cids[0]);
         assert.equal(_fileDuration, 0);
-        _fileDuration = await userInstance.getFileDuration.call(bob, cids[0]);
+        _fileDuration = await userStorage.getFileDuration.call(user2, cids[0]);
         assert.equal(_fileDuration, fileDuration);
-        _cids = await userInstance.getCids.call(tom, 50, 1);
+        _cids = await userStorage.getCids.call(user1, 50, 1);
         console.log(_cids);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
         // check Node
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node1);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node2);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node3);
-        assert.equal(nodeCidsNumber, 1);
-        nodeCidsNumber = await nodeInstance.getNodeCidsNumber.call(node4);
-        assert.equal(nodeCidsNumber, 1);
 
-        nodeCids = await nodeInstance.getNodeCids.call(node1);
-        console.log(nodeCids);
-        assert.lengthOf(nodeCids, 1);
-        nodeCids = await nodeInstance.getNodeCids.call(node1, 50, 1);
-        console.log(nodeCids);
-
-        nodeNumber = await nodeInstance.getTotalNodeNumber.call();
+        nodeNumber = await nodeStorage.getTotalNodeNumber.call();
         assert.equal(nodeNumber, 4);
 
-        onlineNodeNumber = await nodeInstance.getTotalOnlineNodeNumber.call();
+        onlineNodeNumber = await nodeStorage.getTotalOnlineNodeNumber.call();
         assert.equal(onlineNodeNumber, 4);
     })
 })

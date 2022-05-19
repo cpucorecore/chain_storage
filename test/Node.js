@@ -7,7 +7,7 @@ contract('Node', accounts => {
     let nodeStorage;
 
     before(async () => {
-        ctx = await common.prepareTestContextWithoutNode(accounts);
+        ctx = await common.prepareTestContext(accounts, 0, 2, 2);
 
         chainStorage = ctx.chainStorage;
         nodeStorage = ctx.nodeStorage;

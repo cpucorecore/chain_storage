@@ -12,13 +12,13 @@ contract('ChainStorage', accounts => {
     let dumpState;
 
     before(async () => {
-        ctx = await common.prepareTestContext(accounts);
+        ctx = await common.prepareTestContext(accounts, 2, 2, 2);
         chainStorage = ctx.chainStorage;
         userStorage = ctx.userStorage;
         nodeStorage = ctx.nodeStorage;
 
-        node1 = ctx.node1;
-        node2 = ctx.node2;
+        node1 = ctx.nodes[0];
+        node2 = ctx.nodes[1];
 
         dumpState = common.dumpState;
     })
