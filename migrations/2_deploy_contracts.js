@@ -7,6 +7,8 @@ const Setting = artifacts.require("Setting");
 const SettingStorage = artifacts.require("SettingStorage");
 const FileStorage = artifacts.require("FileStorage");
 const File = artifacts.require("File");
+const MonitorStorage = artifacts.require("MonitorStorage");
+const Monitor = artifacts.require("Monitor");
 const UserStorage = artifacts.require("UserStorage");
 const User = artifacts.require("User");
 const NodeStorage = artifacts.require("NodeStorage");
@@ -74,9 +76,35 @@ module.exports = function(deployer, _, accounts) {
             return contracts.resolver.setAddress(Web3Utils.fromAscii('File'), contracts.file.address);
         })
 
-        // User and UserStorage deploy
+
+
+
+        // Monitor and MonitorStorage deploy
         .then(receipt => {
             console.log('resolver.setAddress(File) receipts: ', receipt);
+            return deployer.deploy(Monitor, contracts.resolver.address);
+        })
+        .then(monitor => {
+            checkUndefined('monitor', monitor);
+            contracts.monitor = monitor;
+            contractAddrs.monitor = monitor.address;
+            return deployer.deploy(MonitorStorage, contracts.monitor.address);
+        })
+        .then(monitorStorage => {
+            checkUndefined('monitorStorage', monitorStorage);
+            contracts.monitorStorage = monitorStorage;
+            contractAddrs.monitorStorage = monitorStorage.address;
+            return contracts.monitor.setStorage(contracts.monitorStorage.address);
+        })
+        .then(receipt => {
+            console.log('monitor.setStorage receipts: ', receipt);
+            return contracts.resolver.setAddress(Web3Utils.fromAscii('Monitor'), contracts.monitor.address);
+        })
+
+
+        // User and UserStorage deploy
+        .then(receipt => {
+            console.log('resolver.setAddress(Monitor) receipts: ', receipt);
             return deployer.deploy(User, contracts.resolver.address);
         })
         .then((user) => {
@@ -183,10 +211,14 @@ module.exports = function(deployer, _, accounts) {
             console.log('task.refreshCache receipt: ', receipt);
             return contracts.chainStorage.refreshCache();
         })
+        .then(receipt => {
+            console.log('chainStorage.refreshCache receipt: ', receipt);
+            return contracts.monitor.refreshCache();
+        })
 
         // save contract addresses
         .then(receipt => {
-            console.log('chainStorage.refreshCache receipt: ', receipt);
+            console.log('monitor.refreshCache receipt: ', receipt);
             console.log("contracts deployment finished\n\n");
             const addrs = JSON.stringify(contractAddrs, null, '\t');
             fs.writeFile('contractAddrs.json', addrs, (err) => {

@@ -149,8 +149,14 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         (uint256 status,,uint256 createTime,,,,,) = _Task().getTaskState(tid);
         (,,address nodeAddress,,) = _Task().getTask(tid);
 
-        if(TaskCreated == status && createTime.add(acceptTimeout) > now) {
-            return (nodeAddress, true);
+        if(TaskCreated == status) {
+
+            uint xx = now - createTime;
+            uint xxx = now - acceptTimeout;
+            if(xx > acceptTimeout) {
+                require(false, "test"); // TODO fix
+                return (address(0), 1==1);
+            }
         }
     }
 
@@ -165,13 +171,13 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         if(Add == action) {
             uint256 addFileTimeout = _Setting().getAddFileTaskTimeout();
 
-            if(acceptTime.add(addFileTimeout) > now) {
+            if(now > acceptTime.add(addFileTimeout)) {
                 return (nodeAddress, true);
             }
 
             uint256 addFileProgressTimeout = _Setting().getAddFileProgressTimeout();
             (uint256 progressTime, uint256 progressLastSize, uint256 progressCurrentSize,,,) = _Task().getAddFileTaskProgress(tid);
-            if(progressTime.add(addFileProgressTimeout) > now) {
+            if(now > progressTime.add(addFileProgressTimeout)) {
                 return (nodeAddress, true);
             }
 
@@ -180,7 +186,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
             }
         } else {
             uint256 deleteFileTimeout = _Setting().getDeleteFileTaskTimeout();
-            if(acceptTime.add(deleteFileTimeout) > now) {
+            if(now > acceptTime.add(deleteFileTimeout)) {
                 return (nodeAddress, true);
             }
         }

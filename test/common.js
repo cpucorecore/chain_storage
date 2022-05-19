@@ -2,6 +2,7 @@ const nodeStorageTotal = 1024*1024*1024*100; // 100GB
 const initSpace = 1024*1024*1024*5;
 const maxNodeExtLength = 1024;
 const maxUserExtLength = 1024;
+const maxMonitorExtLength = 1024;
 const maxFileExtLength = 1024;
 const maxCidLength = 512;
 let replica = 2;
@@ -18,6 +19,13 @@ const cids = [
     'QmbZU93HjXLn5wseFjCLyw1tM5BDoitSiZfR5o3Jo6C6tN', // hash: 0x68fc51c0de0c0e6be1067b90862da21f2e796b933851e5aaecf9d1d6f6ff332b
     'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir' // hash: 0x5ef8d464eb9a1baaf9c52ccfef2262fda94bd65cc559526f90e9ea37e73b2068
 ];
+
+const monitorExt = 'monitorExt';
+
+const TaskAcceptTimeout = 3600;
+const AddFileTaskTimeout = 3600*24;
+const DeleteFileTaskTimeout = 60*10;
+const AddFileProgressTimeout = 60*10;
 
 const ChainStorage = artifacts.require("ChainStorage");
 const Setting = artifacts.require("Setting");
@@ -43,13 +51,19 @@ async function prepareTestContext(accounts, nodeNumber, userNumber, _replica) {
     await ctx.setting.setReplica(_replica);
     await ctx.setting.setMaxUserExtLength(maxUserExtLength);
     await ctx.setting.setMaxNodeExtLength(maxNodeExtLength);
+    await ctx.setting.setMaxMonitorExtLength(maxMonitorExtLength);
     await ctx.setting.setMaxFileExtLength(maxFileExtLength);
     await ctx.setting.setInitSpace(initSpace);
     await ctx.setting.setMaxCidLength(maxCidLength);
     await ctx.setting.setAdmin(accounts[0], {from: accounts[0]});
+    await ctx.setting.setTaskAcceptTimeout(TaskAcceptTimeout);
+    await ctx.setting.setAddFileTaskTimeout(AddFileTaskTimeout);
+    await ctx.setting.setDeleteFileTaskTimeout(DeleteFileTaskTimeout);
+    await ctx.setting.setAddFileProgressTimeout(AddFileProgressTimeout);
 
     ctx.users = [];
     ctx.nodes = [];
+    ctx.monitors = [];
 
     if(nodeNumber > 10) {
         nodeNumber = 10;
@@ -71,8 +85,16 @@ async function prepareTestContext(accounts, nodeNumber, userNumber, _replica) {
         await ctx.chainStorage.userRegister(userExt, {from: accounts[i]});
     }
 
+    const monitorNumber = 2;
+    for(let i=0; i<monitorNumber; i++) {
+        ctx.monitors.push(accounts[i]);
+        await ctx.chainStorage.monitorRegister(monitorExt, {from: accounts[i]});
+        await ctx.chainStorage.monitorOnline({from: accounts[i]});
+    }
+
     console.log("users:[" + ctx.users + "]");
     console.log("nodes:[" + ctx.nodes + "]");
+    console.log("monitors:[" + ctx.monitors + "]");
 
     return ctx;
 }
@@ -119,6 +141,26 @@ async function dumpTask(ctx, from, to) {
         task = await ctx.taskStorage.getTask.call(i);
         console.log("task[" + i + "]:" + task[0] + "," + task[1] + "," + task[2] + "," + task[3] + "," + task[4]);
     }
+    console.log("\n")
+}
+
+async function dumpTaskState(ctx, from, to) {
+    console.log("================taskState[" + from + ", " + to + "]================");
+    let taskState;
+    console.log("status, createBlockNumber, createTime, acceptTime, acceptTimeoutTime, finishTime, failTime, timeoutTime")
+    for(let i=from; i<=to; i++) {
+        taskState = await ctx.taskStorage.getTaskState.call(i);
+        //     state.status,
+        //     state.createBlockNumber,
+        //     state.createTime,
+        //     state.acceptTime,
+        //     state.acceptTimeoutTime,
+        //     state.finishTime,
+        //     state.failTime,
+        //     state.timeoutTime);
+        console.log("taskState[" + i + "]:(" + taskState[0] + ", " + taskState[1] + ", " + taskState[2] + ", " + taskState[3] + ", " + taskState[4] + ", " + taskState[5] + ", " + taskState[6] + ", " + taskState[7] + ")");
+    }
+    console.log("\n")
 }
 
 exports.nodeStorageTotal = nodeStorageTotal;
@@ -138,3 +180,9 @@ exports.cids = cids;
 exports.prepareTestContext = prepareTestContext;
 exports.dumpState = dumpState;
 exports.dumpTask = dumpTask;
+exports.dumpTaskState = dumpTaskState;
+
+exports.TaskAcceptTimeout = TaskAcceptTimeout;
+exports.AddFileTaskTimeout = AddFileTaskTimeout;
+exports.DeleteFileTaskTimeout = DeleteFileTaskTimeout;
+exports.AddFileProgressTimeout = AddFileProgressTimeout;
