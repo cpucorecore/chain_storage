@@ -1,55 +1,40 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const User = artifacts.require("User");
-const ChainStorage = artifacts.require("ChainStorage");
-
 contract('ChainStorage', accounts => {
-    let size = 10000;
-    let cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
+    let ctx;
+    let chainStorage;
+    let userStorage;
+    let nodeStorage;
 
-    let settingInstance;
-    let nodeInstance;
-    let userInstance;
-    let chainStorageInstance;
+    let node1;
+    let node2;
 
-    let node1 = accounts[5];
-    let node2 = accounts[6];
-
-    let tom = accounts[0];
-    let bob = accounts[1];
+    let dumpState;
 
     before(async () => {
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        userInstance = await User.deployed();
-        chainStorageInstance = await ChainStorage.deployed();
+        ctx = await common.prepareTestContext(accounts);
+        chainStorage = ctx.chainStorage;
+        userStorage = ctx.userStorage;
+        nodeStorage = ctx.nodeStorage;
 
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setInitSpace(common.initSpace);
+        node1 = ctx.node1;
+        node2 = ctx.node2;
 
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: node1});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: node2});
-
-        await chainStorageInstance.nodeOnline({from: node1});
-        await chainStorageInstance.nodeOnline({from: node2});
+        dumpState = common.dumpState;
     })
 
     it('exist', async () => {
         let exist;
 
-        exist = await nodeInstance.exist.call(node1);
+        exist = await nodeStorage.exist.call(node1);
         assert.equal(exist, true);
 
-        exist = await nodeInstance.exist.call(node2);
+        exist = await nodeStorage.exist.call(node2);
         assert.equal(exist, true);
 
-        await chainStorageInstance.userRegister(common.userExt, {from: tom});
+        await chainStorage.userRegister(common.userExt, {from: accounts[9]});
 
-        exist = await userInstance.exist.call(tom);
+        exist = await userStorage.exist.call(accounts[9]);
         assert.equal(exist, true);
     })
 });

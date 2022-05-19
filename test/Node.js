@@ -1,127 +1,117 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-
 contract('Node', accounts => {
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
+    let ctx;
+
+    let chainStorage;
+    let nodeStorage;
+
+    let dumpState;
 
     before(async () => {
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
+        ctx = await common.prepareTestContextWithoutNode(accounts);
 
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setInitSpace(common.initSpace);
+        chainStorage = ctx.chainStorage;
+        nodeStorage = ctx.nodeStorage;
+
+        dumpState = common.dumpState;
     })
 
     it('exist', async () => {
         const node = accounts[0];
-        let exist;
-
-        exist = await nodeInstance.exist.call(node);
+        
+        let exist = await nodeStorage.exist.call(node);
         assert.equal(exist, false);
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        exist = await nodeInstance.exist.call(node);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        exist = await nodeStorage.exist.call(node);
         assert.equal(exist, true);
 
-        await nodeInstance.deRegister(node);
-        exist = await nodeInstance.exist.call(node);
+        await chainStorage.nodeDeRegister({from: node});
+        exist = await nodeStorage.exist.call(node);
         assert.equal(exist, false);
     })
 
     it('status', async () => {
-        const node = accounts[0];
-        let status;
-
-        status = await nodeInstance.getStatus.call(node);
+        const node = accounts[1];
+        
+        let status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 0);
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        status = await nodeInstance.getStatus.call(node);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 1);
 
-        await nodeInstance.online(node);
-        status = await nodeInstance.getStatus.call(node);
+        await chainStorage.nodeOnline({from: node});
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 2);
 
-        await nodeInstance.maintain(node);
-        status = await nodeInstance.getStatus.call(node);
+        await chainStorage.nodeMaintain({from: node});
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 3);
 
-        await nodeInstance.deRegister(node);
-        status = await nodeInstance.getStatus.call(node);
+        await chainStorage.nodeDeRegister({from: node});
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 0);
     })
 
     it.skip('status2', async () => {
-        const node = accounts[1];
-        let status;
-
-        status = await nodeInstance.getStatus.call(node);
+        const node = accounts[2];
+        
+        let status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 0);
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        status = await nodeInstance.getStatus.call(node);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 1);
 
-        // await nodeInstance.maintain(node);
+        // await nodeStorage.maintain(node);
         assert.throws(async () => {
-            await nodeInstance.maintain(node);
+            await nodeStorage.maintain({from: node});
         }); //TODO fix
-        status = await nodeInstance.getStatus.call(node);
+        status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 1);
     })
 
     it('ext tests', async () => {
-        const node = accounts[2];
+        const node = accounts[3];
         const newExt = 'newExt';
-        let ext;
 
-        ext = await nodeInstance.getExt.call(node);
+        let ext = await nodeStorage.getExt.call(node);
         assert.equal(ext, '');
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        ext = await nodeInstance.getExt.call(node);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        ext = await nodeStorage.getExt.call(node);
         assert.equal(ext, common.nodeExt);
 
-        await nodeInstance.setExt(node, newExt);
-        ext = await nodeInstance.getExt.call(node);
+        await chainStorage.nodeSetExt(newExt, {from: node});
+        ext = await nodeStorage.getExt.call(node);
         assert.equal(ext, newExt);
 
-        await nodeInstance.deRegister(node);
-        ext = await nodeInstance.getExt.call(node);
+        await chainStorage.nodeDeRegister({from: node});
+        ext = await nodeStorage.getExt.call(node);
         assert.equal(ext, '');
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        ext = await nodeInstance.getExt.call(node);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        ext = await nodeStorage.getExt.call(node);
         assert.equal(ext, common.nodeExt);
     });
 
     it('storage tests', async () => {
-        const node = accounts[3];
-        let storageSpaceInfo;
-
-        storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
+        const node = accounts[4];
+        
+        let storageSpaceInfo = await nodeStorage.getStorageSpace.call(node);
+        assert.equal(storageSpaceInfo[0], 0);
         assert.equal(storageSpaceInfo[1], 0);
-        assert.equal(storageSpaceInfo[0], 0);
 
-        await nodeInstance.register(node, common.nodeTotalSpace, common.nodeExt);
-        storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
-        assert.equal(storageSpaceInfo[1], common.nodeTotalSpace);
+        await chainStorage.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: node});
+        storageSpaceInfo = await nodeStorage.getStorageSpace.call(node);
         assert.equal(storageSpaceInfo[0], 0);
+        assert.equal(storageSpaceInfo[1], common.nodeStorageTotal);
 
-        await nodeInstance.deRegister(node);
-        storageSpaceInfo = await nodeInstance.getStorageSpaceInfo.call(node);
+        await chainStorage.nodeDeRegister({from: node});
+        storageSpaceInfo = await nodeStorage.getStorageSpace.call(node);
+        assert.equal(storageSpaceInfo[0], 0);
         assert.equal(storageSpaceInfo[1], 0);
-        assert.equal(storageSpaceInfo[0], 0);
     });
 });

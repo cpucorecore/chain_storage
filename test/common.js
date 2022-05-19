@@ -1,4 +1,4 @@
-const nodeTotalSpace = 1024*1024*1024*100; // 100GB
+const nodeStorageTotal = 1024*1024*1024*100; // 100GB
 const initSpace = 1024*1024*1024*5;
 const maxNodeExtLength = 1024;
 const maxUserExtLength = 1024;
@@ -20,40 +20,67 @@ const TaskStorage = artifacts.require("TaskStorage");
 const UserStorage = artifacts.require("UserStorage");
 
 async function prepareTestContext(accounts) {
-    let context = {};
+    let ctx = {};
 
-    context.chainStorage = await ChainStorage.deployed();
-    context.setting = await Setting.deployed();
-    context.nodeStorage = await NodeStorage.deployed();
-    context.fileStorage = await FileStorage.deployed();
-    context.taskStorage = await TaskStorage.deployed();
-    context.userStorage = await UserStorage.deployed();
+    ctx.chainStorage = await ChainStorage.deployed();
+    ctx.setting = await Setting.deployed();
+    ctx.nodeStorage = await NodeStorage.deployed();
+    ctx.fileStorage = await FileStorage.deployed();
+    ctx.taskStorage = await TaskStorage.deployed();
+    ctx.userStorage = await UserStorage.deployed();
 
-    await context.setting.setReplica(replica);
-    await context.setting.setMaxUserExtLength(maxUserExtLength);
-    await context.setting.setMaxNodeExtLength(maxNodeExtLength);
-    await context.setting.setMaxFileExtLength(maxFileExtLength);
-    await context.setting.setInitSpace(initSpace);
-    await context.setting.setMaxCidLength(maxCidLength);
+    await ctx.setting.setReplica(replica);
+    await ctx.setting.setMaxUserExtLength(maxUserExtLength);
+    await ctx.setting.setMaxNodeExtLength(maxNodeExtLength);
+    await ctx.setting.setMaxFileExtLength(maxFileExtLength);
+    await ctx.setting.setInitSpace(initSpace);
+    await ctx.setting.setMaxCidLength(maxCidLength);
 
-    context.user1 = accounts[0];
-    context.user2 = accounts[1];
-    await context.chainStorage.userRegister(userExt, {from: context.user1});
-    await context.chainStorage.userRegister(userExt, {from: context.user2});
+    ctx.user1 = accounts[0];
+    ctx.user2 = accounts[1];
+    await ctx.chainStorage.userRegister(userExt, {from: ctx.user1});
+    await ctx.chainStorage.userRegister(userExt, {from: ctx.user2});
 
-    context.node1 = accounts[8];
-    context.node2 = accounts[9];
-    await context.chainStorage.nodeRegister(nodeTotalSpace, nodeExt, {from: context.node1});
-    await context.chainStorage.nodeRegister(nodeTotalSpace, nodeExt, {from: context.node2});
+    ctx.node1 = accounts[8];
+    ctx.node2 = accounts[9];
+    await ctx.chainStorage.nodeRegister(nodeStorageTotal, nodeExt, {from: ctx.node1});
+    await ctx.chainStorage.nodeRegister(nodeStorageTotal, nodeExt, {from: ctx.node2});
 
-    await context.chainStorage.nodeOnline({from: context.node1});
-    await context.chainStorage.nodeOnline({from: context.node2});
+    await ctx.chainStorage.nodeOnline({from: ctx.node1});
+    await ctx.chainStorage.nodeOnline({from: ctx.node2});
 
-    console.log("user1:" + context.user1);
-    console.log("user2:" + context.user2);
-    console.log("node1:" + context.node1);
-    console.log("node2:" + context.node2);
-    return context;
+    console.log("user1:" + ctx.user1);
+    console.log("user2:" + ctx.user2);
+    console.log("node1:" + ctx.node1);
+    console.log("node2:" + ctx.node2);
+    return ctx;
+}
+
+async function prepareTestContextWithoutNode(accounts) {
+    let ctx = {};
+
+    ctx.chainStorage = await ChainStorage.deployed();
+    ctx.setting = await Setting.deployed();
+    ctx.nodeStorage = await NodeStorage.deployed();
+    ctx.fileStorage = await FileStorage.deployed();
+    ctx.taskStorage = await TaskStorage.deployed();
+    ctx.userStorage = await UserStorage.deployed();
+
+    await ctx.setting.setReplica(replica);
+    await ctx.setting.setMaxUserExtLength(maxUserExtLength);
+    await ctx.setting.setMaxNodeExtLength(maxNodeExtLength);
+    await ctx.setting.setMaxFileExtLength(maxFileExtLength);
+    await ctx.setting.setInitSpace(initSpace);
+    await ctx.setting.setMaxCidLength(maxCidLength);
+
+    ctx.user1 = accounts[0];
+    ctx.user2 = accounts[1];
+    await ctx.chainStorage.userRegister(userExt, {from: ctx.user1});
+    await ctx.chainStorage.userRegister(userExt, {from: ctx.user2});
+
+    console.log("user1:" + ctx.user1);
+    console.log("user2:" + ctx.user2);
+    return ctx;
 }
 
 async function dumpState(ctx, what) {
@@ -89,7 +116,7 @@ async function dumpState(ctx, what) {
     console.log("--------------------------------\n");
 }
 
-exports.nodeTotalSpace = nodeTotalSpace;
+exports.nodeStorageTotal = nodeStorageTotal;
 exports.nodeExt = nodeExt;
 exports.initSpace = initSpace;
 exports.maxNodeExtLength = maxNodeExtLength;
@@ -103,4 +130,5 @@ exports.fileSize = fileSize;
 exports.fileExt = fileExt;
 exports.cid = cid;
 exports.prepareTestContext = prepareTestContext;
+exports.prepareTestContextWithoutNode = prepareTestContextWithoutNode;
 exports.dumpState = dumpState;
