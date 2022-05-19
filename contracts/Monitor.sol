@@ -95,21 +95,17 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         if(_Task().isOver(tid)) return false;
         require(_Task().exist(tid), contractName.concat("M:task not exist"));
 
-        bool isTimeout;
-        address nodeAddress;
-        (nodeAddress, isTimeout) = _isTaskAcceptTimeout(tid);
+        (address nodeAddress, bool isTimeout) = _isTaskAcceptTimeout(tid);
         if(isTimeout) {
             reportTaskAcceptTimeout(nodeAddress, tid);
-            return false;
+            continueCheck = false;
         } else {
             (nodeAddress, isTimeout) = _isTaskTimeout(tid);
             if(isTimeout) {
                 reportTaskTimeout(nodeAddress, tid);
-                return false;
+                continueCheck = false;
             }
         }
-
-        return true;
     }
 
     function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
@@ -147,22 +143,17 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
     function _isTaskAcceptTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
         uint256 acceptTimeout = _Setting().getTaskAcceptTimeout();
         (uint256 status,,uint256 createTime,,,,,) = _Task().getTaskState(tid);
-        (,,address nodeAddress,,) = _Task().getTask(tid);
+        (,,nodeAddress,,) = _Task().getTask(tid);
 
-        if(TaskCreated == status) {
-
-            uint xx = now - createTime;
-            uint xxx = now - acceptTimeout;
-            if(xx > acceptTimeout) {
-                require(false, "test"); // TODO fix
-                return (address(0), 1==1);
-            }
+        if(TaskCreated == status && now - createTime > acceptTimeout) {
+            isTimeout = true;
         }
     }
 
     function _isTaskTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
         (uint256 status,,,uint256 acceptTime,,,,) = _Task().getTaskState(tid);
-        (,uint256 action, address nodeAddress,,) = _Task().getTask(tid);
+        uint256 action;
+        (,action,nodeAddress,,) = _Task().getTask(tid);
 
         if(TaskAccepted != status) {
             return (nodeAddress, false);

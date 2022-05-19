@@ -50,6 +50,7 @@ contract('Monitor', accounts => {
 
         await chainStorage.monitorCheckTask(1, {from: ctx.monitors[0]});
         await timeMachine.advanceTimeAndBlock(7000);
+        // await timeMachine.advanceBlock();
         await chainStorage.monitorCheckTask(1, {from: ctx.monitors[0]});
         await dumpTaskState(ctx, 1, 2);
     })
