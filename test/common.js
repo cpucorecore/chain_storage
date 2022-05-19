@@ -11,6 +11,13 @@ const duration = 3600;
 const fileSize = 1111;
 const fileExt = 'fileExt';
 const cid = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
+const cids = [
+    'QmWAJk3wmp8jqTWp2dQ3NRdoBjnmvupdL2GiBqt69FFk2H', // hash: 0xdda4e1efafe56f53f4025cd0708f6bdff673e1aa3995eea9f023c6eec2a7eb4a
+    'QmUgU1m8wtsiyfXnKJn6yMP66zph5X716GZqjqYrZWsLjf', // hash: 0xf8af37dd2f20cebb5f9720a4c63a7ceaa036a5042a30b87a19832e0fa530c84c
+    'QmRnCyTbu47hdg173ja4j8xUoEZ5MjRHT6yqDMSqtqXHhF', // hash: 0xd4a832f0884972948d6eee2c2daa0e91def2d4bd5f4f899c9eda1d78a28a9b44
+    'QmbZU93HjXLn5wseFjCLyw1tM5BDoitSiZfR5o3Jo6C6tN', // hash: 0x68fc51c0de0c0e6be1067b90862da21f2e796b933851e5aaecf9d1d6f6ff332b
+    'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir' // hash: 0x5ef8d464eb9a1baaf9c52ccfef2262fda94bd65cc559526f90e9ea37e73b2068
+];
 
 const ChainStorage = artifacts.require("ChainStorage");
 const Setting = artifacts.require("Setting");
@@ -64,8 +71,8 @@ async function prepareTestContext(accounts, nodeNumber, userNumber, _replica) {
         await ctx.chainStorage.userRegister(userExt, {from: accounts[i]});
     }
 
-    console.log("users:" + ctx.users);
-    console.log("nodes:" + ctx.nodes);
+    console.log("users:[" + ctx.users + "]");
+    console.log("nodes:[" + ctx.nodes + "]");
 
     return ctx;
 }
@@ -127,6 +134,7 @@ exports.duration = duration;
 exports.fileSize = fileSize;
 exports.fileExt = fileExt;
 exports.cid = cid;
+exports.cids = cids;
 exports.prepareTestContext = prepareTestContext;
 exports.dumpState = dumpState;
 exports.dumpTask = dumpTask;

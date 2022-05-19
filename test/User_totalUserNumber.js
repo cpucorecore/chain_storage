@@ -1,38 +1,14 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-const User = artifacts.require("User");
-
 contract('User_totalUserNumber', accounts => {
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
-    let userInstance;
+    let ctx;
+    let chainStorage;
+    let userStorage;
 
     before(async () => {
-        const node1 = accounts[5];
-        const node2 = accounts[6];
-
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
-        userInstance = await User.deployed();
-
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setInitSpace(common.initSpace);
-
-        await nodeInstance.register(node1, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node2, common.nodeTotalSpace, common.nodeExt);
-
-        await nodeInstance.online(node1);
-        await nodeInstance.online(node2);
+        ctx = await common.prepareTestContext(accounts, 0, 0, 2);
+        chainStorage = ctx.chainStorage;
+        userStorage = ctx.userStorage;
     })
 
     it('getTotalUserNumber', async () => {
@@ -43,55 +19,55 @@ contract('User_totalUserNumber', accounts => {
 
         let userNumber;
 
-        userNumber = await userInstance.getTotalUserNumber.call();
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 0);
 
-        await userInstance.register(user1, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user1});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 1);
 
-        await userInstance.deRegister(user1);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userDeRegister({from: user1});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 0);
 
-        await userInstance.register(user1, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user1});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 1);
 
-        await userInstance.register(user2, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user2});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
-        await userInstance.register(user3, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user3});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 3);
 
-        await userInstance.deRegister(user1);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userDeRegister({from: user1});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
-        await userInstance.deRegister(user2);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userDeRegister({from: user2});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 1);
 
-        await userInstance.register(user2, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user2});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
 
-        await userInstance.register(user1, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user1});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 3);
 
-        await userInstance.register(user4, common.userExt);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userRegister(common.userExt, {from: user4});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 4);
 
-        await userInstance.deRegister(user2);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userDeRegister({from: user2});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 3);
 
-        await userInstance.deRegister(user3);
-        userNumber = await userInstance.getTotalUserNumber.call();
+        await chainStorage.userDeRegister({from: user3});
+        userNumber = await userStorage.getTotalUserNumber.call();
         assert.equal(userNumber, 2);
     })
 });

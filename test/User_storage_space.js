@@ -1,84 +1,88 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-const User = artifacts.require("User");
-
 contract('User_storage_space', accounts => {
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
-    let userInstance;
+    let ctx;
+    let chainStorage;
+    let fileStorage;
+    let userStorage;
+
+    let node1;
+    let node2;
 
     before(async () => {
-        const node1 = accounts[5];
-        const node2 = accounts[6];
+        ctx = await common.prepareTestContext(accounts, 2, 0, 2);
 
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
-        userInstance = await User.deployed();
+        chainStorage = ctx.chainStorage;
+        fileStorage = ctx.fileStorage;
+        userStorage = ctx.userStorage;
 
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setMaxCidLength(common.maxCidLength);
-        await settingInstance.setInitSpace(common.initSpace);
-
-        await nodeInstance.register(node1, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node2, common.nodeTotalSpace, common.nodeExt);
-
-        await nodeInstance.online(node1);
-        await nodeInstance.online(node2);
+        node1 = ctx.nodes[0];
+        node2 = ctx.nodes[1];
     })
 
     it('space test', async () => {
-        const user = accounts[1];
-        const cid1 = 'QmeN6JUjRSZJgdQFjFMX9PHwAFueWbRecLKBZgcqYLboir';
+        const cid1 = common.cids[0];
         const cid1size = 10001;
-        const cid2 = 'QmWAJk3wmp8jqTWp2dQ3NRdoBjnmvupdL2GiBqt69FFk2H';
+        const cid2 = common.cids[1];
         const cid2size = 10002;
-        const duration = 3600;
-        const ext = "fileExt";
+        const duration = common.duration;
+        const ext = common.fileExt;
+        const user = accounts[0];
 
         let storageUsed;
         let storageTotal;
 
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageTotal, 0);
 
-        await userInstance.register(user, common.userExt);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
-        assert.equal(storageTotal, common.initSpace);
+        await chainStorage.userRegister(common.userExt, {from: user});
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageUsed, 0);
-
-        await userInstance.addFile(user, cid1, cid1size, duration, ext);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
         assert.equal(storageTotal, common.initSpace);
+
+        await chainStorage.userAddFile(cid1, duration, ext, {from: user});
+        await chainStorage.nodeAcceptTask(1, {from: node1});
+        await chainStorage.nodeAcceptTask(2, {from: node2});
+        await chainStorage.nodeFinishTask(1, cid1size, {from: node1});
+        await chainStorage.nodeFinishTask(2, cid1size, {from: node2});
+
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageUsed, cid1size);
-
-        await userInstance.addFile(user, cid2, cid2size, duration, ext);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
         assert.equal(storageTotal, common.initSpace);
+
+        await chainStorage.userAddFile(cid2, duration, ext, {from: user});
+        await chainStorage.nodeAcceptTask(3, {from: node1});
+        await chainStorage.nodeAcceptTask(4, {from: node2});
+        await chainStorage.nodeFinishTask(3, cid2size, {from: node1});
+        await chainStorage.nodeFinishTask(4, cid2size, {from: node2});
+
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageUsed, cid1size+cid2size);
-
-        await userInstance.deleteFile(user, cid1);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
         assert.equal(storageTotal, common.initSpace);
-        assert.equal(storageUsed, cid2size);
 
-        await userInstance.deleteFile(user, cid2);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        await chainStorage.userDeleteFile(cid1, {from: user});
+        await chainStorage.nodeAcceptTask(5, {from: node1});
+        await chainStorage.nodeAcceptTask(6, {from: node2});
+        await chainStorage.nodeFinishTask(5, cid1size, {from: node1});
+        await chainStorage.nodeFinishTask(6, cid1size, {from: node2});
+
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
+        assert.equal(storageUsed.toNumber(), cid2size);
         assert.equal(storageTotal, common.initSpace);
-        assert.equal(storageUsed, 0);
+
+        await chainStorage.userDeleteFile(cid2, {from: user});
+        await chainStorage.nodeAcceptTask(7, {from: node1});
+        await chainStorage.nodeAcceptTask(8, {from: node2});
+        await chainStorage.nodeFinishTask(7, cid2size, {from: node1});
+        await chainStorage.nodeFinishTask(8, cid2size, {from: node2});
+
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
+        assert.equal(storageUsed.toNumber(), 0);
+        assert.equal(storageTotal, common.initSpace);
     })
 });
