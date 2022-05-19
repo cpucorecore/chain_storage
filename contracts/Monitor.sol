@@ -6,8 +6,12 @@ import "./interfaces/IMonitor.sol";
 import "./interfaces/storages/IMonitorStorage.sol";
 import "./interfaces/ITask.sol";
 import "./interfaces/INode.sol";
+import "./interfaces/ISetting.sol";
+import "./lib/SafeMath.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
+    using SafeMath for uint256;
+
     event MonitorReport(address indexed monitorAddress, uint256 tid, uint256 reportType);
 
     constructor(IResolver _resolver) public Importable(_resolver) {
@@ -15,6 +19,7 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         imports = [
             CONTRACT_TASK,
             CONTRACT_NODE,
+            CONTRACT_SETTING,
             CONTRACT_CHAIN_STORAGE
         ];
     }
@@ -29,6 +34,10 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function _Node() private view returns (INode) {
         return INode(requireAddress(CONTRACT_NODE));
+    }
+
+    function _Setting() private view returns (ISetting) {
+        return ISetting(requireAddress(CONTRACT_SETTING));
     }
 
     function register(address monitorAddress, string calldata ext) external {
@@ -78,20 +87,103 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
         }
     }
 
-    function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
-        // TODO: should verify the taskAcceptTimeout Report by this monitor
+    function checkTask(address monitorAddress, uint256 tid) external returns (bool continueCheck) {
         mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+
+        if(_Task().isOver(tid)) return false;
+        require(_Task().exist(tid), contractName.concat("M:task not exist"));
+
+        bool isTimeout;
+        address nodeAddress;
+        (nodeAddress, isTimeout) = _isTaskAcceptTimeout(tid);
+        if(isTimeout) {
+            reportTaskAcceptTimeout(nodeAddress, tid);
+            return false;
+        } else {
+            (nodeAddress, isTimeout) = _isTaskTimeout(tid);
+            if(isTimeout) {
+                reportTaskTimeout(nodeAddress, tid);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
+        mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+
+        (address nodeAddress, bool timeout) = _isTaskAcceptTimeout(tid);
+        require(timeout, "M:task not acceptTimeout");
+
         _Storage().addReport(monitorAddress, tid, ReportAcceptTimeout, now);
+        _saveCurrentTid(monitorAddress, tid);
+
         _Node().reportAcceptTaskTimeout(tid);
+
         emit MonitorReport(monitorAddress, tid, ReportAcceptTimeout);
     }
 
     function reportTaskTimeout(address monitorAddress, uint256 tid) public {
-        // TODO: Node should verify the taskTimeout Report by this monitor
         mustAddress(CONTRACT_CHAIN_STORAGE);
+        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+
+        (address nodeAddress, bool timeout) = _isTaskTimeout(tid);
+        require(timeout, "M:task not timeout");
+
         _Storage().addReport(monitorAddress, tid, ReportTimeout, now);
+        _saveCurrentTid(monitorAddress, tid);
+
         _Node().reportTaskTimeout(tid);
+
         emit MonitorReport(monitorAddress, tid, ReportTimeout);
+    }
+
+    function _isTaskAcceptTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
+        uint256 acceptTimeout = _Setting().getTaskAcceptTimeout();
+        (uint256 status,,uint256 createTime,,,,,) = _Task().getTaskState(tid);
+        (,,address nodeAddress,,) = _Task().getTask(tid);
+
+        if(TaskCreated == status && createTime.add(acceptTimeout) > now) {
+            return (nodeAddress, true);
+        }
+    }
+
+    function _isTaskTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
+        (uint256 status,,,uint256 acceptTime,,,,) = _Task().getTaskState(tid);
+        (,uint256 action, address nodeAddress,,) = _Task().getTask(tid);
+
+        if(TaskAccepted != status) {
+            return (nodeAddress, false);
+        }
+
+        if(Add == action) {
+            uint256 addFileTimeout = _Setting().getAddFileTaskTimeout();
+
+            if(acceptTime.add(addFileTimeout) > now) {
+                return (nodeAddress, true);
+            }
+
+            uint256 addFileProgressTimeout = _Setting().getAddFileProgressTimeout();
+            (uint256 progressTime, uint256 progressLastSize, uint256 progressCurrentSize,,,) = _Task().getAddFileTaskProgress(tid);
+            if(progressTime.add(addFileProgressTimeout) > now) {
+                return (nodeAddress, true);
+            }
+
+            if(progressLastSize == progressCurrentSize) {
+                return (nodeAddress, true);
+            }
+        } else {
+            uint256 deleteFileTimeout = _Setting().getDeleteFileTaskTimeout();
+            if(acceptTime.add(deleteFileTimeout) > now) {
+                return (nodeAddress, true);
+            }
+        }
     }
 
     function _saveCurrentTid(address monitorAddress, uint256 tid) private {

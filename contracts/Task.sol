@@ -139,7 +139,23 @@ contract Task is Importable, ExternalStorable, ITask {
         return _Storage().getNodeMaxTid(nodeAddress);
     }
 
+    function exist(uint256 tid) external view returns (bool) {
+        return _Storage().exist(tid);
+    }
+
+    function isOver(uint256 tid) external view returns (bool) {
+        return _Storage().isOver(tid);
+    }
+
     function getTask(uint256 tid) external view returns (address, uint256, address, bool, string memory) {
         return _Storage().getTask(tid);
+    }
+
+    function getTaskState(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+        return _Storage().getTaskState(tid);
+    }
+
+    function getAddFileTaskProgress(uint256 tid) external view returns (uint256, uint256, uint256, uint256, uint256, uint256) {
+        return _Storage().getAddFileTaskProgress(tid);
     }
 }
