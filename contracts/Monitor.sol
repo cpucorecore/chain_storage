@@ -110,8 +110,8 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
-        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+//        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
+//        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
 
         (address nodeAddress, bool timeout) = _isTaskAcceptTimeout(tid);
         require(timeout, "M:task not acceptTimeout");

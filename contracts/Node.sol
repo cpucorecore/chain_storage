@@ -21,6 +21,7 @@ contract Node is Importable, ExternalStorable, INode {
             CONTRACT_SETTING,
             CONTRACT_TASK,
             CONTRACT_FILE,
+            CONTRACT_MONITOR,
             CONTRACT_CHAIN_STORAGE
         ];
     }
@@ -197,8 +198,6 @@ contract Node is Importable, ExternalStorable, INode {
     }
 
     function _offline(address nodeAddress) private {
-        mustAddress(CONTRACT_CHAIN_STORAGE);
-
         uint256 status = _Storage().getStatus(nodeAddress);
         require(NodeOnline == status, "N:wrong status must[O]");
 

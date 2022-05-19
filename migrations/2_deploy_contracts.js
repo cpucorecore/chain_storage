@@ -127,7 +127,7 @@ module.exports = function(deployer, _, accounts) {
         // Node and NodeStorage deploy
         .then(receipt => {
             console.log('resolver.setAddress(User) receipts: ', receipt);
-            return deployer.deploy(Node, contracts.resolver.address, {gas: 20000000});
+            return deployer.deploy(Node, contracts.resolver.address);
         })
         .then(node => {
             checkUndefined('node', node);
