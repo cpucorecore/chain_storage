@@ -24,7 +24,8 @@ contract ChainStorage is Proxyable, Pausable, Importable {
             CONTRACT_USER,
             CONTRACT_NODE,
             CONTRACT_TASK,
-            CONTRACT_MONITOR
+            CONTRACT_MONITOR,
+            ACCOUNT_ADMIN
         ];
     }
 

@@ -35,6 +35,7 @@ async function prepareTestContext(accounts) {
     await ctx.setting.setMaxFileExtLength(maxFileExtLength);
     await ctx.setting.setInitSpace(initSpace);
     await ctx.setting.setMaxCidLength(maxCidLength);
+    await ctx.setting.setAdmin(accounts[0], {from: accounts[0]});
 
     ctx.user1 = accounts[0];
     ctx.user2 = accounts[1];
@@ -72,6 +73,7 @@ async function prepareTestContextWithoutNode(accounts) {
     await ctx.setting.setMaxFileExtLength(maxFileExtLength);
     await ctx.setting.setInitSpace(initSpace);
     await ctx.setting.setMaxCidLength(maxCidLength);
+    await ctx.setting.setAdmin(accounts[0], {from: accounts[0]});
 
     ctx.user1 = accounts[0];
     ctx.user2 = accounts[1];

@@ -1,100 +1,98 @@
 const common = require('./common');
 
-const Setting = artifacts.require("Setting");
-const Node = artifacts.require("Node");
-const File = artifacts.require("File");
-const Task = artifacts.require("Task");
-const User = artifacts.require("User");
-
 contract('User', accounts => {
-    let settingInstance;
-    let nodeInstance;
-    let fileInstance;
-    let taskInstance;
-    let userInstance;
+    let ctx;
+
+    let chainStorage;
+    let userStorage;
+    let fileStorage;
+
+    let node1;
+    let node2;
+
+    let user1;
+    let user2;
+
+    let dumpState;
 
     before(async () => {
-        const node1 = accounts[5];
-        const node2 = accounts[6];
+        ctx = await common.prepareTestContext(accounts);
 
-        settingInstance = await Setting.deployed();
-        nodeInstance = await Node.deployed();
-        fileInstance = await File.deployed();
-        taskInstance = await Task.deployed();
-        userInstance = await User.deployed();
+        chainStorage = ctx.chainStorage;
+        userStorage = ctx.userStorage;
+        fileStorage = ctx.fileStorage;
 
-        await settingInstance.setReplica(common.replica);
-        await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
-        await settingInstance.setMaxUserExtLength(common.maxUserExtLength);
-        await settingInstance.setInitSpace(common.initSpace);
+        node1 = ctx.node1;
+        node2 = ctx.node2;
 
-        await nodeInstance.register(node1, common.nodeTotalSpace, common.nodeExt);
-        await nodeInstance.register(node2, common.nodeTotalSpace, common.nodeExt);
+        user1 = ctx.user1;
+        user2 = ctx.user2;
 
-        await nodeInstance.online(node1);
-        await nodeInstance.online(node2);
+        dumpState = common.dumpState;
     })
 
     it('exist', async () => {
-        const user = accounts[0];
+        const user = accounts[3];
         let exist;
 
-        exist = await userInstance.exist.call(user);
+        exist = await userStorage.exist.call(user);
         assert.equal(exist, false);
 
-        await userInstance.register(user, common.userExt);
-        exist = await userInstance.exist.call(user);
+        await chainStorage.userRegister(common.userExt, {from: user});
+        exist = await userStorage.exist.call(user);
         assert.equal(exist, true);
 
-        await userInstance.deRegister(user);
-        exist = await userInstance.exist.call(user);
+        await chainStorage.userDeRegister({from: user});
+        exist = await userStorage.exist.call(user);
         assert.equal(exist, false);
     })
 
     it('ext tests', async () => {
-        const user = accounts[0];
+        const user = accounts[4];
         const newExt = 'newExt';
 
         let ext;
 
-        ext = await userInstance.getExt.call(user);
+        ext = await userStorage.getExt.call(user);
         assert.equal(ext, '');
 
-        await userInstance.register(user, common.userExt);
-        ext = await userInstance.getExt.call(user);
+        await chainStorage.userRegister(common.userExt, {from: user});
+        ext = await userStorage.getExt.call(user);
         assert.equal(ext, common.userExt);
 
-        await userInstance.setExt(user, newExt);
-        ext = await userInstance.getExt.call(user);
+        await chainStorage.userSetExt(newExt, {from: user});
+        ext = await userStorage.getExt.call(user);
         assert.equal(ext, newExt);
     })
 
     it('storage tests', async () => {
-        const user = accounts[1];
+        const user = accounts[5];
         const newSpace = common.initSpace*2;
 
         let storageUsed;
         let storageTotal;
 
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageTotal, 0);
 
-        await userInstance.register(user, common.userExt);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        await chainStorage.userRegister(common.userExt, {from: user});
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageTotal, common.initSpace);
         assert.equal(storageUsed, 0);
 
-        await userInstance.changeSpace(user, newSpace);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        await chainStorage.userSetStorageTotal(user, newSpace, {from: accounts[0]});
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageTotal, newSpace);
         assert.equal(storageUsed, 0);
 
-        await userInstance.deRegister(user);
-        storageUsed = await userInstance.getStorageUsed.call(user);
-        storageTotal = await userInstance.getStorageTotal.call(user);
+        await chainStorage.userDeRegister({from: user});
+        storageUsed = await userStorage.getStorageUsed.call(user);
+        storageTotal = await userStorage.getStorageTotal.call(user);
         assert.equal(storageTotal, 0);
         assert.equal(storageUsed, 0);
+
+        await dumpState(ctx, "last");
     })
 });

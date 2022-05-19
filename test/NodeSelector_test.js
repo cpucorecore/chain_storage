@@ -21,16 +21,16 @@ contract('NodeSelector', accounts => {
         await settingInstance.setMaxNodeExtLength(common.maxNodeExtLength);
         await settingInstance.setInitSpace(common.initSpace);
 
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[0]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[1]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[2]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[3]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[4]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[5]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[6]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[7]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[8]});
-        await chainStorageInstance.nodeRegister(common.nodeTotalSpace, common.nodeExt, {from: accounts[9]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[0]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[1]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[2]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[3]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[4]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[5]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[6]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[7]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[8]});
+        await chainStorageInstance.nodeRegister(common.nodeStorageTotal, common.nodeExt, {from: accounts[9]});
 
         await chainStorageInstance.nodeOnline({from: accounts[0]});
         await chainStorageInstance.nodeOnline({from: accounts[1]});
