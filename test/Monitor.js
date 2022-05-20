@@ -1,5 +1,6 @@
 const common = require('./common');
-const timeMachine = require('ganache-time-traveler');
+
+const {time} = require('openzeppelin-test-helpers');
 
 contract('Monitor', accounts => {
     let ctx;
@@ -12,6 +13,7 @@ contract('Monitor', accounts => {
     let node2;
 
     let user;
+    let monitor;
 
     let dumpState;
     let dumpTask;
@@ -37,6 +39,7 @@ contract('Monitor', accounts => {
         node2 = ctx.nodes[1];
 
         user = ctx.users[0];
+        monitor = ctx.monitors[0];
 
         dumpState = common.dumpState;
         dumpTask = common.dumpTask;
@@ -46,12 +49,14 @@ contract('Monitor', accounts => {
     it('accept timeout test', async () => {
         await chainStorage.userAddFile(common.cid, common.duration, common.userExt, {from: user});
         await dumpTask(ctx, 1, 2);
+
+        await chainStorage.monitorCheckTask(1, {from: monitor});
         await dumpTaskState(ctx, 1, 2);
 
-        await chainStorage.monitorCheckTask(1, {from: ctx.monitors[0]});
-        await timeMachine.advanceTimeAndBlock(7000);
-        // await timeMachine.advanceBlock();
-        await chainStorage.monitorCheckTask(1, {from: ctx.monitors[0]});
+        var now = await time.latest();
+
+        await time.increaseTo(now.add(time.duration.minutes(70)));
+        await chainStorage.monitorReportTaskAcceptTimeout(1, {from: monitor});
         await dumpTaskState(ctx, 1, 2);
     })
 });

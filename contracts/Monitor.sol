@@ -11,6 +11,7 @@ import "./lib/SafeMath.sol";
 
 contract Monitor is Importable, ExternalStorable, IMonitor {
     using SafeMath for uint256;
+    using Strings for uint256;
 
     event MonitorReport(address indexed monitorAddress, uint256 tid, uint256 reportType);
 
@@ -89,96 +90,91 @@ contract Monitor is Importable, ExternalStorable, IMonitor {
 
     function checkTask(address monitorAddress, uint256 tid) external returns (bool continueCheck) {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
-        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+        require(_Storage().exist(monitorAddress), "M:not exist");
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), "M:status not online");
+        require(_Task().exist(tid), "M:task not exist");
 
         if(_Task().isOver(tid)) return false;
-        require(_Task().exist(tid), contractName.concat("M:task not exist"));
 
-        (address nodeAddress, bool isTimeout) = _isTaskAcceptTimeout(tid);
-        if(isTimeout) {
-            reportTaskAcceptTimeout(nodeAddress, tid);
+        continueCheck = true;
+        if(_isTaskAcceptTimeout(tid)) {
+            _reportTaskAcceptTimeout(monitorAddress, tid);
             continueCheck = false;
-        } else {
-            (nodeAddress, isTimeout) = _isTaskTimeout(tid);
-            if(isTimeout) {
-                reportTaskTimeout(nodeAddress, tid);
-                continueCheck = false;
-            }
+        } else if(_isTaskTimeout(tid)) {
+            _reportTaskTimeout(monitorAddress, tid);
+            continueCheck = false;
         }
     }
 
     function reportTaskAcceptTimeout(address monitorAddress, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-//        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
-//        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+        require(_Storage().exist(monitorAddress), "M:not exist");
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), "M:status not online");
+        require(_isTaskAcceptTimeout(tid), "M:task not acceptTimeout");
 
-        (address nodeAddress, bool timeout) = _isTaskAcceptTimeout(tid);
-        require(timeout, "M:task not acceptTimeout");
-
-        _Storage().addReport(monitorAddress, tid, ReportAcceptTimeout, now);
-        _saveCurrentTid(monitorAddress, tid);
-
-        _Node().reportAcceptTaskTimeout(tid);
-
-        emit MonitorReport(monitorAddress, tid, ReportAcceptTimeout);
+        _reportTaskAcceptTimeout(monitorAddress, tid);
     }
 
     function reportTaskTimeout(address monitorAddress, uint256 tid) public {
         mustAddress(CONTRACT_CHAIN_STORAGE);
-        require(_Storage().exist(monitorAddress), contractName.concat("M:not exist"));
-        require(MonitorOnline == _Storage().getStatus(monitorAddress), contractName.concat("M:status not online"));
+        require(_Storage().exist(monitorAddress), "M:not exist");
+        require(MonitorOnline == _Storage().getStatus(monitorAddress), "M:status not online");
+        require(_isTaskTimeout(tid), "M:task not timeout");
 
-        (address nodeAddress, bool timeout) = _isTaskTimeout(tid);
-        require(timeout, "M:task not timeout");
+        _reportTaskTimeout(monitorAddress, tid);
+    }
 
+    function _reportTaskAcceptTimeout(address monitorAddress, uint256 tid) private {
+        _Storage().addReport(monitorAddress, tid, ReportAcceptTimeout, now);
+        _saveCurrentTid(monitorAddress, tid);
+        _Node().reportAcceptTaskTimeout(tid);
+        emit MonitorReport(monitorAddress, tid, ReportAcceptTimeout);
+    }
+
+    function _reportTaskTimeout(address monitorAddress, uint256 tid) private {
         _Storage().addReport(monitorAddress, tid, ReportTimeout, now);
         _saveCurrentTid(monitorAddress, tid);
-
         _Node().reportTaskTimeout(tid);
-
         emit MonitorReport(monitorAddress, tid, ReportTimeout);
     }
 
-    function _isTaskAcceptTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
+    function _isTaskAcceptTimeout(uint256 tid) private view returns (bool isTimeout) {
         uint256 acceptTimeout = _Setting().getTaskAcceptTimeout();
         (uint256 status,,uint256 createTime,,,,,) = _Task().getTaskState(tid);
-        (,,nodeAddress,,) = _Task().getTask(tid);
 
-        if(TaskCreated == status && now - createTime > acceptTimeout) {
+        if((TaskCreated == status) && (now > createTime.add(acceptTimeout))) {
             isTimeout = true;
         }
     }
 
-    function _isTaskTimeout(uint256 tid) private view returns (address nodeAddress, bool isTimeout) {
+    function _isTaskTimeout(uint256 tid) private view returns (bool isTimeout) {
         (uint256 status,,,uint256 acceptTime,,,,) = _Task().getTaskState(tid);
-        uint256 action;
-        (,action,nodeAddress,,) = _Task().getTask(tid);
+        (,uint256 action,,,) = _Task().getTask(tid);
 
         if(TaskAccepted != status) {
-            return (nodeAddress, false);
+            return false;
         }
 
         if(Add == action) {
             uint256 addFileTimeout = _Setting().getAddFileTaskTimeout();
 
             if(now > acceptTime.add(addFileTimeout)) {
-                return (nodeAddress, true);
+                return true;
             }
 
             uint256 addFileProgressTimeout = _Setting().getAddFileProgressTimeout();
             (uint256 progressTime, uint256 progressLastSize, uint256 progressCurrentSize,,,) = _Task().getAddFileTaskProgress(tid);
             if(now > progressTime.add(addFileProgressTimeout)) {
-                return (nodeAddress, true);
+                return true;
             }
 
             if(progressLastSize == progressCurrentSize) {
-                return (nodeAddress, true);
+                return true;
             }
         } else {
             uint256 deleteFileTimeout = _Setting().getDeleteFileTaskTimeout();
             if(now > acceptTime.add(deleteFileTimeout)) {
-                return (nodeAddress, true);
+                return true;
             }
         }
     }
