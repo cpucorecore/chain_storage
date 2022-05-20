@@ -1,4 +1,5 @@
 const common = require('./common');
+const chai = require("chai");
 
 contract('Node', accounts => {
     let ctx;
@@ -61,10 +62,10 @@ contract('Node', accounts => {
         status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 1);
 
-        // await nodeStorage.maintain(node);
-        assert.throws(async () => {
-            await nodeStorage.maintain({from: node});
-        }); //TODO fix
+        await chai.expect(
+            chainStorage.nodeMaintain({from: node})
+        ).to.be.revertedWith("N:wrong status must[O]");
+
         status = await nodeStorage.getStatus.call(node);
         assert.equal(status, 1);
     })
